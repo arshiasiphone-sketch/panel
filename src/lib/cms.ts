@@ -15,17 +15,6 @@ import {
   upsertById,
   removeById,
 } from "@/lib/cms-sync";
-import {
-  asCmsInsert,
-  asCmsUpdate,
-  asBlockInsert,
-  asBlockUpdate,
-  asSiteContentUpsert,
-  asPersonalityUpdate,
-  asPersonalityUpsert,
-  asJson,
-  type CmsTableName,
-} from "@/lib/supabase-types";
 
 type TablesRow<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];
 
@@ -61,8 +50,6 @@ export function useMenuItems() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 export function useAllMenuItems() {
@@ -73,8 +60,6 @@ export function useAllMenuItems() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -86,8 +71,6 @@ export function useGalleryImages() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 export function useAllGalleryImages() {
@@ -98,8 +81,6 @@ export function useAllGalleryImages() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -111,8 +92,6 @@ export function useEvents() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 export function useAllEvents() {
@@ -123,8 +102,6 @@ export function useAllEvents() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -136,8 +113,6 @@ export function useTestimonials() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -149,8 +124,6 @@ export function usePageBlocks() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -198,8 +171,6 @@ export function useSiteContent() {
       for (const row of data ?? []) out[row.key] = (row.value as Record<string, unknown>) ?? {};
       return out;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -216,16 +187,12 @@ type IdRow = { id: string };
 
 /* ============== Mutations (require admin) ============== */
 
-function makeUpsertHook<T extends { id?: string }>(table: CmsTableName, qk: readonly unknown[]) {
+function makeUpsertHook<T extends { id?: string }>(table: "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks", qk: readonly unknown[]) {
   return function useUpsert() {
     const qc = useQueryClient();
     return useMutation({
       mutationFn: async (row: T) => {
-        const { data, error } = await supabase
-          .from(table)
-          .upsert(asCmsInsert(table as CmsTableName, row as Record<string, unknown>))
-          .select()
-          .maybeSingle();
+        const { data, error } = await supabase.from(table).upsert(row as never).select().maybeSingle();
         if (error) throw error;
         return data;
       },
@@ -285,7 +252,7 @@ export function useCreateBlock() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { type: string; data: Record<string, unknown>; sort_order: number }) => {
-      const { data, error } = await supabase.from("page_blocks").insert(asBlockInsert(input)).select().maybeSingle();
+      const { data, error } = await supabase.from("page_blocks").insert(input as never).select().maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -301,7 +268,7 @@ export function useUpdateBlock() {
   return useMutation({
     mutationFn: async (input: { id: string; data?: Record<string, unknown>; visible?: boolean; sort_order?: number }) => {
       const { id, ...patch } = input;
-      const { error } = await supabase.from("page_blocks").update(asBlockUpdate(patch as Record<string, unknown>)).eq("id", id);
+      const { error } = await supabase.from("page_blocks").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onMutate: async (input) => beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => {
@@ -376,7 +343,7 @@ export function useUpsertSiteContent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { key: string; value: Record<string, unknown> }) => {
-      const { error } = await supabase.from("site_content").upsert(asSiteContentUpsert({ key: input.key, value: input.value }));
+      const { error } = await supabase.from("site_content").upsert({ key: input.key, value: input.value as never });
       if (error) throw error;
     },
     onMutate: async (input) => beginOptimisticUpdate<SiteContentMap>(qc, QK.site, (prev) => ({ ...(prev ?? {}), [input.key]: input.value })),
@@ -403,7 +370,7 @@ export function useUpdatePersonalityProfile() {
   return useMutation({
     mutationFn: async (input: Partial<PersonalityProfileRow> & { key: string }) => {
       const { key, ...patch } = input;
-      const { error } = await supabase.from("personality_profiles").update(asPersonalityUpdate(patch as Record<string, unknown>)).eq("key", key);
+      const { error } = await supabase.from("personality_profiles").update(patch as never).eq("key", key);
       if (error) throw error;
     },
     onMutate: async (input) => beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) => {
@@ -421,7 +388,7 @@ export function useUpsertPersonalityProfile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (row: PersonalityProfileRow) => {
-      const { error } = await supabase.from("personality_profiles").upsert(asPersonalityUpsert(row as unknown as Record<string, unknown>));
+      const { error } = await supabase.from("personality_profiles").upsert(row as never);
       if (error) throw error;
     },
     onMutate: async (row) => beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) => upsertPersonalityRow(list, row)),

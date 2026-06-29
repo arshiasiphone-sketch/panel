@@ -9,18 +9,6 @@ export type CmsThemeInput = {
   text_tertiary_color: string;
   border_radius: string;
   glass_opacity: number;
-  // Extended visual styling tokens
-  glass_blur?: number;
-  border_opacity?: number;
-  button_radius?: string;
-  card_radius?: string;
-  shadow?: string;
-  button_glow?: string;
-  gradient_start?: string;
-  gradient_end?: string;
-  hero_overlay?: string;
-  section_divider_opacity?: number;
-  input_focus_ring?: string;
 };
 
 /** Light foreground on dark surfaces (matches design-system default). */
@@ -76,15 +64,6 @@ function relativeLuminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** Generate hex from RGB values */
-function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (c: number): string => {
-    const hex = Math.round(c * 255).toString(16);
-    return hex.length === 1 ? `0${hex}` : hex;
-  };
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
 /** Picks a readable foreground oklch token for text/icons on top of `hex`. */
 export function contrastForeground(hex: string): string {
   return relativeLuminance(hex) > 0.179 ? DARK_FG : LIGHT_FG;
@@ -115,38 +94,9 @@ export function themeSettingsToCss(
   const secondaryFg = contrastForeground(theme.secondary_color);
   const accentFg = contrastForeground(theme.accent_color);
 
-  // Extended visual styling tokens
-  const glassBlur = theme.glass_blur ?? 16;
-  const borderOpacity = theme.border_opacity ?? 0.24;
-  const buttonRadius = theme.button_radius ?? theme.border_radius ?? "0.75rem";
-  const cardRadius = theme.card_radius ?? "1rem";
-  const shadow = theme.shadow ?? "0 10px 44px rgba(0, 0, 0, 0.1)";
-  const buttonGlow = theme.button_glow ?? "0 0 48px rgba(0, 0, 0, 0.2)";
-  const gradientStart = theme.gradient_start ?? primary;
-  const gradientEnd = theme.gradient_end ?? accent;
-  const heroOverlay = theme.hero_overlay ?? "rgba(0, 0, 0, 0.1)";
-  const sectionDividerOpacity = theme.section_divider_opacity ?? 0.12;
-  const inputFocusRing =
-    theme.input_focus_ring ?? `color-mix(in oklch, ${primary} 60%, ${foreground})`;
-
   return `${scope} {
-  /* Core tokens */
   --radius: ${theme.border_radius};
   --glass-opacity: ${theme.glass_opacity};
-  --glass-blur: ${glassBlur};
-  --border-opacity: ${borderOpacity};
-  --button-radius: ${buttonRadius};
-  --card-radius: ${cardRadius};
-  --shadow: ${shadow};
-  --button-glow: ${buttonGlow};
-  --gradient-start: ${gradientStart};
-  --gradient-end: ${gradientEnd};
-  --hero-overlay: ${heroOverlay};
-  --section-divider: rgba(0, 0, 0, ${sectionDividerOpacity});
-  --section-divider-opacity: ${sectionDividerOpacity};
-  --input-ring: ${inputFocusRing};
-
-  /* Color tokens */
   --primary: ${primary};
   --primary-foreground: ${primaryFg};
   --secondary: ${secondary};
@@ -157,8 +107,6 @@ export function themeSettingsToCss(
   --foreground: ${foreground};
   --text-secondary: ${textSecondaryOklch};
   --text-tertiary: ${textTertiaryOklch};
-
-  /* Derived tokens */
   --card: color-mix(in oklch, ${background} 92%, ${foreground} 8%);
   --card-foreground: ${foreground};
   --popover: ${background};
@@ -176,16 +124,5 @@ export function themeSettingsToCss(
   --sidebar-accent-foreground: ${foreground};
   --sidebar-border: color-mix(in oklch, ${foreground} 10%, ${background});
   --sidebar-ring: color-mix(in oklch, ${primary} 50%, ${foreground});
-
-  /* Theme transition animations */
-  transition:
-    background-color 250ms cubic-bezier(.2,.8,.2,1),
-    color 250ms cubic-bezier(.2,.8,.2,1),
-    border-color 250ms cubic-bezier(.2,.8,.2,1),
-    fill 250ms cubic-bezier(.2,.8,.2,1),
-    stroke 250ms cubic-bezier(.2,.8,.2,1),
-    box-shadow 250ms cubic-bezier(.2,.8,.2,1),
-    backdrop-filter 250ms cubic-bezier(.2,.8,.2,1),
-    opacity 250ms cubic-bezier(.2,.8,.2,1);
-}`;
+}`.trim();
 }

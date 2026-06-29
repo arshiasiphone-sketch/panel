@@ -1,4 +1,4 @@
-import { useEffect, useRef, lazy, Suspense } from "react";
+import { useEffect, useRef } from "react";
 
 interface Particle {
   x: number; y: number; vx: number; vy: number;
@@ -10,18 +10,6 @@ interface Props {
   primaryColor?: string;
   secondaryColor?: string;
   particleCount?: number;
-}
-
-// Skeleton placeholder for the orb background
-function OrbBackgroundSkeleton() {
-  return (
-    <canvas
-      className="fixed inset-0 z-0"
-      style={{
-        background: "linear-gradient(135deg, rgba(159,18,57,0.08) 0%, rgba(212,175,55,0.06) 50%, rgba(159,18,57,0.04) 100%)"
-      }}
-    />
-  );
 }
 
 export default function OrbBackground({

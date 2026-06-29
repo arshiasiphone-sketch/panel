@@ -4,7 +4,6 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { useUser, useIsAdmin } from "@/lib/cms";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "پنل مدیریت" }, { name: "robots", content: "noindex" }] }),
@@ -32,13 +31,7 @@ function AdminLayout() {
   if (!user) return <SignInScreen />;
   if (!isAdmin) return <NotAuthorizedScreen email={user.email ?? ""} />;
 
-  return (
-    <AdminShell>
-      <ErrorBoundary>
-        <Outlet />
-      </ErrorBoundary>
-    </AdminShell>
-  );
+  return <AdminShell><Outlet /></AdminShell>;
 }
 
 function SignInScreen() {

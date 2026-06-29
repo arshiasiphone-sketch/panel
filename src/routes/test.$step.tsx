@@ -8,7 +8,6 @@ import { useActiveQuestions, calculateDetailedResultFor, getActiveQuestionsSnaps
 import { useSubmitTestResponse, useTestQuestionsConfig } from "@/lib/test-db";
 import { EMPTY_TEST_QUESTIONS } from "@/lib/test-questions";
 import { fetchThemeSettings, QK } from "@/lib/cms";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export const Route = createFileRoute("/test/$step")({
   loader: async ({ context: { queryClient } }) => {
@@ -56,6 +55,10 @@ function QuestionPage() {
 
   if (!question) return null;
 
+  function handleSelect(optionId: string) {
+    setAnswer(question.id, optionId);
+  }
+
   async function handleNext() {
     if (!selected || submitting) return;
 
@@ -89,39 +92,6 @@ function QuestionPage() {
   }
 
   const progress = (stepNum / TOTAL) * 100;
-
-  return (
-    <ErrorBoundary>
-      <QuestionContent
-        question={question}
-        stepNum={stepNum}
-        TOTAL={TOTAL}
-        selected={selected}
-        answers={answers}
-        setAnswer={setAnswer}
-        handleNext={handleNext}
-        submitting={submitting}
-        handleBack={handleBack}
-        progress={progress}
-        direction={direction}
-      />
-    </ErrorBoundary>
-  );
-}
-
-function QuestionContent({
-  question, stepNum, TOTAL, selected, setAnswer, handleNext, submitting, handleBack, progress, direction,
-}: {
-  question: NonNullable<ReturnType<typeof useActiveQuestions>[0]>;
-  stepNum: number; TOTAL: number; selected: string | null;
-  answers: Record<number, string>;
-  setAnswer: (id: number, optId: string) => void;
-  handleNext: () => void; submitting: boolean;
-  handleBack: () => void; progress: number; direction: number;
-}) {
-  function handleSelect(optionId: string) {
-    setAnswer(question.id, optionId);
-  }
 
   return (
     <TestPageShell className="flex flex-col items-center justify-center px-4 py-12" particleCount={60}>

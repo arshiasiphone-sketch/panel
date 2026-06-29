@@ -6,17 +6,6 @@ import { useResolvedProfiles } from "@/lib/personality-store";
 import { useMemo, useState } from "react";
 import { Download, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/test-results")({ component: TestResultsPage });
 
@@ -83,37 +72,19 @@ function TestResultsPage() {
               <Download className="h-3.5 w-3.5" /> CSV
             </button>
             {responses.length > 0 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button
-                    disabled={clearAll.isPending}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> پاکسازی
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>حذف همه پاسخ‌ها</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      آیا مطمئن هستید؟ این عملیات غیرقابل بازگشت است و تمام {responses.length.toLocaleString("fa-IR")} پاسخ تست را برای همیشه حذف می‌کند.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>انصراف</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => {
-                        clearAll.mutate(undefined, {
-                          onSuccess: () => toast.success("همه پاسخ‌ها پاک شد"),
-                          onError: (e) => toast.error(e.message),
-                        });
-                      }}
-                    >
-                      {clearAll.isPending ? "در حال حذف..." : "حذف همه"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <button
+                disabled={clearAll.isPending}
+                onClick={() => {
+                  if (!confirm("حذف همه پاسخ‌ها؟")) return;
+                  clearAll.mutate(undefined, {
+                    onSuccess: () => toast.success("همه پاسخ‌ها پاک شد"),
+                    onError: (e) => toast.error(e.message),
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> پاکسازی
+              </button>
             )}
           </div>
         }

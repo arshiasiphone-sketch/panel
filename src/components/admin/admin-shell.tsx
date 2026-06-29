@@ -1,7 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-// Font Optimization: Reduced from 5 weights (300-700) to just 400 and 700
+import "@fontsource/vazirmatn/300.css";
 import "@fontsource/vazirmatn/400.css";
+import "@fontsource/vazirmatn/500.css";
+import "@fontsource/vazirmatn/600.css";
 import "@fontsource/vazirmatn/700.css";
 import { Search, LayoutDashboard, FileText, Image as ImageIcon, Settings, Plus, Brain, ListChecks, Sparkles, LogOut, UtensilsCrossed, CalendarDays, Type, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";

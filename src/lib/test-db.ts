@@ -6,9 +6,9 @@ import { EMPTY_TEST_QUESTIONS } from "./test-questions";
 import type { PersonalityType } from "./test-data";
 import type { UserInfo } from "./test-store";
 import { beginOptimisticUpdate, rollbackOptimisticUpdate, touchLocalCmsEdit } from "./cms-sync";
-import { asTestResponseInsert, asJson } from "./supabase-types";
 
 type TestResponseRow = Database["public"]["Tables"]["test_responses"]["Row"];
+type TestResponseInsert = Database["public"]["Tables"]["test_responses"]["Insert"];
 
 export type StoredTestResponse = {
   id: string;
@@ -64,15 +64,15 @@ export function useSubmitTestResponse() {
       tied: PersonalityType[];
       userInfo?: UserInfo;
     }) => {
-      const row = asTestResponseInsert({
-        answers: input.answers,
+      const row: TestResponseInsert = {
+        answers: input.answers as never,
         result: input.result,
         tied: input.tied,
         user_full_name: input.userInfo?.fullName ?? "",
         user_phone: input.userInfo?.phone ?? "",
         user_age: input.userInfo?.age ?? null,
         user_gender: input.userInfo?.gender ?? "",
-      });
+      };
       const { data, error } = await supabase.from("test_responses").insert(row).select().single();
       if (error) throw error;
       return rowToResponse(data);
@@ -130,7 +130,7 @@ export function useUpdateTestQuestionsConfig() {
     mutationFn: async (config: TestQuestionsConfig) => {
       const { error } = await supabase.from("site_content").upsert({
         key: "test_questions",
-        value: asJson(config),
+        value: config as never,
       });
       if (error) throw error;
     },

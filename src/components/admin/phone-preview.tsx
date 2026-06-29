@@ -1,20 +1,11 @@
 import { usePageBlocks, useSiteContent, type PageBlock } from "@/lib/cms";
-import { BlockRender, type Block, normalizeBlockType, type BlockType } from "./blocks";
+import { BlockRender } from "./blocks";
 
 export function PhonePreview() {
   const { data: blocks } = usePageBlocks();
   const { data: site } = useSiteContent();
   const meta = (site?.meta as { title?: string; bio?: string; avatar_url?: string } | undefined) ?? {};
   const visible = (blocks ?? []).filter((b: PageBlock) => b.visible);
-
-  function toBlock(b: PageBlock): Block {
-    return {
-      id: b.id,
-      type: normalizeBlockType(b.type) as BlockType,
-      visible: b.visible,
-      data: (b.data as Record<string, unknown>) ?? {},
-    };
-  }
 
   return (
     <div className="sticky top-6">
@@ -35,7 +26,7 @@ export function PhonePreview() {
             {visible.length === 0 ? (
               <div className="text-center text-xs text-muted-foreground py-10">هیچ بلوکی فعال نیست</div>
             ) : visible.map((b: PageBlock) => (
-              <BlockRender key={b.id} block={toBlock(b)} />
+              <BlockRender key={b.id} block={{ id: b.id, type: b.type as never, visible: b.visible, data: (b.data as Record<string, unknown>) ?? {} }} />
             ))}
           </div>
         </div>

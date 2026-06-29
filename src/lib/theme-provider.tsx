@@ -1,4 +1,3 @@
-import React from "react";
 import { useMemo, type ReactNode } from "react";
 import { useTheme, useRealtimeCmsSync } from "@/lib/cms";
 import { LANDING_THEME_CLASS, themeSettingsToCss } from "@/lib/theme-tokens";
@@ -20,13 +19,10 @@ export function LandingThemeProvider({ children }: { children: ReactNode }) {
   const css = useMemo(() => (theme ? themeSettingsToCss(theme) : null), [theme]);
 
   return (
-    <div className={LANDING_THEME_CLASS} suppressHydrationWarning={true}>
+    <div className={LANDING_THEME_CLASS}>
       {css ? (
         <style id={THEME_STYLE_ID} dangerouslySetInnerHTML={{ __html: css }} />
-      ) : (
-        // Always render style tag to prevent hydration mismatch
-        <style id={THEME_STYLE_ID} />
-      )}
+      ) : null}
       {children}
     </div>
   );
