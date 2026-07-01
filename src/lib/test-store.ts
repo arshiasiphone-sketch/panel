@@ -35,8 +35,7 @@ export const useTestStore = create<TestStore>()((set) => ({
   startTest: () => set({ testStarted: true, answers: {}, lastResult: null, lastResponse: null }),
   setAnswer: (questionId, optionId) =>
     set((state) => ({ answers: { ...state.answers, [questionId]: optionId } })),
-  setCompletedResponse: (response) =>
-    set({ lastResult: response.result, lastResponse: response }),
+  setCompletedResponse: (response) => set({ lastResult: response.result, lastResponse: response }),
   resetTest: () =>
     set({ testStarted: false, answers: {}, lastResult: null, lastResponse: null, userInfo: null }),
 }));

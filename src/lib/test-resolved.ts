@@ -9,18 +9,28 @@ export function useActiveQuestions(): Question[] {
   const ids = getActiveQuestionIds(config ?? { overrides: {}, orderedIds: null });
   return ids
     .map((id) => resolveQuestion(id, overrides))
-    .filter((q): q is NonNullable<ReturnType<typeof resolveQuestion>> => !!q && q.enabled !== false) as Question[];
+    .filter(
+      (q): q is NonNullable<ReturnType<typeof resolveQuestion>> => !!q && q.enabled !== false,
+    ) as Question[];
 }
 
 /** Non-hook variant used for scoring stored answers (snapshot at submission time) */
-export function getActiveQuestionsSnapshot(config: { overrides: Record<number, import("./test-questions").QuestionOverride>; orderedIds: number[] | null }): Question[] {
+export function getActiveQuestionsSnapshot(config: {
+  overrides: Record<number, import("./test-questions").QuestionOverride>;
+  orderedIds: number[] | null;
+}): Question[] {
   const ids = getActiveQuestionIds(config);
   return ids
     .map((id) => resolveQuestion(id, config.overrides))
-    .filter((q): q is NonNullable<ReturnType<typeof resolveQuestion>> => !!q && q.enabled !== false) as Question[];
+    .filter(
+      (q): q is NonNullable<ReturnType<typeof resolveQuestion>> => !!q && q.enabled !== false,
+    ) as Question[];
 }
 
-export function calculateScoresFor(answers: Record<number, string>, questions: Question[]): ScoreBreakdown {
+export function calculateScoresFor(
+  answers: Record<number, string>,
+  questions: Question[],
+): ScoreBreakdown {
   const counts: ScoreBreakdown = { paparoch: 0, zhampin: 0, fofino: 0, gombak: 0 };
   for (const [qIdStr, optId] of Object.entries(answers)) {
     const q = questions.find((x) => x.id === Number(qIdStr));
@@ -39,7 +49,10 @@ export interface DetailedResult {
   scores: ScoreBreakdown;
 }
 
-export function calculateDetailedResultFor(answers: Record<number, string>, questions: Question[]): DetailedResult {
+export function calculateDetailedResultFor(
+  answers: Record<number, string>,
+  questions: Question[],
+): DetailedResult {
   const scores = calculateScoresFor(answers, questions);
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const top = sorted[0][1];

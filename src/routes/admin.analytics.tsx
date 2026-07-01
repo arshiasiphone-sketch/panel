@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Card, Stat } from "@/components/admin/admin-shell";
 import { UnavailableFeature } from "@/components/admin/session-only-banner";
-import { useAllMenuItems, usePageBlocks, useEvents, useAllGalleryImages, useTestimonials } from "@/lib/cms";
+import {
+  useAllMenuItems,
+  usePageBlocks,
+  useEvents,
+  useAllGalleryImages,
+  useTestimonials,
+} from "@/lib/cms";
 import { useTestResponses } from "@/lib/test-db";
 
 export const Route = createFileRoute("/admin/analytics")({ component: AnalyticsPage });
@@ -43,13 +49,19 @@ function AnalyticsPage() {
         <Card className="p-4">
           <div className="text-sm font-semibold mb-3">تست شخصیت</div>
           {testResponses.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-6 text-center">هنوز پاسخی ثبت نشده.</div>
+            <div className="text-sm text-muted-foreground py-6 text-center">
+              هنوز پاسخی ثبت نشده.
+            </div>
           ) : (
             <ul className="space-y-2 text-sm">
               <Row label="کل پاسخ‌ها" value={testResponses.length} />
               <Row
                 label="۷ روز اخیر"
-                value={testResponses.filter((r) => Date.now() - new Date(r.completedAt).getTime() < 7 * 86400000).length}
+                value={
+                  testResponses.filter(
+                    (r) => Date.now() - new Date(r.completedAt).getTime() < 7 * 86400000,
+                  ).length
+                }
               />
             </ul>
           )}

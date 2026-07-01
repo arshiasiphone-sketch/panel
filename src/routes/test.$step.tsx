@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TestPageShell } from "@/components/test/test-page-shell";
 import { useTestStore, useHasHydrated } from "@/lib/test-store";
-import { useActiveQuestions, calculateDetailedResultFor, getActiveQuestionsSnapshot } from "@/lib/test-resolved";
+import {
+  useActiveQuestions,
+  calculateDetailedResultFor,
+  getActiveQuestionsSnapshot,
+} from "@/lib/test-resolved";
 import { useSubmitTestResponse, useTestQuestionsConfig } from "@/lib/test-db";
 import { EMPTY_TEST_QUESTIONS } from "@/lib/test-questions";
 import { fetchThemeSettings, QK } from "@/lib/cms";
@@ -31,7 +35,7 @@ function QuestionPage() {
   const activeQuestions = useActiveQuestions();
   const TOTAL = activeQuestions.length;
   const question = activeQuestions[stepNum - 1];
-  const selected = question ? answers[question.id] ?? null : null;
+  const selected = question ? (answers[question.id] ?? null) : null;
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -47,7 +51,8 @@ function QuestionPage() {
       <TestPageShell className="flex items-center justify-center">
         <motion.div
           className="relative z-10 w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary"
-          animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
         />
       </TestPageShell>
     );
@@ -64,7 +69,10 @@ function QuestionPage() {
 
     if (stepNum === TOTAL) {
       setSubmitting(true);
-      const detailed = calculateDetailedResultFor(answers, getActiveQuestionsSnapshot(config ?? EMPTY_TEST_QUESTIONS));
+      const detailed = calculateDetailedResultFor(
+        answers,
+        getActiveQuestionsSnapshot(config ?? EMPTY_TEST_QUESTIONS),
+      );
       try {
         const saved = await submitResponse.mutateAsync({
           answers,
@@ -75,7 +83,9 @@ function QuestionPage() {
         setCompletedResponse(saved);
         navigate({ to: "/test/result" });
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "ذخیره نتیجه ناموفق بود. دوباره تلاش کنید.");
+        toast.error(
+          err instanceof Error ? err.message : "ذخیره نتیجه ناموفق بود. دوباره تلاش کنید.",
+        );
       } finally {
         setSubmitting(false);
       }
@@ -86,7 +96,10 @@ function QuestionPage() {
   }
 
   function handleBack() {
-    if (stepNum === 1) { navigate({ to: "/test/info" }); return; }
+    if (stepNum === 1) {
+      navigate({ to: "/test/info" });
+      return;
+    }
     setDirection(-1);
     navigate({ to: "/test/$step", params: { step: String(stepNum - 1) } });
   }
@@ -94,14 +107,22 @@ function QuestionPage() {
   const progress = (stepNum / TOTAL) * 100;
 
   return (
-    <TestPageShell className="flex flex-col items-center justify-center px-4 py-12" particleCount={60}>
+    <TestPageShell
+      className="flex flex-col items-center justify-center px-4 py-12"
+      particleCount={60}
+    >
       <div className="w-full max-w-lg relative z-10 flex flex-col gap-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>سوال {stepNum} از {TOTAL}</span>
+            <span>
+              سوال {stepNum} از {TOTAL}
+            </span>
             <span>{Math.round(progress)}٪</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <div
+            className="h-1.5 rounded-full overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          >
             <motion.div
               className="h-full rounded-full"
               style={{ background: "linear-gradient(90deg, #9f1239, #d4af37)" }}
@@ -147,7 +168,9 @@ function QuestionPage() {
                     className={`w-full text-right px-5 py-4 rounded-2xl text-sm font-semibold transition cursor-pointer ${isSelected ? "text-foreground" : "text-text-tertiary"}`}
                     style={{
                       background: isSelected ? "rgba(159,18,57,0.18)" : "rgba(255,255,255,0.04)",
-                      border: isSelected ? "1px solid rgba(159,18,57,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                      border: isSelected
+                        ? "1px solid rgba(159,18,57,0.5)"
+                        : "1px solid rgba(255,255,255,0.08)",
                       boxShadow: isSelected ? "0 0 24px rgba(159,18,57,0.2)" : "none",
                     }}
                   >
@@ -164,7 +187,10 @@ function QuestionPage() {
             onClick={handleBack}
             disabled={submitting}
             className="flex-1 py-3.5 rounded-2xl text-sm font-semibold cursor-pointer disabled:opacity-50 text-muted-foreground"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
           >
             قبلی
           </button>

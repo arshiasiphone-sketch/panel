@@ -33,7 +33,7 @@ export function usePrefersReducedMotion(): boolean {
  */
 export function getMotionProps(
   props: HTMLMotionProps<"div">,
-  prefersReducedMotion: boolean
+  prefersReducedMotion: boolean,
 ): HTMLMotionProps<"div"> {
   if (prefersReducedMotion) {
     return {
@@ -54,13 +54,13 @@ export function getMotionProps(
  * Uses transform and opacity for better performance
  */
 export const fadeUp = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 28,
     // Use will-change for GPU acceleration hint
   },
-  show: { 
-    opacity: 1, 
+  show: {
+    opacity: 1,
     y: 0,
   },
 } as const;
@@ -96,15 +96,17 @@ export function OptimizedMotion({
   const internalPrefersReducedMotion = usePrefersReducedMotion();
   const shouldReduceMotion = externalPrefersReducedMotion ?? internalPrefersReducedMotion;
 
-  const safeProps = shouldReduceMotion ? {
-    ...props,
-    initial: undefined,
-    animate: undefined,
-    transition: undefined,
-    whileHover: undefined,
-    whileTap: undefined,
-    whileInView: undefined,
-  } : props;
+  const safeProps = shouldReduceMotion
+    ? {
+        ...props,
+        initial: undefined,
+        animate: undefined,
+        transition: undefined,
+        whileHover: undefined,
+        whileTap: undefined,
+        whileInView: undefined,
+      }
+    : props;
 
   return <motion.div {...safeProps}>{children}</motion.div>;
 }

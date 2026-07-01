@@ -21,39 +21,78 @@ const corsHeaders = {
 function isBot(userAgent: string | undefined): boolean {
   if (!userAgent) return false;
   const botPatterns = [
-    /googlebot/i, /bingbot/i, /facebookexternalhit/i, /twitterbot/i,
-    /slackbot/i, /discordbot/i, /headless/i, /phantomjs/i,
-    /puppeteer/i, /playwright/i, /selenium/i, /webdriver/i,
-    /bot/i, /crawler/i, /spider/i, /scraper/i, /monitoring/i,
-    /uptime/i, /pingdom/i, /statuscake/i, /newrelic/i, /datadog/i,
-    /semrush/i, /ahrefs/i, /majestic/i, /moz/i, /screaming/i,
-    /frog/i, /sitebulb/i, /botpress/i, /dialogflow/i, /rasa/i,
-    /wit\.ai/i, /luis/i, /lex/i, /api\.ai/i, /assistant/i,
-    /alexa/i, /google\-cloud/i, /amazonaws/i, /digitalocean/i,
-    /vultr/i, /linode/i, /scaleway/i, /hetzner/i, /ovh/i,
-    /contabo/i, /rackspace/i, /azure/i, /gcp/i,
+    /googlebot/i,
+    /bingbot/i,
+    /facebookexternalhit/i,
+    /twitterbot/i,
+    /slackbot/i,
+    /discordbot/i,
+    /headless/i,
+    /phantomjs/i,
+    /puppeteer/i,
+    /playwright/i,
+    /selenium/i,
+    /webdriver/i,
+    /bot/i,
+    /crawler/i,
+    /spider/i,
+    /scraper/i,
+    /monitoring/i,
+    /uptime/i,
+    /pingdom/i,
+    /statuscake/i,
+    /newrelic/i,
+    /datadog/i,
+    /semrush/i,
+    /ahrefs/i,
+    /majestic/i,
+    /moz/i,
+    /screaming/i,
+    /frog/i,
+    /sitebulb/i,
+    /botpress/i,
+    /dialogflow/i,
+    /rasa/i,
+    /wit\.ai/i,
+    /luis/i,
+    /lex/i,
+    /api\.ai/i,
+    /assistant/i,
+    /alexa/i,
+    /google\-cloud/i,
+    /amazonaws/i,
+    /digitalocean/i,
+    /vultr/i,
+    /linode/i,
+    /scaleway/i,
+    /hetzner/i,
+    /ovh/i,
+    /contabo/i,
+    /rackspace/i,
+    /azure/i,
+    /gcp/i,
   ];
-  return botPatterns.some(pattern => pattern.test(userAgent));
+  return botPatterns.some((pattern) => pattern.test(userAgent));
 }
 
 function extractDeviceType(userAgent: string | undefined): string {
-  if (!userAgent) return 'unknown';
+  if (!userAgent) return "unknown";
   if (/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i.test(userAgent)) {
-    return 'mobile';
+    return "mobile";
   }
   if (/tablet|ipad|playbook|kindle|silk/i.test(userAgent)) {
-    return 'tablet';
+    return "tablet";
   }
-  return 'desktop';
+  return "desktop";
 }
 
 function hashIp(ip: string, salt: string): string {
   const encoder = new TextEncoder();
   const data = encoder.encode(ip + salt);
-  const hashBuffer = crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(await hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 const RECENT_VISIT_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
@@ -82,8 +121,8 @@ serve(async (req) => {
     }
 
     // Ignore admin pages
-    if (payload.page_path.startsWith('/admin')) {
-      return new Response(JSON.stringify({ ok: true, ignored: true, reason: 'admin_page' }), {
+    if (payload.page_path.startsWith("/admin")) {
+      return new Response(JSON.stringify({ ok: true, ignored: true, reason: "admin_page" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -129,7 +168,7 @@ serve(async (req) => {
     }
 
     if (existingVisit) {
-      return new Response(JSON.stringify({ ok: true, ignored: true, reason: 'duplicate' }), {
+      return new Response(JSON.stringify({ ok: true, ignored: true, reason: "duplicate" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

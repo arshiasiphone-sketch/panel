@@ -30,7 +30,11 @@ export function TestPageShell({
         className={`relative min-h-screen overflow-hidden bg-background text-foreground ${className}`}
         style={{ fontFamily: "Vazirmatn, system-ui, sans-serif" }}
       >
-        <OrbBackground primaryColor={primary} secondaryColor={secondary} particleCount={particleCount} />
+        <OrbBackground
+          primaryColor={primary}
+          secondaryColor={secondary}
+          particleCount={particleCount}
+        />
         {children}
       </main>
     </LandingThemeProvider>

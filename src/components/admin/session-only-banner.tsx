@@ -8,7 +8,8 @@ export function SessionOnlyBanner({ detail }: { detail?: string }) {
       <div>
         <div className="font-semibold">ذخیره‌سازی محلی (جلسه فعلی)</div>
         <p className="text-xs mt-0.5 text-amber-800/90">
-          {detail ?? "این بخش هنوز به پایگاه داده متصل نیست. تغییرات فقط در همین مرورگر و تا زمان بستن تب باقی می‌مانند."}
+          {detail ??
+            "این بخش هنوز به پایگاه داده متصل نیست. تغییرات فقط در همین مرورگر و تا زمان بستن تب باقی می‌مانند."}
         </p>
       </div>
     </div>

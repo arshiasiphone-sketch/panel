@@ -45,20 +45,30 @@ function TestResultsPage() {
       profiles[r.result].label,
       new Date(r.completedAt).toLocaleString("fa-IR"),
     ]);
-    const csv = [header, ...rows].map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = [header, ...rows]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `test-results-${Date.now()}.csv`; a.click();
+    a.href = url;
+    a.download = `test-results-${Date.now()}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
     toast.success("خروجی CSV آماده شد");
   }
 
   if (isLoading) {
-    return <div className="text-center text-sm text-muted-foreground py-10">در حال بارگذاری...</div>;
+    return (
+      <div className="text-center text-sm text-muted-foreground py-10">در حال بارگذاری...</div>
+    );
   }
   if (isError) {
-    return <div className="text-center text-sm text-destructive py-10">{error instanceof Error ? error.message : "خطا در بارگذاری"}</div>;
+    return (
+      <div className="text-center text-sm text-destructive py-10">
+        {error instanceof Error ? error.message : "خطا در بارگذاری"}
+      </div>
+    );
   }
 
   return (
@@ -68,7 +78,10 @@ function TestResultsPage() {
         subtitle="جستجو، فیلتر، خروجی"
         actions={
           <div className="flex gap-2">
-            <button onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent">
+            <button
+              onClick={exportCsv}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+            >
               <Download className="h-3.5 w-3.5" /> CSV
             </button>
             {responses.length > 0 && (
@@ -96,20 +109,30 @@ function TestResultsPage() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder="جستجو بر اساس نام یا تلفن..."
               className="w-full rounded-lg border border-border bg-background pr-9 pl-3 py-2 text-sm"
             />
           </div>
           <select
             value={filter}
-            onChange={(e) => { setFilter(e.target.value as PersonalityType | "all"); setPage(1); }}
+            onChange={(e) => {
+              setFilter(e.target.value as PersonalityType | "all");
+              setPage(1);
+            }}
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             <option value="all">همه تیپ‌ها</option>
-            {(["paparoch", "zhampin", "fofino", "gombak", "bedone"] as PersonalityType[]).map((t) => (
-              <option key={t} value={t}>{profiles[t].label}</option>
-            ))}
+            {(["paparoch", "zhampin", "fofino", "gombak", "bedone"] as PersonalityType[]).map(
+              (t) => (
+                <option key={t} value={t}>
+                  {profiles[t].label}
+                </option>
+              ),
+            )}
           </select>
         </div>
       </Card>
@@ -137,19 +160,34 @@ function TestResultsPage() {
                   return (
                     <tr key={r.id} className="border-b border-border/40 hover:bg-accent/30">
                       <td className="py-2 px-2 font-medium">{r.userInfo?.fullName ?? "—"}</td>
-                      <td className="py-2 px-2 text-muted-foreground" dir="ltr">{r.userInfo?.phone ?? "—"}</td>
+                      <td className="py-2 px-2 text-muted-foreground" dir="ltr">
+                        {r.userInfo?.phone ?? "—"}
+                      </td>
                       <td className="py-2 px-2 text-muted-foreground">{r.userInfo?.age ?? "—"}</td>
-                      <td className="py-2 px-2 text-muted-foreground">{r.userInfo?.gender ?? "—"}</td>
+                      <td className="py-2 px-2 text-muted-foreground">
+                        {r.userInfo?.gender ?? "—"}
+                      </td>
                       <td className="py-2 px-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: p.bgColor, color: p.color, border: `1px solid ${p.borderColor}` }}>
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold"
+                          style={{
+                            background: p.bgColor,
+                            color: p.color,
+                            border: `1px solid ${p.borderColor}`,
+                          }}
+                        >
                           {p.label}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-xs text-muted-foreground">{new Date(r.completedAt).toLocaleString("fa-IR")}</td>
+                      <td className="py-2 px-2 text-xs text-muted-foreground">
+                        {new Date(r.completedAt).toLocaleString("fa-IR")}
+                      </td>
                       <td className="py-2 px-2 text-left">
                         <button
                           disabled={deleteOne.isPending}
-                          onClick={() => deleteOne.mutate(r.id, { onError: (e) => toast.error(e.message) })}
+                          onClick={() =>
+                            deleteOne.mutate(r.id, { onError: (e) => toast.error(e.message) })
+                          }
                           className="text-destructive/70 hover:text-destructive p-1 disabled:opacity-50"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -162,10 +200,24 @@ function TestResultsPage() {
             </table>
             {pages > 1 && (
               <div className="flex items-center justify-between pt-3 text-xs text-muted-foreground">
-                <span>صفحه {safePage} از {pages} — {filtered.length} نتیجه</span>
+                <span>
+                  صفحه {safePage} از {pages} — {filtered.length} نتیجه
+                </span>
                 <div className="flex gap-1">
-                  <button disabled={safePage === 1} onClick={() => setPage(safePage - 1)} className="rounded-md border border-border px-2 py-1 disabled:opacity-40">قبلی</button>
-                  <button disabled={safePage === pages} onClick={() => setPage(safePage + 1)} className="rounded-md border border-border px-2 py-1 disabled:opacity-40">بعدی</button>
+                  <button
+                    disabled={safePage === 1}
+                    onClick={() => setPage(safePage - 1)}
+                    className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
+                  >
+                    قبلی
+                  </button>
+                  <button
+                    disabled={safePage === pages}
+                    onClick={() => setPage(safePage + 1)}
+                    className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
+                  >
+                    بعدی
+                  </button>
                 </div>
               </div>
             )}

@@ -14,28 +14,28 @@ export const glassmorphism = {
     backdropFilter: "blur(8px)",
     border: "1px solid rgba(255, 255, 255, 0.12)",
   },
-  
+
   // Medium glass effect - for cards and panels
   medium: {
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(12px)",
     border: "1px solid rgba(255, 255, 255, 0.16)",
   },
-  
+
   // Strong glass effect - for modals and overlays
   strong: {
     background: "rgba(255, 255, 255, 0.16)",
     backdropFilter: "blur(16px)",
     border: "1px solid rgba(255, 255, 255, 0.2)",
   },
-  
+
   // Header glass effect - optimized for sticky headers
   header: {
     background: "rgba(255, 255, 255, 0.06)",
     backdropFilter: "blur(6px)",
     border: "1px solid rgba(255, 255, 255, 0.08)",
   },
-  
+
   // None - for when glassmorphism should be disabled for performance
   none: {
     background: "transparent",
@@ -50,19 +50,21 @@ export const glassmorphism = {
  */
 export function getGlassmorphismClass(intensity: keyof typeof glassmorphism = "medium"): string {
   const style = glassmorphism[intensity];
-  
-  return Object.entries(style)
-    .map(([key, value]) => {
-      if (key === "backdropFilter" && value === "none") {
-        return "backdrop-blur-none";
-      }
-      if (key === "backdropFilter") {
-        return `backdrop-blur-[${value.replace("blur(", "").replace(")", "")}]`;
-      }
-      return '';
-    })
-    .filter(Boolean)
-    .join(" ") + " glassmorphism-optimized";
+
+  return (
+    Object.entries(style)
+      .map(([key, value]) => {
+        if (key === "backdropFilter" && value === "none") {
+          return "backdrop-blur-none";
+        }
+        if (key === "backdropFilter") {
+          return `backdrop-blur-[${value.replace("blur(", "").replace(")", "")}]`;
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join(" ") + " glassmorphism-optimized"
+  );
 }
 
 /**
@@ -71,12 +73,12 @@ export function getGlassmorphismClass(intensity: keyof typeof glassmorphism = "m
  */
 export function isBackdropFilterSupported(): boolean {
   if (typeof window === "undefined") return false;
-  
+
   // Disable on mobile devices for performance
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
     return false;
   }
-  
+
   // Check CSS support
   return "backdropFilter" in document.body.style;
 }
@@ -87,7 +89,7 @@ export function isBackdropFilterSupported(): boolean {
 export function useGlassmorphismStyle(intensity: keyof typeof glassmorphism = "medium") {
   const supported = isBackdropFilterSupported();
   const style = glassmorphism[supported ? intensity : "none"];
-  
+
   return {
     background: style.background,
     backdropFilter: supported ? style.backdropFilter : "none",

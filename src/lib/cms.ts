@@ -16,7 +16,8 @@ import {
   removeById,
 } from "@/lib/cms-sync";
 
-type TablesRow<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];
+type TablesRow<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
 
 export type MenuItem = TablesRow<"menu_items">;
 export type GalleryImage = TablesRow<"gallery_images">;
@@ -46,7 +47,11 @@ export function useMenuItems() {
   return useQuery({
     queryKey: QK.menu,
     queryFn: async (): Promise<MenuItem[]> => {
-      const { data, error } = await supabase.from("menu_items").select("*").eq("visible", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("visible", true)
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -67,7 +72,11 @@ export function useGalleryImages() {
   return useQuery({
     queryKey: QK.gallery,
     queryFn: async (): Promise<GalleryImage[]> => {
-      const { data, error } = await supabase.from("gallery_images").select("*").eq("visible", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("gallery_images")
+        .select("*")
+        .eq("visible", true)
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -88,7 +97,11 @@ export function useEvents() {
   return useQuery({
     queryKey: QK.events,
     queryFn: async (): Promise<EventItem[]> => {
-      const { data, error } = await supabase.from("events").select("*").eq("visible", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("visible", true)
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -109,7 +122,11 @@ export function useTestimonials() {
   return useQuery({
     queryKey: QK.testimonials,
     queryFn: async (): Promise<Testimonial[]> => {
-      const { data, error } = await supabase.from("testimonials").select("*").eq("visible", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("*")
+        .eq("visible", true)
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -138,15 +155,26 @@ export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   text_tertiary_color: "#c9b89e",
   border_radius: "0.75rem",
   glass_opacity: 0.08,
+  name: null,
+  preset_id: null,
+  tokens: null,
   updated_at: new Date().toISOString(),
 };
 
 export async function fetchThemeSettings(): Promise<ThemeSettings> {
-  const { data, error } = await supabase.from("theme_settings").select("*").eq("id", 1).maybeSingle();
+  const { data, error } = await supabase
+    .from("theme_settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
   if (error) throw error;
   if (!data) {
     // Insert default if missing (auth-required, swallow if denied).
-    const { data: inserted } = await supabase.from("theme_settings").insert({ id: 1 }).select("*").maybeSingle();
+    const { data: inserted } = await supabase
+      .from("theme_settings")
+      .insert({ id: 1 })
+      .select("*")
+      .maybeSingle();
     return { ...DEFAULT_THEME_SETTINGS, ...(inserted ?? {}) };
   }
   return { ...DEFAULT_THEME_SETTINGS, ...data };
@@ -174,7 +202,10 @@ export function useSiteContent() {
   });
 }
 
-function upsertPersonalityRow(list: PersonalityProfileRow[] | undefined, row: PersonalityProfileRow): PersonalityProfileRow[] {
+function upsertPersonalityRow(
+  list: PersonalityProfileRow[] | undefined,
+  row: PersonalityProfileRow,
+): PersonalityProfileRow[] {
   if (!list?.length) return [row];
   const idx = list.findIndex((r) => r.key === row.key);
   if (idx < 0) return [...list, row];
@@ -187,20 +218,44 @@ type IdRow = { id: string };
 
 /* ============== Mutations (require admin) ============== */
 
-function makeUpsertHook<T extends { id?: string }>(table: "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks", qk: readonly unknown[]) {
+function makeUpsertHook<T extends { id?: string }>(
+  table: "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks",
+  qk: readonly unknown[],
+) {
   return function useUpsert() {
     const qc = useQueryClient();
     return useMutation({
       mutationFn: async (row: T) => {
-        const { data, error } = await supabase.from(table).upsert(row as never).select().maybeSingle();
+        const { data, error } = await supabase
+          .from(table)
+          .upsert(row as never)
+          .select()
+          .maybeSingle();
         if (error) throw error;
         return data;
       },
       onMutate: async (row) => {
-        if (!row.id) return { prev: undefined as T[] | undefined, prevAll: undefined as T[] | undefined };
+        if (!row.id)
+          return { prev: undefined as T[] | undefined, prevAll: undefined as T[] | undefined };
         const optimistic = { ...(row as T & { id: string }), id: row.id } as T & { id: string };
-        const { prev } = await beginOptimisticUpdate<T[]>(qc, qk, (list) => upsertById(list as (T & { id: string })[] | undefined, optimistic as T & { id: string }) as T[]);
-        const { prev: prevAll } = await beginOptimisticUpdate<T[]>(qc, [...qk, "all"], (list) => upsertById(list as (T & { id: string })[] | undefined, optimistic as T & { id: string }) as T[]);
+        const { prev } = await beginOptimisticUpdate<T[]>(
+          qc,
+          qk,
+          (list) =>
+            upsertById(
+              list as (T & { id: string })[] | undefined,
+              optimistic as T & { id: string },
+            ) as T[],
+        );
+        const { prev: prevAll } = await beginOptimisticUpdate<T[]>(
+          qc,
+          [...qk, "all"],
+          (list) =>
+            upsertById(
+              list as (T & { id: string })[] | undefined,
+              optimistic as T & { id: string },
+            ) as T[],
+        );
         return { prev, prevAll };
       },
       onError: (_err, _row, ctx) => {
@@ -210,13 +265,26 @@ function makeUpsertHook<T extends { id?: string }>(table: "menu_items" | "galler
       onSuccess: (data) => {
         if (!data?.id) return;
         touchLocalCmsEdit();
-        qc.setQueryData<T[]>(qk, (list) => upsertById(list as (T & { id: string })[] | undefined, data as T & { id: string }));
-        qc.setQueryData<T[]>([...qk, "all"], (list) => upsertById(list as (T & { id: string })[] | undefined, data as T & { id: string }));
+        qc.setQueryData<T[]>(qk, (list) =>
+          upsertById(
+            list as (T & { id: string })[] | undefined,
+            data as unknown as T & { id: string },
+          ),
+        );
+        qc.setQueryData<T[]>([...qk, "all"], (list) =>
+          upsertById(
+            list as (T & { id: string })[] | undefined,
+            data as unknown as T & { id: string },
+          ),
+        );
       },
     });
   };
 }
-function makeDeleteHook(table: "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks", qk: readonly unknown[]) {
+function makeDeleteHook(
+  table: "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks",
+  qk: readonly unknown[],
+) {
   return function useDelete() {
     const qc = useQueryClient();
     return useMutation({
@@ -225,8 +293,12 @@ function makeDeleteHook(table: "menu_items" | "gallery_images" | "events" | "tes
         if (error) throw error;
       },
       onMutate: async (id) => {
-        const { prev } = await beginOptimisticUpdate<IdRow[]>(qc, qk, (list) => removeById(list, id));
-        const { prev: prevAll } = await beginOptimisticUpdate<IdRow[]>(qc, [...qk, "all"], (list) => removeById(list, id));
+        const { prev } = await beginOptimisticUpdate<IdRow[]>(qc, qk, (list) =>
+          removeById(list, id),
+        );
+        const { prev: prevAll } = await beginOptimisticUpdate<IdRow[]>(qc, [...qk, "all"], (list) =>
+          removeById(list, id),
+        );
         return { prev, prevAll };
       },
       onError: (_err, _id, ctx) => {
@@ -240,19 +312,33 @@ function makeDeleteHook(table: "menu_items" | "gallery_images" | "events" | "tes
 
 export const useUpsertMenuItem = makeUpsertHook<Partial<MenuItem>>("menu_items", QK.menu);
 export const useDeleteMenuItem = makeDeleteHook("menu_items", QK.menu);
-export const useUpsertGalleryImage = makeUpsertHook<Partial<GalleryImage>>("gallery_images", QK.gallery);
+export const useUpsertGalleryImage = makeUpsertHook<Partial<GalleryImage>>(
+  "gallery_images",
+  QK.gallery,
+);
 export const useDeleteGalleryImage = makeDeleteHook("gallery_images", QK.gallery);
 export const useUpsertEvent = makeUpsertHook<Partial<EventItem>>("events", QK.events);
 export const useDeleteEvent = makeDeleteHook("events", QK.events);
-export const useUpsertTestimonial = makeUpsertHook<Partial<Testimonial>>("testimonials", QK.testimonials);
+export const useUpsertTestimonial = makeUpsertHook<Partial<Testimonial>>(
+  "testimonials",
+  QK.testimonials,
+);
 export const useDeleteTestimonial = makeDeleteHook("testimonials", QK.testimonials);
 
 /* Blocks: special handling — insert, update, delete, reorder */
 export function useCreateBlock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { type: string; data: Record<string, unknown>; sort_order: number }) => {
-      const { data, error } = await supabase.from("page_blocks").insert(input as never).select().maybeSingle();
+    mutationFn: async (input: {
+      type: string;
+      data: Record<string, unknown>;
+      sort_order: number;
+    }) => {
+      const { data, error } = await supabase
+        .from("page_blocks")
+        .insert(input as never)
+        .select()
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -266,17 +352,28 @@ export function useCreateBlock() {
 export function useUpdateBlock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; data?: Record<string, unknown>; visible?: boolean; sort_order?: number }) => {
+    mutationFn: async (input: {
+      id: string;
+      data?: Record<string, unknown>;
+      visible?: boolean;
+      sort_order?: number;
+    }) => {
       const { id, ...patch } = input;
-      const { error } = await supabase.from("page_blocks").update(patch as never).eq("id", id);
+      const { error } = await supabase
+        .from("page_blocks")
+        .update(patch as never)
+        .eq("id", id);
       if (error) throw error;
     },
-    onMutate: async (input) => beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => {
-      if (!list) return list;
-      return list.map((block) => block.id === input.id
-        ? { ...block, ...input, data: (input.data ?? block.data) as PageBlock["data"] }
-        : block);
-    }),
+    onMutate: async (input) =>
+      beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => {
+        if (!list) return list;
+        return list.map((block) =>
+          block.id === input.id
+            ? { ...block, ...input, data: (input.data ?? block.data) as PageBlock["data"] }
+            : block,
+        );
+      }),
     onError: (_err, _input, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.blocks, ctx.prev);
     },
@@ -290,7 +387,8 @@ export function useDeleteBlock() {
       const { error } = await supabase.from("page_blocks").delete().eq("id", id);
       if (error) throw error;
     },
-    onMutate: async (id) => beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => removeById(list, id)),
+    onMutate: async (id) =>
+      beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => removeById(list, id)),
     onError: (_err, _id, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.blocks, ctx.prev);
     },
@@ -301,22 +399,25 @@ export function useReorderBlocks() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (orderedIds: string[]) => {
-      const results = await Promise.all(orderedIds.map((id, idx) =>
-        supabase.from("page_blocks").update({ sort_order: idx }).eq("id", id)
-      ));
+      const results = await Promise.all(
+        orderedIds.map((id, idx) =>
+          supabase.from("page_blocks").update({ sort_order: idx }).eq("id", id),
+        ),
+      );
       const failed = results.find((r) => r.error);
       if (failed?.error) throw failed.error;
     },
-    onMutate: async (orderedIds) => beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => {
-      if (!list) return list;
-      const byId = new Map(list.map((block) => [block.id, block]));
-      return orderedIds
-        .map((id, sort_order) => {
-          const block = byId.get(id);
-          return block ? { ...block, sort_order } : null;
-        })
-        .filter(Boolean) as PageBlock[];
-    }),
+    onMutate: async (orderedIds) =>
+      beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) => {
+        if (!list) return list;
+        const byId = new Map(list.map((block) => [block.id, block]));
+        return orderedIds
+          .map((id, sort_order) => {
+            const block = byId.get(id);
+            return block ? { ...block, sort_order } : null;
+          })
+          .filter(Boolean) as PageBlock[];
+      }),
     onError: (_err, _ids, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.blocks, ctx.prev);
     },
@@ -332,7 +433,10 @@ export function useUpdateTheme() {
       const { error } = await supabase.from("theme_settings").update(patch).eq("id", 1);
       if (error) throw error;
     },
-    onMutate: async (patch) => beginOptimisticUpdate<ThemeSettings>(qc, QK.theme, (prev) => (prev ? { ...prev, ...patch } : prev)),
+    onMutate: async (patch) =>
+      beginOptimisticUpdate<ThemeSettings>(qc, QK.theme, (prev) =>
+        prev ? { ...prev, ...patch } : prev,
+      ),
     onError: (_err, _patch, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.theme, ctx.prev);
     },
@@ -343,10 +447,16 @@ export function useUpsertSiteContent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { key: string; value: Record<string, unknown> }) => {
-      const { error } = await supabase.from("site_content").upsert({ key: input.key, value: input.value as never });
+      const { error } = await supabase
+        .from("site_content")
+        .upsert({ key: input.key, value: input.value as never });
       if (error) throw error;
     },
-    onMutate: async (input) => beginOptimisticUpdate<SiteContentMap>(qc, QK.site, (prev) => ({ ...(prev ?? {}), [input.key]: input.value })),
+    onMutate: async (input) =>
+      beginOptimisticUpdate<SiteContentMap>(qc, QK.site, (prev) => ({
+        ...(prev ?? {}),
+        [input.key]: input.value,
+      })),
     onError: (_err, _input, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.site, ctx.prev);
     },
@@ -358,7 +468,10 @@ export function usePersonalityProfiles() {
   return useQuery({
     queryKey: QK.personalities,
     queryFn: async (): Promise<PersonalityProfileRow[]> => {
-      const { data, error } = await supabase.from("personality_profiles").select("*").order("sort_order");
+      const { data, error } = await supabase
+        .from("personality_profiles")
+        .select("*")
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -370,13 +483,17 @@ export function useUpdatePersonalityProfile() {
   return useMutation({
     mutationFn: async (input: Partial<PersonalityProfileRow> & { key: string }) => {
       const { key, ...patch } = input;
-      const { error } = await supabase.from("personality_profiles").update(patch as never).eq("key", key);
+      const { error } = await supabase
+        .from("personality_profiles")
+        .update(patch as never)
+        .eq("key", key);
       if (error) throw error;
     },
-    onMutate: async (input) => beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) => {
-      if (!list) return list;
-      return list.map((row) => row.key === input.key ? { ...row, ...input } : row);
-    }),
+    onMutate: async (input) =>
+      beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) => {
+        if (!list) return list;
+        return list.map((row) => (row.key === input.key ? { ...row, ...input } : row));
+      }),
     onError: (_err, _input, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.personalities, ctx.prev);
     },
@@ -391,13 +508,18 @@ export function useUpsertPersonalityProfile() {
       const { error } = await supabase.from("personality_profiles").upsert(row as never);
       if (error) throw error;
     },
-    onMutate: async (row) => beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) => upsertPersonalityRow(list, row)),
+    onMutate: async (row) =>
+      beginOptimisticUpdate<PersonalityProfileRow[]>(qc, QK.personalities, (list) =>
+        upsertPersonalityRow(list, row),
+      ),
     onError: (_err, _row, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.personalities, ctx.prev);
     },
     onSuccess: (_data, row) => {
       touchLocalCmsEdit();
-      qc.setQueryData<PersonalityProfileRow[]>(QK.personalities, (list) => upsertPersonalityRow(list, row));
+      qc.setQueryData<PersonalityProfileRow[]>(QK.personalities, (list) =>
+        upsertPersonalityRow(list, row),
+      );
     },
   });
 }
@@ -414,7 +536,10 @@ export function usePageViewStats() {
       startOfDay.setHours(0, 0, 0, 0);
       const [totalRes, todayRes] = await Promise.all([
         supabase.from("page_views").select("*", { count: "exact", head: true }),
-        supabase.from("page_views").select("*", { count: "exact", head: true }).gte("visited_at", startOfDay.toISOString()),
+        supabase
+          .from("page_views")
+          .select("*", { count: "exact", head: true })
+          .gte("visited_at", startOfDay.toISOString()),
       ]);
       if (totalRes.error) throw totalRes.error;
       if (todayRes.error) throw todayRes.error;
@@ -437,7 +562,9 @@ export function useRecordPageView() {
           referrer: document.referrer || undefined,
           userAgent: navigator.userAgent,
         },
-      }).catch(() => { /* silent — analytics must not break the page */ }),
+      }).catch(() => {
+        /* silent — analytics must not break the page */
+      }),
     );
   }, []);
 }
@@ -460,7 +587,10 @@ export function useUser() {
       setUser(session?.user ?? null);
       setLoading(false);
     });
-    return () => { mounted = false; sub.subscription.unsubscribe(); };
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
   return { user, loading };
 }
@@ -472,7 +602,11 @@ export function useIsAdmin(userId: string | undefined) {
     queryFn: async (): Promise<boolean> => {
       if (!userId) return false;
       const { data, error } = await supabase
-        .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
       if (error) throw error;
       return !!data;
     },
@@ -503,17 +637,13 @@ let cmsSyncQueryClient: QueryClient | null = null;
 function createCmsSyncChannel(): RealtimeChannel {
   let channel: RealtimeChannel = supabase.channel(CMS_SYNC_CHANNEL);
   for (const { table, queryKey } of CMS_SYNC_TABLES) {
-    channel = channel.on(
-      "postgres_changes",
-      { event: "*", schema: "public", table },
-      () => {
-        if (!cmsSyncQueryClient) return;
-        scheduleRemoteSync(cmsSyncQueryClient, queryKey);
-        if (table === "site_content") {
-          scheduleRemoteSync(cmsSyncQueryClient, ["test", "questions"]);
-        }
-      },
-    );
+    channel = channel.on("postgres_changes", { event: "*", schema: "public", table }, () => {
+      if (!cmsSyncQueryClient) return;
+      scheduleRemoteSync(cmsSyncQueryClient, queryKey);
+      if (table === "site_content") {
+        scheduleRemoteSync(cmsSyncQueryClient, ["test", "questions"]);
+      }
+    });
   }
   channel.subscribe();
   return channel;
@@ -540,6 +670,8 @@ export function useRealtimeCmsSync() {
   const qc = useQueryClient();
   useEffect(() => {
     acquireCmsSyncChannel(qc);
-    return () => { releaseCmsSyncChannel(); };
+    return () => {
+      releaseCmsSyncChannel();
+    };
   }, [qc]);
 }

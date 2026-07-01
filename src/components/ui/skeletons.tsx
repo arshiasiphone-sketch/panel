@@ -5,10 +5,7 @@
 import { type HTMLAttributes } from "react";
 
 /** Base Skeleton component with pulse animation */
-export function Skeleton({
-  className = "",
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function Skeleton({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={`animate-pulse rounded-md bg-muted ${className}`}
@@ -88,7 +85,10 @@ export function GallerySkeleton({ count = 6 }: { count?: number }) {
 /** Chart skeleton */
 export function ChartSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-4 min-h-[300px] ${className}`} aria-hidden="true">
+    <div
+      className={`rounded-xl border border-border bg-card p-4 min-h-[300px] ${className}`}
+      aria-hidden="true"
+    >
       <Skeleton className="h-6 w-1/2 mb-6" />
       <div className="flex items-end justify-between h-[200px] gap-2">
         <Skeleton className="w-8 h-16" />
@@ -108,14 +108,17 @@ export function ChartSkeleton({ className = "" }: { className?: string }) {
 /** Table skeleton */
 export function TableSkeleton({ rows = 5, columns = 3 }: { rows?: number; columns?: number }) {
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-border bg-card" aria-hidden="true">
+    <div
+      className="w-full overflow-hidden rounded-xl border border-border bg-card"
+      aria-hidden="true"
+    >
       {/* Table header */}
       <div className="flex border-b border-border p-3">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1 mx-1" />
         ))}
       </div>
-      
+
       {/* Table rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className="flex border-b border-border/50 p-3 last:border-0">
@@ -137,26 +140,26 @@ export function DashboardSkeleton() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-8 w-32" />
       </div>
-      
+
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <CardSkeleton key={i} className="min-h-[100px]" />
         ))}
       </div>
-      
+
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartSkeleton />
         <ChartSkeleton />
       </div>
-      
+
       {/* Content row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <CardSkeleton className="lg:col-span-2" />
         <CardSkeleton />
       </div>
-      
+
       {/* List */}
       <CardSkeleton />
     </div>

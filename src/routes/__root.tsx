@@ -54,7 +54,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Try again
@@ -79,7 +82,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "کافه خانه" },
       { name: "description", content: "خانه دوم شما، یک فنجان آرامش" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      /* ---- Font preconnect (critical for FCP) ---- */
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      /* ---- Preload main font (Vazirmatn) ---- */
+      {
+        rel: "preload",
+        href: "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap",
+        as: "style",
+      },
+      /* ---- Main stylesheet (loaded late via CSS @import) ---- */
+      { rel: "stylesheet", href: appCss },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -90,7 +109,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />

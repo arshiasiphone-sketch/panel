@@ -32,12 +32,15 @@ function rowToResponse(row: TestResponseRow): StoredTestResponse {
     answers: (row.answers as Record<number, string>) ?? {},
     result: row.result as PersonalityType,
     tied: (row.tied ?? []) as PersonalityType[],
-    userInfo: row.user_full_name || row.user_phone ? {
-      fullName: row.user_full_name ?? "",
-      phone: row.user_phone ?? "",
-      age: row.user_age ?? 0,
-      gender: row.user_gender ?? "",
-    } : undefined,
+    userInfo:
+      row.user_full_name || row.user_phone
+        ? {
+            fullName: row.user_full_name ?? "",
+            phone: row.user_phone ?? "",
+            age: row.user_age ?? 0,
+            gender: row.user_gender ?? "",
+          }
+        : undefined,
   };
 }
 
@@ -96,7 +99,10 @@ export function useClearTestResponses() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("test_responses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      const { error } = await supabase
+        .from("test_responses")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.testResponses }),
@@ -114,7 +120,7 @@ export function useTestQuestionsConfig() {
         .maybeSingle();
       if (error) throw error;
       if (!data?.value) return EMPTY_TEST_QUESTIONS;
-      const v = data.value as TestQuestionsConfig;
+      const v = data.value as unknown as TestQuestionsConfig;
       return {
         overrides: v.overrides ?? {},
         orderedIds: v.orderedIds ?? null,
@@ -134,7 +140,8 @@ export function useUpdateTestQuestionsConfig() {
       });
       if (error) throw error;
     },
-    onMutate: async (config) => beginOptimisticUpdate<TestQuestionsConfig>(qc, QK.testQuestions, () => config),
+    onMutate: async (config) =>
+      beginOptimisticUpdate<TestQuestionsConfig>(qc, QK.testQuestions, () => config),
     onError: (_err, _config, ctx) => {
       if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.testQuestions, ctx.prev);
     },

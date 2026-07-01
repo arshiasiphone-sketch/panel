@@ -20,12 +20,17 @@ export type TableRow<T extends TableName> = Tables[T]["Row"];
  * CMS-specific table names for upsert/delete hooks.
  * These are the tables that support id-based upsert patterns.
  */
-export type CmsTableName = "menu_items" | "gallery_images" | "events" | "testimonials" | "page_blocks";
+export type CmsTableName =
+  | "menu_items"
+  | "gallery_images"
+  | "events"
+  | "testimonials"
+  | "page_blocks";
 
 /**
  * Typed cast for upsert payload.
  * Casts a partial row (which may omit optional fields) to the Insert type.
- * 
+ *
  * NOTE: `Partial<TableRow>` and `TableInsert` may have different shapes
  * (Insert may require fields that Row marks optional, and vice versa).
  * Callers must ensure the runtime object matches the Insert shape.
@@ -33,21 +38,31 @@ export type CmsTableName = "menu_items" | "gallery_images" | "events" | "testimo
  * (b) Supabase ignores extra fields, (c) callers pass complete objects
  * from form state that structurally match Insert.
  */
-export function asCmsInsert<T extends CmsTableName>(table: T, row: Partial<TableRow<T>>): TableInsert<T> {
+export function asCmsInsert<T extends CmsTableName>(
+  table: T,
+  row: Partial<TableRow<T>>,
+): TableInsert<T> {
   return row as unknown as TableInsert<T>;
 }
 
 /**
  * Typed cast for update payload.
  */
-export function asCmsUpdate<T extends CmsTableName>(table: T, patch: Record<string, unknown>): TableUpdate<T> {
+export function asCmsUpdate<T extends CmsTableName>(
+  table: T,
+  patch: Record<string, unknown>,
+): TableUpdate<T> {
   return patch as TableUpdate<T>;
 }
 
 /**
  * Typed cast for page_blocks-specific operations.
  */
-export function asBlockInsert(row: { type: string; data: Record<string, unknown>; sort_order: number }): TableInsert<"page_blocks"> {
+export function asBlockInsert(row: {
+  type: string;
+  data: Record<string, unknown>;
+  sort_order: number;
+}): TableInsert<"page_blocks"> {
   return row as unknown as TableInsert<"page_blocks">;
 }
 
@@ -58,18 +73,25 @@ export function asBlockUpdate(patch: Record<string, unknown>): TableUpdate<"page
 /**
  * Typed cast for site_content upsert.
  */
-export function asSiteContentUpsert(input: { key: string; value: Record<string, unknown> }): TableInsert<"site_content"> {
+export function asSiteContentUpsert(input: {
+  key: string;
+  value: Record<string, unknown>;
+}): TableInsert<"site_content"> {
   return input as unknown as TableInsert<"site_content">;
 }
 
 /**
  * Typed cast for personality_profiles operations.
  */
-export function asPersonalityUpdate(patch: Record<string, unknown>): TableUpdate<"personality_profiles"> {
+export function asPersonalityUpdate(
+  patch: Record<string, unknown>,
+): TableUpdate<"personality_profiles"> {
   return patch as TableUpdate<"personality_profiles">;
 }
 
-export function asPersonalityUpsert(row: Record<string, unknown>): TableInsert<"personality_profiles"> {
+export function asPersonalityUpsert(
+  row: Record<string, unknown>,
+): TableInsert<"personality_profiles"> {
   return row as unknown as TableInsert<"personality_profiles">;
 }
 
@@ -83,6 +105,8 @@ export function asTestResponseInsert(row: Record<string, unknown>): TableInsert<
 /**
  * Typed cast for test_questions config (stored as site_content value).
  */
-export function asJson(value: unknown): Database["public"]["Tables"]["site_content"]["Insert"]["value"] {
+export function asJson(
+  value: unknown,
+): Database["public"]["Tables"]["site_content"]["Insert"]["value"] {
   return value as Database["public"]["Tables"]["site_content"]["Insert"]["value"];
 }

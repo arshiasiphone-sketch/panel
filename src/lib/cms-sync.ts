@@ -26,14 +26,17 @@ export function scheduleRemoteSync(qc: QueryClient, queryKey: readonly unknown[]
   const existing = invalidationTimers.get(id);
   if (existing) clearTimeout(existing);
 
-  invalidationTimers.set(id, setTimeout(function tick() {
-    if (isRemoteSyncPaused()) {
-      invalidationTimers.set(id, setTimeout(tick, 500));
-      return;
-    }
-    invalidationTimers.delete(id);
-    void qc.invalidateQueries({ queryKey });
-  }, REMOTE_SYNC_DEBOUNCE_MS));
+  invalidationTimers.set(
+    id,
+    setTimeout(function tick() {
+      if (isRemoteSyncPaused()) {
+        invalidationTimers.set(id, setTimeout(tick, 500));
+        return;
+      }
+      invalidationTimers.delete(id);
+      void qc.invalidateQueries({ queryKey });
+    }, REMOTE_SYNC_DEBOUNCE_MS),
+  );
 }
 
 export async function beginOptimisticUpdate<T>(

@@ -1,6 +1,9 @@
 import { QUESTIONS, type PersonalityType, type Option } from "./test-data";
 
-export interface OptionOverride { text?: string; type?: PersonalityType | null }
+export interface OptionOverride {
+  text?: string;
+  type?: PersonalityType | null;
+}
 export interface QuestionOverride {
   text?: string;
   enabled?: boolean;
@@ -32,5 +35,7 @@ export function resolveQuestion(id: number, overrides: Record<number, QuestionOv
 
 export function getActiveQuestionIds(config: TestQuestionsConfig): number[] {
   const baseIds = QUESTIONS.map((q) => q.id);
-  return config.orderedIds && config.orderedIds.length === baseIds.length ? config.orderedIds : baseIds;
+  return config.orderedIds && config.orderedIds.length === baseIds.length
+    ? config.orderedIds
+    : baseIds;
 }

@@ -243,8 +243,8 @@ export async function trackVisit(pagePath: string): Promise<void> {
   }
 }
 
-export function setupOfflineAnalyticsSync(): void {
-  if (typeof window === "undefined") return;
+export function setupOfflineAnalyticsSync(): () => void {
+  if (typeof window === "undefined") return () => {};
 
   const handler = (): void => {
     processOfflineQueue();
