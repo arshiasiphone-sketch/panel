@@ -28,7 +28,10 @@ import {
   type PageBlock,
 } from "@/lib/cms";
 import { triggerSave } from "@/lib/admin-store";
+<<<<<<< HEAD
 import { useIsMobile } from "@/hooks/use-mobile";
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { PageHeader, Card } from "@/components/admin/admin-shell";
 import {
   BLOCK_DEFS,
@@ -40,6 +43,7 @@ import {
   type Block,
   type BlockType,
 } from "@/components/admin/blocks";
+<<<<<<< HEAD
 import {
   Drawer,
   DrawerContent,
@@ -47,6 +51,8 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
 export const Route = createFileRoute("/admin/page")({ component: PageBuilder });
 
@@ -69,12 +75,16 @@ function PageBuilder() {
   const reorder = useReorderBlocks();
   const [picker, setPicker] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+<<<<<<< HEAD
   const [drawerBlock, setDrawerBlock] = useState<Block | null>(null);
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const blocks = useMemo(() => rows.map(toUiBlock), [rows]);
   const meta =
     (site?.meta as { title?: string; bio?: string; avatar_url?: string } | undefined) ?? {};
 
+<<<<<<< HEAD
   // Listen for FAB-triggered block picker from mobile bottom nav
   useEffect(() => {
     function onOpenPicker() {
@@ -84,6 +94,8 @@ function PageBuilder() {
     return () => window.removeEventListener("open-block-picker", onOpenPicker);
   }, []);
 
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   function saveMeta(patch: Partial<{ title: string; bio: string; avatar_url: string }>) {
     triggerSave();
     upsertSite.mutate(
@@ -216,6 +228,7 @@ function PageBuilder() {
           }}
         />
       )}
+<<<<<<< HEAD
 
       {/* Block editor bottom sheet (mobile) — debounced */}
       {drawerBlock && (
@@ -245,6 +258,8 @@ function PageBuilder() {
           </DrawerContent>
         </Drawer>
       )}
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     </div>
   );
 }
@@ -335,17 +350,29 @@ const SortableBlock = memo(function SortableBlock({
       style={style}
       className={`rounded-xl border border-border bg-card overflow-hidden ${!block.visible ? "opacity-60" : ""}`}
     >
+<<<<<<< HEAD
       <div className="flex items-center gap-2 px-2.5 py-2 min-h-[52px] md:min-h-0">
         <button
           {...attributes}
           {...listeners}
           className="h-9 w-9 md:h-7 md:w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-manipulation"
+=======
+      <div className="flex items-center gap-2 px-2.5 py-2">
+        <button
+          {...attributes}
+          {...listeners}
+          className="h-7 w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
           aria-label="جابجایی"
         >
           <GripVertical className="h-4 w-4" />
         </button>
         <button onClick={onToggle} className="flex-1 flex items-center gap-2 min-w-0 text-right">
+<<<<<<< HEAD
           <div className="h-9 w-9 md:h-7 md:w-7 rounded-md bg-muted grid place-items-center text-foreground/70">
+=======
+          <div className="h-7 w-7 rounded-md bg-muted grid place-items-center text-foreground/70">
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
             <BlockIcon d={def.icon} />
           </div>
           <div className="min-w-0">
@@ -358,7 +385,11 @@ const SortableBlock = memo(function SortableBlock({
             className={`h-4 w-4 text-muted-foreground transition ms-auto ${expanded ? "rotate-180" : ""}`}
           />
         </button>
+<<<<<<< HEAD
         <div className="flex items-center gap-1">
+=======
+        <div className="flex items-center gap-0.5">
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
           <IconBtn onClick={onToggleVisibility} title={block.visible ? "مخفی کردن" : "نمایش"}>
             {block.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
           </IconBtn>
@@ -383,6 +414,7 @@ const SortableBlock = memo(function SortableBlock({
   );
 });
 
+<<<<<<< HEAD
 /** Debounced block editor for the mobile drawer — prevents rapid mutations. */
 function DrawerBlockEditor({
   block,
@@ -427,6 +459,8 @@ function DrawerBlockEditor({
   return <BlockEditor block={{ ...block, data: localData }} onUpdate={handleUpdate} />;
 }
 
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 function IconBtn({
   children,
   onClick,
@@ -475,6 +509,7 @@ function previewSummary(b: Block) {
 
 function BlockPicker({ onClose, onPick }: { onClose: () => void; onPick: (t: BlockType) => void }) {
   const groups = ["صفحه", "متن", "رسانه", "تعامل", "اطلاعات", "پیشرفته"] as const;
+<<<<<<< HEAD
   const isMobile = useIsMobile();
 
   // Mobile: bottom sheet
@@ -519,6 +554,8 @@ function BlockPicker({ onClose, onPick }: { onClose: () => void; onPick: (t: Blo
   }
 
   // Desktop: modal
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-foreground/40" />
@@ -530,7 +567,11 @@ function BlockPicker({ onClose, onPick }: { onClose: () => void; onPick: (t: Blo
           <div className="text-sm font-semibold">انتخاب بلوک</div>
           <button
             onClick={onClose}
+<<<<<<< HEAD
             className="h-8 w-8 rounded-md hover:bg-muted grid place-items-center"
+=======
+            className="h-7 w-7 rounded-md hover:bg-muted grid place-items-center"
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
           >
             <X className="h-4 w-4" />
           </button>

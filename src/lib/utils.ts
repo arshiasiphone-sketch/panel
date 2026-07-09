@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+<<<<<<< HEAD
 
 /**
  * Generate a unique ID using crypto.randomUUID().
@@ -16,3 +17,5 @@ export function createId(): string {
   // Fallback: timestamp + random segment
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a

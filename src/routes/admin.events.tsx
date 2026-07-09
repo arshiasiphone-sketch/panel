@@ -64,13 +64,20 @@ function EventsAdmin() {
 
       {editing && (
         <Card className="p-4 mb-4">
+<<<<<<< HEAD
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+=======
+          <div className="grid sm:grid-cols-2 gap-3">
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
             <div>
               <Label>عنوان</Label>
               <Input
                 value={editing.title ?? ""}
                 onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+<<<<<<< HEAD
                 autoFocus
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               />
             </div>
             <div>
@@ -96,7 +103,10 @@ function EventsAdmin() {
                 value={editing.image_url ?? ""}
                 onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
                 placeholder="https://..."
+<<<<<<< HEAD
                 inputMode="url"
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               />
             </div>
           </div>
@@ -118,6 +128,7 @@ function EventsAdmin() {
           {items.map((ev) => (
             <Card key={ev.id} className="overflow-hidden">
               {ev.image_url && (
+<<<<<<< HEAD
                 <img
                   src={ev.image_url}
                   alt={ev.title}
@@ -125,6 +136,9 @@ function EventsAdmin() {
                   decoding="async"
                   className="w-full h-36 object-cover"
                 />
+=======
+                <img src={ev.image_url} alt={ev.title} loading="lazy" decoding="async" className="w-full h-36 object-cover" />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               )}
               <div className="p-3 flex flex-col gap-1">
                 {ev.date_label && (

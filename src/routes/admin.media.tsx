@@ -3,8 +3,12 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, Card, GhostButton } from "@/components/admin/admin-shell";
 import { useMediaFiles, useUploadMedia, useDeleteMedia, getMediaPublicUrl } from "@/lib/media";
+<<<<<<< HEAD
 import { Upload, Folder, Search, Trash2, Tag, ChevronDown, Image } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+=======
+import { Upload, Folder, Search, Trash2, Tag } from "lucide-react";
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
 export const Route = createFileRoute("/admin/media")({ component: MediaPage });
 
@@ -12,10 +16,15 @@ function MediaPage() {
   const { data: media = [], isLoading, isError, error } = useMediaFiles();
   const upload = useUploadMedia();
   const remove = useDeleteMedia();
+<<<<<<< HEAD
   const isMobile = useIsMobile();
   const [folder, setFolder] = useState("همه");
   const [q, setQ] = useState("");
   const [showFolders, setShowFolders] = useState(false);
+=======
+  const [folder, setFolder] = useState("همه");
+  const [q, setQ] = useState("");
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
   const folders = useMemo(
     () => ["همه", ...Array.from(new Set(media.map((m) => m.folder)))],
@@ -80,6 +89,7 @@ function MediaPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-4">
+<<<<<<< HEAD
         {/* Mobile folder selector - collapsible chip */}
         {isMobile ? (
           <div className="-mb-2">
@@ -126,6 +136,21 @@ function MediaPage() {
             ))}
           </Card>
         )}
+=======
+        <Card className="p-3 h-fit">
+          <div className="text-xs text-muted-foreground mb-2">پوشه‌ها</div>
+          {folders.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFolder(f)}
+              className={`w-full text-right flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition ${folder === f ? "bg-foreground/[0.06] font-medium" : "hover:bg-muted text-muted-foreground"}`}
+            >
+              <Folder className="h-3.5 w-3.5" />
+              {f}
+            </button>
+          ))}
+        </Card>
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
         <div>
           <Card className="mb-3 p-3 flex items-center gap-2">
@@ -154,7 +179,10 @@ function MediaPage() {
                       src={getMediaPublicUrl(m.storage_path)}
                       alt={m.name}
                       className="w-full h-full object-cover"
+<<<<<<< HEAD
                       loading="lazy"
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
                     />
                     <button
                       disabled={remove.isPending}
@@ -164,10 +192,16 @@ function MediaPage() {
                           onError: (e) => toast.error(e.message),
                         })
                       }
+<<<<<<< HEAD
                       className="absolute top-2 left-2 h-9 w-9 md:h-7 md:w-7 grid place-items-center rounded-full bg-background/90 text-rose-600 opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition disabled:opacity-50 touch-manipulation"
                       aria-label="حذف"
                     >
                       <Trash2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
+=======
+                      className="absolute top-2 left-2 h-7 w-7 grid place-items-center rounded-full bg-background/90 text-rose-600 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
                     </button>
                   </div>
                   <div className="p-2">
@@ -176,7 +210,11 @@ function MediaPage() {
                       <Tag className="h-3 w-3" /> {(Number(m.size_bytes) / 1024).toFixed(0)} KB
                     </div>
                     <GhostButton
+<<<<<<< HEAD
                       className="text-[10px] py-2 px-2 mt-1 w-full min-h-[36px]"
+=======
+                      className="text-[10px] py-1 px-2 mt-1 w-full"
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
                       onClick={() => {
                         navigator.clipboard.writeText(getMediaPublicUrl(m.storage_path));
                         toast.success("آدرس کپی شد");

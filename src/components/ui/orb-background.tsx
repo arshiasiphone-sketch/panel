@@ -61,10 +61,16 @@ export default function OrbBackground({
   }, [primaryColor, secondaryColor, particleCount]);
 
   // Reduced-motion support (respects prefers-reduced-motion)
+<<<<<<< HEAD
   const prefersReducedMotion =
     typeof window !== "undefined"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false;
+=======
+  const prefersReducedMotion = typeof window !== "undefined"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    : false;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -159,8 +165,12 @@ export default function OrbBackground({
         );
         const mi1 = Math.max(
           0,
+<<<<<<< HEAD
           1 -
             Math.hypot(mx - canvas.width * 0.82, my - canvas.height * 0.08) / (canvas.width * 0.6),
+=======
+          1 - Math.hypot(mx - canvas.width * 0.82, my - canvas.height * 0.08) / (canvas.width * 0.6),
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
         );
         g1.addColorStop(0, `rgba(${pc.r},${pc.g},${pc.b},${0.18 + mi1 * 0.12})`);
         g1.addColorStop(1, "transparent");

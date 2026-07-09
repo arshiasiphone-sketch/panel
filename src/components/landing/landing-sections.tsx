@@ -489,6 +489,7 @@ function GalleryPreviewSection({ s, ctx }: { s: any; ctx: LandingCtx }) {
               className="relative aspect-square rounded-2xl overflow-hidden"
               style={{ border: `1px solid ${clr(T.border, 0.07)}`, background: clr(T.bg, 0.3) }}
             >
+<<<<<<< HEAD
               <img
                 src={img.image_url}
                 alt={img.title || "تصویر کافه"}
@@ -496,6 +497,15 @@ function GalleryPreviewSection({ s, ctx }: { s: any; ctx: LandingCtx }) {
                 decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
+=======
+            <img
+              src={img.image_url}
+              alt={img.title || "تصویر کافه"}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
             </motion.div>
           ))}
         </div>
@@ -529,6 +539,7 @@ function EventsPreviewSection({ s, ctx }: { s: any; ctx: LandingCtx }) {
               }}
             >
               <div className="relative h-44" style={{ background: clr(T.bg, 0.3) }}>
+<<<<<<< HEAD
                 {ev.image_url && (
                   <img
                     src={ev.image_url}
@@ -538,6 +549,17 @@ function EventsPreviewSection({ s, ctx }: { s: any; ctx: LandingCtx }) {
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}
+=======
+          {ev.image_url && (
+            <img
+              src={ev.image_url}
+              alt={ev.title}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               </div>
               <div className="p-5 flex flex-col gap-2 text-right">
                 {ev.date_label && (
@@ -923,6 +945,7 @@ function GalleryStaticSection({ s }: { s: any }) {
             className="relative aspect-square rounded-2xl overflow-hidden"
             style={{ border: `1px solid ${clr(T.border, 0.07)}`, background: clr(T.bg, 0.3) }}
           >
+<<<<<<< HEAD
             <img
               src={url}
               alt=""
@@ -930,6 +953,9 @@ function GalleryStaticSection({ s }: { s: any }) {
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
             />
+=======
+            <img src={url} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
           </div>
         ))}
       </div>

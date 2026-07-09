@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+<<<<<<< HEAD
 import { Route as ProvisionRouteImport } from './routes/provision'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestIndexRouteImport } from './routes/test.index'
@@ -17,7 +20,10 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as TestResultRouteImport } from './routes/test.result'
 import { Route as TestInfoRouteImport } from './routes/test.info'
 import { Route as TestStepRouteImport } from './routes/test.$step'
+<<<<<<< HEAD
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { Route as AdminTestResultsRouteImport } from './routes/admin.test-results'
 import { Route as AdminTestQuestionsRouteImport } from './routes/admin.test-questions'
 import { Route as AdminTestAnalyticsRouteImport } from './routes/admin.test-analytics'
@@ -35,6 +41,7 @@ import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
+<<<<<<< HEAD
 import { Route as ApiPublicProvisionStatusRouteImport } from './routes/api/public/provision-status'
 import { Route as ApiPublicProvisionRouteImport } from './routes/api/public/provision'
 import { Route as ApiPublicCheckSlugRouteImport } from './routes/api/public/check-slug'
@@ -45,6 +52,9 @@ const ProvisionRoute = ProvisionRouteImport.update({
   path: '/provision',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -80,11 +90,14 @@ const TestStepRoute = TestStepRouteImport.update({
   path: '/test/$step',
   getParentRoute: () => rootRouteImport,
 } as any)
+<<<<<<< HEAD
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 const AdminTestResultsRoute = AdminTestResultsRouteImport.update({
   id: '/test-results',
   path: '/test-results',
@@ -170,6 +183,7 @@ const AdminActivityRoute = AdminActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => AdminRoute,
 } as any)
+<<<<<<< HEAD
 const ApiPublicProvisionStatusRoute =
   ApiPublicProvisionStatusRouteImport.update({
     id: '/api/public/provision-status',
@@ -191,11 +205,16 @@ const ApiPublicBlueprintsRoute = ApiPublicBlueprintsRouteImport.update({
   path: '/api/public/blueprints',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+<<<<<<< HEAD
   '/provision': typeof ProvisionRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
@@ -213,12 +232,16 @@ export interface FileRoutesByFullPath {
   '/admin/test-analytics': typeof AdminTestAnalyticsRoute
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
+<<<<<<< HEAD
   '/api/health': typeof ApiHealthRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
   '/admin/': typeof AdminIndexRoute
   '/test/': typeof TestIndexRoute
+<<<<<<< HEAD
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
@@ -227,6 +250,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/provision': typeof ProvisionRoute
+=======
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
@@ -244,22 +272,31 @@ export interface FileRoutesByTo {
   '/admin/test-analytics': typeof AdminTestAnalyticsRoute
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
+<<<<<<< HEAD
   '/api/health': typeof ApiHealthRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
   '/admin': typeof AdminIndexRoute
   '/test': typeof TestIndexRoute
+<<<<<<< HEAD
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
   '/api/public/provision-status': typeof ApiPublicProvisionStatusRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+<<<<<<< HEAD
   '/provision': typeof ProvisionRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
@@ -277,23 +314,32 @@ export interface FileRoutesById {
   '/admin/test-analytics': typeof AdminTestAnalyticsRoute
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
+<<<<<<< HEAD
   '/api/health': typeof ApiHealthRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
   '/admin/': typeof AdminIndexRoute
   '/test/': typeof TestIndexRoute
+<<<<<<< HEAD
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
   '/api/public/provision-status': typeof ApiPublicProvisionStatusRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+<<<<<<< HEAD
     | '/provision'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/bookings'
@@ -311,12 +357,16 @@ export interface FileRouteTypes {
     | '/admin/test-analytics'
     | '/admin/test-questions'
     | '/admin/test-results'
+<<<<<<< HEAD
     | '/api/health'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/test/$step'
     | '/test/info'
     | '/test/result'
     | '/admin/'
     | '/test/'
+<<<<<<< HEAD
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
@@ -325,6 +375,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/provision'
+=======
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/bookings'
@@ -342,21 +397,30 @@ export interface FileRouteTypes {
     | '/admin/test-analytics'
     | '/admin/test-questions'
     | '/admin/test-results'
+<<<<<<< HEAD
     | '/api/health'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/test/$step'
     | '/test/info'
     | '/test/result'
     | '/admin'
     | '/test'
+<<<<<<< HEAD
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
     | '/api/public/provision-status'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   id:
     | '__root__'
     | '/'
     | '/admin'
+<<<<<<< HEAD
     | '/provision'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/bookings'
@@ -374,35 +438,48 @@ export interface FileRouteTypes {
     | '/admin/test-analytics'
     | '/admin/test-questions'
     | '/admin/test-results'
+<<<<<<< HEAD
     | '/api/health'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     | '/test/$step'
     | '/test/info'
     | '/test/result'
     | '/admin/'
     | '/test/'
+<<<<<<< HEAD
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
     | '/api/public/provision-status'
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+<<<<<<< HEAD
   ProvisionRoute: typeof ProvisionRoute
   ApiHealthRoute: typeof ApiHealthRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   TestStepRoute: typeof TestStepRoute
   TestInfoRoute: typeof TestInfoRoute
   TestResultRoute: typeof TestResultRoute
   TestIndexRoute: typeof TestIndexRoute
+<<<<<<< HEAD
   ApiPublicBlueprintsRoute: typeof ApiPublicBlueprintsRoute
   ApiPublicCheckSlugRoute: typeof ApiPublicCheckSlugRoute
   ApiPublicProvisionRoute: typeof ApiPublicProvisionRoute
   ApiPublicProvisionStatusRoute: typeof ApiPublicProvisionStatusRoute
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+<<<<<<< HEAD
     '/provision': {
       id: '/provision'
       path: '/provision'
@@ -410,6 +487,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProvisionRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -459,6 +538,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestStepRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -466,6 +546,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     '/admin/test-results': {
       id: '/admin/test-results'
       path: '/test-results'
@@ -585,6 +667,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminActivityRouteImport
       parentRoute: typeof AdminRoute
     }
+<<<<<<< HEAD
     '/api/public/provision-status': {
       id: '/api/public/provision-status'
       path: '/api/public/provision-status'
@@ -613,6 +696,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBlueprintsRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   }
 }
 
@@ -663,16 +748,22 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+<<<<<<< HEAD
   ProvisionRoute: ProvisionRoute,
   ApiHealthRoute: ApiHealthRoute,
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   TestStepRoute: TestStepRoute,
   TestInfoRoute: TestInfoRoute,
   TestResultRoute: TestResultRoute,
   TestIndexRoute: TestIndexRoute,
+<<<<<<< HEAD
   ApiPublicBlueprintsRoute: ApiPublicBlueprintsRoute,
   ApiPublicCheckSlugRoute: ApiPublicCheckSlugRoute,
   ApiPublicProvisionRoute: ApiPublicProvisionRoute,
   ApiPublicProvisionStatusRoute: ApiPublicProvisionStatusRoute,
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

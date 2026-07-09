@@ -1,6 +1,10 @@
 {
+<<<<<<< HEAD
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "eslint.config.js", "vitest.config.ts"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+=======
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "eslint.config.js"],
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

@@ -1,4 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+<<<<<<< HEAD
+=======
+import { supabase } from "@/integrations/supabase/client";
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import type { Database } from "@/integrations/supabase/types";
 import {
   beginOptimisticUpdate,
@@ -7,7 +11,10 @@ import {
   upsertById,
   removeById,
 } from "./cms-sync";
+<<<<<<< HEAD
 import { useRepositories } from "@/lib/providers";
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { QK } from "./test-db";
 
 export type MediaFile = Database["public"]["Tables"]["media_files"]["Row"];
@@ -24,6 +31,11 @@ export const ACCEPTED_IMAGE_MIMES = [
 /** Default maximum image size (5 MB) */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+<<<<<<< HEAD
+=======
+const BUCKET = "media";
+
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 /**
  * Compress image if it exceeds a size threshold.
  * Falls back to original file if compression fails.
@@ -84,6 +96,7 @@ export function validateImageFile(
  * Extracts the storage path from the URL and removes it.
  */
 export async function deleteMediaByPublicUrl(publicUrl: string): Promise<void> {
+<<<<<<< HEAD
   const repos = useRepositories();
   await repos.media.deleteByPublicUrl(publicUrl);
 }
@@ -98,15 +111,76 @@ export function useMediaFiles() {
   return useQuery({
     queryKey: QK.media,
     queryFn: (): Promise<MediaFile[]> => repos.media.getAll(),
+=======
+  try {
+    // Extract storage path from public URL
+    const url = new URL(publicUrl);
+    const pathMatch = url.pathname.match(/\/media\/(.+)/);
+    if (!pathMatch) return;
+    const storagePath = decodeURIComponent(pathMatch[1]);
+    await supabase.storage.from(BUCKET).remove([storagePath]);
+  } catch {
+    // Silently fail — bucket cleanup is non-critical
+  }
+}
+
+export function getMediaPublicUrl(storagePath: string): string {
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
+export function useMediaFiles() {
+  return useQuery({
+    queryKey: QK.media,
+    queryFn: async (): Promise<MediaFile[]> => {
+      const { data, error } = await supabase
+        .from("media_files")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   });
 }
 
 export function useUploadMedia() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
   return useMutation({
     mutationFn: async (input: { file: File; folder?: string }) => {
       return repos.media.upload(input.file, input.folder);
+=======
+  return useMutation({
+    mutationFn: async (input: { file: File; folder?: string }) => {
+      const folder = input.folder ?? "uploads";
+      const safeName = input.file.name.replace(/[^\w.\-()+\u0600-\u06FF]/g, "_");
+      const storagePath = `${folder}/${crypto.randomUUID()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(storagePath, input.file, { upsert: false, contentType: input.file.type });
+      if (uploadError) throw uploadError;
+
+      const { data, error } = await supabase
+        .from("media_files")
+        .insert({
+          name: input.file.name,
+          storage_path: storagePath,
+          folder,
+          tags: [],
+          size_bytes: input.file.size,
+          mime_type: input.file.type,
+        })
+        .select()
+        .single();
+      if (error) {
+        await supabase.storage.from(BUCKET).remove([storagePath]);
+        throw error;
+      }
+      return data;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onSuccess: (data) => {
       touchLocalCmsEdit();
@@ -117,10 +191,21 @@ export function useUploadMedia() {
 
 export function useDeleteMedia() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
   return useMutation({
     mutationFn: async (file: MediaFile) => {
       await repos.media.delete(file);
+=======
+  return useMutation({
+    mutationFn: async (file: MediaFile) => {
+      const { error: storageError } = await supabase.storage
+        .from(BUCKET)
+        .remove([file.storage_path]);
+      if (storageError) throw storageError;
+      const { error } = await supabase.from("media_files").delete().eq("id", file.id);
+      if (error) throw error;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onMutate: async (file) =>
       beginOptimisticUpdate<MediaFile[]>(qc, QK.media, (list) => removeById(list, file.id)),

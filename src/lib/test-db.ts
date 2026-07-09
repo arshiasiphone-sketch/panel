@@ -1,11 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+<<<<<<< HEAD
+=======
+import { supabase } from "@/integrations/supabase/client";
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import type { Database } from "@/integrations/supabase/types";
 import type { TestQuestionsConfig } from "./test-questions";
 import { EMPTY_TEST_QUESTIONS } from "./test-questions";
 import type { PersonalityType } from "./test-data";
 import type { UserInfo } from "./test-store";
 import { beginOptimisticUpdate, rollbackOptimisticUpdate, touchLocalCmsEdit } from "./cms-sync";
+<<<<<<< HEAD
 import { useRepositories } from "@/lib/providers";
+=======
+
+type TestResponseRow = Database["public"]["Tables"]["test_responses"]["Row"];
+type TestResponseInsert = Database["public"]["Tables"]["test_responses"]["Insert"];
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
 export type StoredTestResponse = {
   id: string;
@@ -22,17 +32,53 @@ export const QK = {
   media: ["media"] as const,
 };
 
+<<<<<<< HEAD
 export function useTestResponses() {
   const repos = useRepositories();
   return useQuery({
     queryKey: QK.testResponses,
     queryFn: (): Promise<StoredTestResponse[]> => repos.test.getResponses(),
+=======
+function rowToResponse(row: TestResponseRow): StoredTestResponse {
+  return {
+    id: row.id,
+    completedAt: row.completed_at,
+    answers: (row.answers as Record<number, string>) ?? {},
+    result: row.result as PersonalityType,
+    tied: (row.tied ?? []) as PersonalityType[],
+    userInfo:
+      row.user_full_name || row.user_phone
+        ? {
+            fullName: row.user_full_name ?? "",
+            phone: row.user_phone ?? "",
+            age: row.user_age ?? 0,
+            gender: row.user_gender ?? "",
+          }
+        : undefined,
+  };
+}
+
+export function useTestResponses() {
+  return useQuery({
+    queryKey: QK.testResponses,
+    queryFn: async (): Promise<StoredTestResponse[]> => {
+      const { data, error } = await supabase
+        .from("test_responses")
+        .select("*")
+        .order("completed_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(rowToResponse);
+    },
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   });
 }
 
 export function useSubmitTestResponse() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   return useMutation({
     mutationFn: async (input: {
       answers: Record<number, string>;
@@ -40,7 +86,22 @@ export function useSubmitTestResponse() {
       tied: PersonalityType[];
       userInfo?: UserInfo;
     }) => {
+<<<<<<< HEAD
       return repos.test.submitResponse(input);
+=======
+      const row: TestResponseInsert = {
+        answers: input.answers as never,
+        result: input.result,
+        tied: input.tied,
+        user_full_name: input.userInfo?.fullName ?? "",
+        user_phone: input.userInfo?.phone ?? "",
+        user_age: input.userInfo?.age ?? null,
+        user_gender: input.userInfo?.gender ?? "",
+      };
+      const { data, error } = await supabase.from("test_responses").insert(row).select().single();
+      if (error) throw error;
+      return rowToResponse(data);
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.testResponses }),
   });
@@ -48,10 +109,17 @@ export function useSubmitTestResponse() {
 
 export function useDeleteTestResponse() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
   return useMutation({
     mutationFn: async (id: string) => {
       await repos.test.deleteResponse(id);
+=======
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("test_responses").delete().eq("id", id);
+      if (error) throw error;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.testResponses }),
   });
@@ -59,16 +127,27 @@ export function useDeleteTestResponse() {
 
 export function useClearTestResponses() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
   return useMutation({
     mutationFn: async () => {
       await repos.test.clearResponses();
+=======
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("test_responses")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      if (error) throw error;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.testResponses }),
   });
 }
 
 export function useTestQuestionsConfig() {
+<<<<<<< HEAD
   const repos = useRepositories();
   return useQuery({
     queryKey: QK.testQuestions,
@@ -77,6 +156,22 @@ export function useTestQuestionsConfig() {
       return {
         overrides: (result.overrides as TestQuestionsConfig["overrides"]) ?? {},
         orderedIds: result.orderedIds ?? null,
+=======
+  return useQuery({
+    queryKey: QK.testQuestions,
+    queryFn: async (): Promise<TestQuestionsConfig> => {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("value")
+        .eq("key", "test_questions")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data?.value) return EMPTY_TEST_QUESTIONS;
+      const v = data.value as unknown as TestQuestionsConfig;
+      return {
+        overrides: v.overrides ?? {},
+        orderedIds: v.orderedIds ?? null,
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
       };
     },
     staleTime: 30_000,
@@ -85,10 +180,20 @@ export function useTestQuestionsConfig() {
 
 export function useUpdateTestQuestionsConfig() {
   const qc = useQueryClient();
+<<<<<<< HEAD
   const repos = useRepositories();
   return useMutation({
     mutationFn: async (config: TestQuestionsConfig) => {
       await repos.test.updateQuestionsConfig(config as never);
+=======
+  return useMutation({
+    mutationFn: async (config: TestQuestionsConfig) => {
+      const { error } = await supabase.from("site_content").upsert({
+        key: "test_questions",
+        value: config as never,
+      });
+      if (error) throw error;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     },
     onMutate: async (config) =>
       beginOptimisticUpdate<TestQuestionsConfig>(qc, QK.testQuestions, () => config),

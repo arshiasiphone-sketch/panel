@@ -2,7 +2,11 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { useUser, useIsAdmin } from "@/lib/cms";
+<<<<<<< HEAD
 import { useRepositories } from "@/lib/providers";
+=======
+import { supabase } from "@/integrations/supabase/client";
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -57,18 +61,35 @@ function SignInScreen() {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [busy, setBusy] = useState(false);
+<<<<<<< HEAD
   const repos = useRepositories();
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
+<<<<<<< HEAD
         await repos.auth.signUp(email, pwd, `${window.location.origin}/admin`);
         toast.success("حساب ساخته شد. اکنون وارد شوید.");
         setMode("signin");
       } else {
         await repos.auth.signIn(email, pwd);
+=======
+        const { error } = await supabase.auth.signUp({
+          email,
+          password: pwd,
+          options: { emailRedirectTo: `${window.location.origin}/admin` },
+        });
+        if (error) throw error;
+        toast.success("حساب ساخته شد. اکنون وارد شوید.");
+        setMode("signin");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+        if (error) throw error;
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
         toast.success("خوش آمدید");
       }
     } catch (err: unknown) {
@@ -134,8 +155,11 @@ function SignInScreen() {
 }
 
 function NotAuthorizedScreen({ email }: { email: string }) {
+<<<<<<< HEAD
   const repos = useRepositories();
 
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
   return (
     <div
       dir="rtl"
@@ -153,7 +177,11 @@ function NotAuthorizedScreen({ email }: { email: string }) {
 VALUES ('<your-auth-uid>', 'admin');`}
         </pre>
         <button
+<<<<<<< HEAD
           onClick={() => repos.auth.signOut().then(() => location.reload())}
+=======
+          onClick={() => supabase.auth.signOut().then(() => location.reload())}
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
           className="text-xs text-muted-foreground hover:text-foreground"
         >
           خروج

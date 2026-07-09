@@ -133,6 +133,7 @@ function MenuAdmin() {
           {items.map((it) => (
             <Card key={it.id} className="overflow-hidden flex flex-col">
               {it.image_url && (
+<<<<<<< HEAD
                 <img
                   src={it.image_url}
                   alt={it.name}
@@ -140,6 +141,9 @@ function MenuAdmin() {
                   decoding="async"
                   className="w-full h-32 object-cover"
                 />
+=======
+                <img src={it.image_url} alt={it.name} loading="lazy" decoding="async" className="w-full h-32 object-cover" />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               )}
               <div className="p-3 flex-1 flex flex-col gap-1">
                 <div className="text-[11px] font-bold text-muted-foreground">{it.category}</div>

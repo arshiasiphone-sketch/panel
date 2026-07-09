@@ -12,7 +12,10 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CmsSyncProvider } from "../lib/theme-provider";
+<<<<<<< HEAD
 import { CurrentWorkspaceProvider } from "../lib/providers";
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -125,12 +128,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+<<<<<<< HEAD
       <CurrentWorkspaceProvider>
         <CmsSyncProvider>
           <Outlet />
           <Toaster richColors position="top-center" />
         </CmsSyncProvider>
       </CurrentWorkspaceProvider>
+=======
+      <CmsSyncProvider>
+        <Outlet />
+        <Toaster richColors position="top-center" />
+      </CmsSyncProvider>
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     </QueryClientProvider>
   );
 }

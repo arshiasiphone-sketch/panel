@@ -85,6 +85,7 @@ export const metaContentSchema = z.object({
   bio: z.string(),
   avatar_url: z.string().optional().default(""),
 });
+<<<<<<< HEAD
 
 /* ────────────── Missing schemas for full repository coverage ────────────── */
 
@@ -152,3 +153,5 @@ export const analyticsPayloadSchema = z.object({
   ip_hash: z.string().optional().default(""),
 });
 export type AnalyticsPayloadInput = z.input<typeof analyticsPayloadSchema>;
+=======
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a

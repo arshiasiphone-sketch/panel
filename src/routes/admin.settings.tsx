@@ -50,6 +50,11 @@ function SettingsPage() {
    */
   function setTheme(patch: Record<string, unknown>) {
     triggerSave();
+<<<<<<< HEAD
+=======
+    // Preset patches carry `tokens` JSONB + `preset_id` + `name` — validate
+    // only the legacy color subset for manual edits; trust the engine for presets.
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
     if (!("tokens" in patch)) {
       const next: Record<string, unknown> = { ...(theme as Record<string, unknown>), ...patch };
       const parsed = themeSchema.safeParse(next);
@@ -94,15 +99,20 @@ function SettingsPage() {
         </div>
       </Card>
 
+<<<<<<< HEAD
       {/* --- Theme Live Preview --- */}
       <ThemeLivePreview />
 
       {/* --- Theme Presets --- */}
+=======
+      {/* --- Theme Presets (includes advanced color pickers in collapsible section) --- */}
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
       <ThemePresetsCard
         theme={theme}
         onApply={async (patch) => {
           setTheme(patch as unknown as Record<string, unknown>);
         }}
+<<<<<<< HEAD
       />
 
       <Card className="p-5 mb-3">
@@ -177,6 +187,84 @@ function SettingsPage() {
           دستگاه‌ها نمایش داده می‌شوند.
         </div>
       </Card>
+=======
+      >
+        {/* Advanced color pickers rendered inside the collapsible section */}
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">رنگ‌های برند و پس‌زمینه</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl">
+            <ColorField
+              label="رنگ اصلی (برند)"
+              value={theme.primary_color}
+              onChange={(v) => setTheme({ primary_color: v })}
+            />
+            <ColorField
+              label="رنگ ثانویه (برند)"
+              value={theme.secondary_color}
+              onChange={(v) => setTheme({ secondary_color: v })}
+            />
+            <ColorField
+              label="رنگ تاکیدی (برند)"
+              value={theme.accent_color}
+              onChange={(v) => setTheme({ accent_color: v })}
+            />
+            <ColorField
+              label="رنگ پس‌زمینه"
+              value={theme.background_color}
+              onChange={(v) => setTheme({ background_color: v })}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">رنگ‌های متن</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl">
+            <ColorField
+              label="متن اصلی"
+              value={theme.text_color}
+              onChange={(v) => setTheme({ text_color: v })}
+            />
+            <ColorField
+              label="متن ثانویه"
+              value={theme.text_secondary_color}
+              onChange={(v) => setTheme({ text_secondary_color: v })}
+            />
+            <ColorField
+              label="متن سوم (کمرنگ‌تر)"
+              value={theme.text_tertiary_color}
+              onChange={(v) => setTheme({ text_tertiary_color: v })}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">سایر تنظیمات</p>
+          <div className="grid grid-cols-2 gap-3 max-w-md">
+            <div>
+              <Label>گردی گوشه‌ها</Label>
+              <Input
+                value={theme.border_radius}
+                onChange={(e) => setTheme({ border_radius: e.target.value })}
+                placeholder="0.75rem"
+              />
+            </div>
+            <div>
+              <Label>شفافیت گلس ({theme.glass_opacity})</Label>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={theme.glass_opacity}
+                onChange={(e) => setTheme({ glass_opacity: parseFloat(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <Save className="h-3 w-3 inline" /> تغییرات در پایگاه داده ذخیره می‌شوند و در همه
+            دستگاه‌ها نمایش داده می‌شوند.
+          </div>
+        </div>
+      </ThemePresetsCard>
+
+      {/* --- Theme Live Preview --- */}
+      <ThemeLivePreview />
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
       <Card className="p-5">
         <h2 className="text-sm font-semibold mb-3">بازنشانی تم</h2>

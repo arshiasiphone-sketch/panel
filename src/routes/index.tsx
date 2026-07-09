@@ -24,7 +24,13 @@ const OrbFallback = () => (
   <div className="absolute inset-0 -z-10 bg-background" aria-hidden="true" />
 );
 
+<<<<<<< HEAD
 const BlockFallback = () => <div className="w-full h-48 animate-pulse rounded-lg bg-muted/20" />;
+=======
+const BlockFallback = () => (
+  <div className="w-full h-48 animate-pulse rounded-lg bg-muted/20" />
+);
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
 
 export const Route = createFileRoute("/")({
   loader: async ({ context: { queryClient } }) => {

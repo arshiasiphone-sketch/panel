@@ -51,6 +51,7 @@ function GalleryAdmin() {
       <PageHeader title="گالری" subtitle="افزودن تصاویر برای نمایش در گالری صفحه اصلی" />
 
       <Card className="p-4 mb-4">
+<<<<<<< HEAD
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px_auto] gap-3 items-end">
             <div>
@@ -69,6 +70,23 @@ function GalleryAdmin() {
             </div>
           </div>
           <PrimaryButton onClick={add} disabled={upsert.isPending} className="w-full sm:w-auto">
+=======
+        <div className="grid sm:grid-cols-[1fr_180px_auto] gap-2 items-end">
+          <div>
+            <Label>آدرس تصویر</Label>
+            <Input
+              dir="ltr"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <Label>عنوان (اختیاری)</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <PrimaryButton onClick={add} disabled={upsert.isPending}>
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
             <Plus className="h-4 w-4" /> افزودن
           </PrimaryButton>
         </div>
@@ -79,6 +97,7 @@ function GalleryAdmin() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {images.map((img) => (
+<<<<<<< HEAD
             <Card key={img.id} className="overflow-hidden group">
               <div className="aspect-square bg-muted relative overflow-hidden">
                 <img
@@ -91,15 +110,34 @@ function GalleryAdmin() {
               <div className="p-3 flex items-center justify-between gap-2">
                 <span className="text-xs truncate flex-1">{img.title || "—"}</span>
                 <button
+=======
+            <Card key={img.id} className="overflow-hidden">
+              <img
+                src={img.image_url}
+                alt={img.title ?? ""}
+                className="w-full aspect-square object-cover"
+              />
+              <div className="p-2 flex items-center justify-between gap-2">
+                <span className="text-xs truncate flex-1">{img.title || "—"}</span>
+                <GhostButton
+                  tone="danger"
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
                   onClick={() => {
                     triggerSave();
                     remove.mutate(img.id, { onSuccess: () => toast.success("حذف شد") });
                   }}
+<<<<<<< HEAD
                   className="h-9 w-9 md:h-8 md:w-8 grid place-items-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition touch-manipulation"
                   aria-label="حذف"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
+=======
+                  className="text-xs py-1 px-2"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </GhostButton>
+>>>>>>> acabcc222a0b62f2804abdaf20ce2cd7be8a560a
               </div>
             </Card>
           ))}
