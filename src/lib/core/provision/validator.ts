@@ -135,11 +135,13 @@ export class ProvisionValidator extends BaseRepository {
       warnings.push(`Blueprint "${blueprint.name}" is not published — provisioning with unpublished blueprint`);
     }
 
-    // 5. Check owner user validity
+    // 5. Check owner user validity (skip if ownerUserId is absent — e.g., Public Provisioning API flow)
     try {
-      const userWorkspaces = await this.workspaceRepository.findByUserId(data.ownerUserId);
-      if (userWorkspaces.length > 0) {
-        warnings.push(`User already has ${userWorkspaces.length} workspace(s) — creating another`);
+      if (data.ownerUserId) {
+        const userWorkspaces = await this.workspaceRepository.findByUserId(data.ownerUserId);
+        if (userWorkspaces.length > 0) {
+          warnings.push(`User already has ${userWorkspaces.length} workspace(s) — creating another`);
+        }
       }
     } catch {
       warnings.push("Could not verify owner user — proceeding with provision");

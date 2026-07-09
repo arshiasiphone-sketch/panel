@@ -100,8 +100,8 @@ export type WorkspaceRole = "owner" | "admin" | "member" | "viewer";
 
 /** A user's membership in a workspace. */
 export interface WorkspaceMembership {
-  /** Auth user ID. */
-  userId: string;
+  /** Auth user ID (null for Public Provisioning API — resolved externally via externalOrderId). */
+  userId: string | null;
   /** Role within this workspace. */
   role: WorkspaceRole;
   /** When the user joined. */

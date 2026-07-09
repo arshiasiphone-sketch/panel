@@ -1,13 +1,18 @@
 /**
  * NAMA Platform — Workspace Resolver.
  *
- * Resolves the current workspace from the authenticated user/session.
- * This is the bridge between auth and workspace domains.
+ * Resolves the current workspace from multiple sources:
+ *   1. Domain-based resolution (subdomain or path segment)
+ *   2. User membership resolution
+ *   3. Explicit workspace ID override
  *
  * Resolution strategy (in order):
- *   1. If the user has an explicit primary workspace, use it.
- *   2. If the user belongs to exactly one workspace, use it.
- *   3. If the user belongs to multiple workspaces, use the most recent.
+ *   1. If an explicit workspaceId is provided, use it (admin impersonation).
+ *   2. If a domain is provided, look up the workspace by domain.
+ *   3. If a userId is provided:
+ *      a. If the user has an explicit primary workspace, use it.
+ *      b. If the user belongs to exactly one workspace, use it.
+ *      c. If the user belongs to multiple workspaces, use the most recent.
  *   4. If the user belongs to no workspaces, create a default one.
  */
 
@@ -23,6 +28,67 @@ export interface ResolverDependencies {
 export interface ResolveOptions {
   /** Force resolution by workspace ID (admin impersonation). */
   workspaceId?: string;
+  /** Domain or subdomain to resolve workspace by (e.g. "mycafe.com" or "mycafe"). */
+  domain?: string;
+  /** Whether the domain value is a subdomain (extracted from hostname) vs full domain. */
+  isSubdomain?: boolean;
+}
+
+/**
+ * Resolve workspace by domain name or subdomain.
+ * Handles both bare domains ("mycafe.com") and subdomains ("mycafe").
+ */
+export async function resolveWorkspaceByDomain(
+  deps: ResolverDependencies,
+  domainOrSubdomain: string,
+  isSubdomain = false,
+): Promise<{ workspaceId?: string; entity?: WorkspaceEntity }> {
+  const cache = getCache();
+  return cache.getOrFetch(
+    "workspace_resolver",
+    `domain:${domainOrSubdomain}:${isSubdomain}`,
+    async () => {
+      if (!domainOrSubdomain) return {};
+
+      let exactWorkspace: WorkspaceEntity | null | undefined;
+      let subdomainWorkspace: WorkspaceEntity | null | undefined;
+
+      try {
+        // Try exact domain match first
+        exactWorkspace = await deps.workspaceRepository.findByDomain(domainOrSubdomain);
+      } catch { /* workspace by domain not available in this env */ }
+
+      if (exactWorkspace) return { workspaceId: exactWorkspace.id, entity: exactWorkspace };
+
+      if (isSubdomain) {
+        try {
+          // Try subdomain-based lookup
+          const sw = await deps.workspaceRepository.findBySubdomain(domainOrSubdomain);
+          if (sw) return { workspaceId: sw.id, entity: sw };
+        } catch { /* workspace by subdomain not available in this env */ }
+      } else {
+        // For full domains, also try stripping www. and TLD variations
+        const withoutWww = domainOrSubdomain.startsWith("www.")
+          ? domainOrSubdomain.slice(4)
+          : undefined;
+        if (withoutWww && withoutWww !== domainOrSubdomain) {
+          try {
+            const ew2 = await deps.workspaceRepository.findByDomain(withoutWww);
+            if (ew2) return { workspaceId: ew2.id, entity: ew2 };
+          } catch { /* skip */ }
+
+          const baseDomain = withoutWww.replace(/\.[^.]+$/, "");
+          try {
+            const sw2 = await deps.workspaceRepository.findBySubdomain(baseDomain);
+            if (sw2) return { workspaceId: sw2.id, entity: sw2 };
+          } catch { /* skip */ }
+        }
+      }
+
+      return { };
+    },
+    30_000, // 30 second TTL for domain resolution (domains change less frequently)
+  );
 }
 
 /**
@@ -102,4 +168,47 @@ export function getEffectiveLimits(ctx: WorkspaceContext) {
     return ctx.entity.limits;
   }
   return getDefaultLimits("free");
+}
+
+/**
+ * Resolve workspace from request context (domain/subdomain + userId + options).
+ * Priority: explicit workspaceId > domain resolution > user resolution.
+ */
+export async function resolveWorkspaceFromRequest(
+  deps: ResolverDependencies,
+  opts: {
+    userId?: string;
+    domain?: string;
+    workspaceId?: string;
+    isSubdomain?: boolean;
+  },
+): Promise<WorkspaceContext> {
+  // 1. Explicit workspace ID override (highest priority)
+  if (opts.workspaceId) {
+    const entity = await deps.workspaceRepository.findById(opts.workspaceId);
+    if (entity) {
+      return { workspaceId: entity.id, entity };
+    }
+    // Fall through to user resolution if workspace not found
+  }
+
+  // 2. Domain-based resolution
+  if (opts.domain) {
+    const result = await resolveWorkspaceByDomain(
+      deps,
+      opts.domain,
+      opts.isSubdomain ?? false,
+    );
+    if (result.entity) {
+      return { workspaceId: result.entity.id, entity: result.entity };
+    }
+  }
+
+  // 3. User-based resolution
+  if (opts.userId) {
+    return resolveWorkspace(deps, opts.userId, { workspaceId: opts.workspaceId });
+  }
+
+  // 4. No resolution possible — return default/unknown context
+  return { workspaceId: undefined, entity: undefined };
 }

@@ -145,10 +145,24 @@ export const provisionRequestSchema = z.object({
   blueprintVersion: z.string().optional(),
   workspaceName: z.string().min(1).max(200).optional(),
   workspaceDescription: z.string().max(2000).optional(),
-  ownerUserId: z.string().min(1, "Owner user ID is required"),
+  domain: z.string().min(1).max(253).optional(),
+
+  // ── Public Provisioning API fields (from external systems like Convex sales panel) ──
+  requestedSlug: z
+    .string()
+    .min(3, "نامک باید حداقل ۳ کاراکتر باشد")
+    .max(30, "نامک نباید بیشتر از ۳۰ کاراکتر باشد")
+    .regex(/^[a-z0-9-]+$/, "فقط حروف کوچک لاتین، عدد و خط تیره مجاز است"),
+  externalOrderId: z.string().min(1, "شناسه سفارش الزامی است"),
+  customerEmail: z.string().email("ایمیل نامعتبر است"),
+  businessName: z.string().min(2, "نام کسب‌وکار الزامی است"),
+
+  // ── Internal NAMA fields (optional for Public API flow) ──
+  ownerUserId: z.string().min(1).optional(),
   plan: workspacePlanSchema.optional().default("free"),
   locale: z.string().min(2).max(10).optional().default("fa-IR"),
   timezone: z.string().min(1).max(50).optional().default("Asia/Tehran"),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export type ProvisionRequestInput = z.input<typeof provisionRequestSchema>;
@@ -200,7 +214,7 @@ export const provisionTransactionSchema = z.object({
   blueprintId: z.string().min(1),
   blueprintVersion: z.string().min(1),
   status: z.enum(["pending", "in_progress", "completed", "failed", "rolling_back", "rolled_back"]),
-  initiatedBy: z.string().min(1),
+   initiatedBy: z.string().min(1).nullable().optional(),
   startedAt: z.string().datetime(),
   completedAt: z.string().datetime().optional(),
   steps: z.array(provisionStepResultSchema).default([]),

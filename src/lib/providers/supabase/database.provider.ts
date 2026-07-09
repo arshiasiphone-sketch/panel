@@ -2,6 +2,10 @@
  * Supabase implementation of IDatabaseProvider.
  * Wraps the Supabase PostgREST client behind the provider interface.
  * All current query logic is preserved — only the transport layer is abstracted.
+ *
+ * IMPORTANT: modifier methods (.order, .limit, .eq, etc.) must be deferred
+ * because they only exist on PostgrestFilterBuilder (returned by .select())
+ * and NOT on PostgrestQueryBuilder (returned by supabase.from()).
  */
 
 import type { IDatabaseProvider, ITableQuery } from "@/lib/interfaces/database";
@@ -36,34 +40,42 @@ export function createSupabaseDatabaseProvider(
   };
 }
 
+// ─── Deferred operation descriptor ──────────────────────────────────────
+
+type DeferredOp = {
+  method: string;
+  args: unknown[];
+};
+
 /**
  * Internal query builder that wraps a Supabase PostgREST query.
  * Implements the fluent chain + thenable pattern.
+ *
+ * Modifier calls (.order, .limit, .eq, etc.) are queued and applied
+ * at execution time, AFTER the initial .select() / .insert() / etc. call,
+ * since those methods only exist on PostgrestFilterBuilder (the return
+ * value of .select()), not on PostgrestQueryBuilder (supabase.from()).
  */
 class SupabaseTableQuery<T> {
+  // The initial builder (PostgrestQueryBuilder or PostgrestFilterBuilder).
+  // Must have at minimum: select, insert, upsert, update, delete.
   private _builder: {
     select: (...args: unknown[]) => unknown;
     insert: (...args: unknown[]) => unknown;
     upsert: (...args: unknown[]) => unknown;
     update: (...args: unknown[]) => unknown;
     delete: (...args: unknown[]) => unknown;
-    eq: (...args: unknown[]) => unknown;
-    neq: (...args: unknown[]) => unknown;
-    in: (...args: unknown[]) => unknown;
-    like: (...args: unknown[]) => unknown;
-    gt: (...args: unknown[]) => unknown;
-    gte: (...args: unknown[]) => unknown;
-    lt: (...args: unknown[]) => unknown;
-    lte: (...args: unknown[]) => unknown;
-    order: (...args: unknown[]) => unknown;
-    limit: (...args: unknown[]) => unknown;
-    maybeSingle: (...args: unknown[]) => unknown;
-    single: (...args: unknown[]) => unknown;
   };
 
   // Track the current operation type for execution
   private _mode: "select" | "insert" | "upsert" | "update" | "delete" = "select";
   private _modeArgs: unknown[] = [];
+
+  // Deferred modifier operations — applied AFTER the initial mode call
+  // in _execute(). This is necessary because .order(), .limit(), .eq()
+  // etc. only exist on PostgrestFilterBuilder (returned by .select()),
+  // not on the initial PostgrestQueryBuilder.
+  private _modifiers: DeferredOp[] = [];
 
   constructor(builder: unknown) {
     this._builder = builder as typeof this._builder;
@@ -112,56 +124,56 @@ class SupabaseTableQuery<T> {
     return this;
   }
 
-  // --- Filters and modifiers ---
+  // --- Filters and modifiers (deferred) ---
 
   eq(column: string, value: unknown): this {
-    this._builder = this._builder.eq(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "eq", args: [column, value] });
     return this;
   }
 
   like(column: string, pattern: string): this {
-    this._builder = this._builder.like(column, pattern) as typeof this._builder;
+    this._modifiers.push({ method: "like", args: [column, pattern] });
     return this;
   }
 
   in(column: string, values: unknown[]): this {
-    this._builder = this._builder.in(column, values) as typeof this._builder;
+    this._modifiers.push({ method: "in", args: [column, values] });
     return this;
   }
 
   neq(column: string, value: unknown): this {
-    this._builder = this._builder.neq(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "neq", args: [column, value] });
     return this;
   }
 
   gt(column: string, value: unknown): this {
-    this._builder = this._builder.gt(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "gt", args: [column, value] });
     return this;
   }
 
   gte(column: string, value: unknown): this {
-    this._builder = this._builder.gte(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "gte", args: [column, value] });
     return this;
   }
 
   lt(column: string, value: unknown): this {
-    this._builder = this._builder.lt(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "lt", args: [column, value] });
     return this;
   }
 
   lte(column: string, value: unknown): this {
-    this._builder = this._builder.lte(column, value) as typeof this._builder;
+    this._modifiers.push({ method: "lte", args: [column, value] });
     return this;
   }
 
   order(column: string, opts?: { ascending?: boolean }): this {
     const ascending = opts?.ascending ?? true;
-    this._builder = this._builder.order(column, { ascending }) as typeof this._builder;
+    this._modifiers.push({ method: "order", args: [column, { ascending }] });
     return this;
   }
 
   limit(count: number): this {
-    this._builder = this._builder.limit(count) as typeof this._builder;
+    this._modifiers.push({ method: "limit", args: [count] });
     return this;
   }
 
@@ -175,8 +187,10 @@ class SupabaseTableQuery<T> {
   }
 
   async single(): Promise<{ data: T; error: unknown }> {
-    const b = this._builder as unknown as { single: () => Promise<{ data: T; error: unknown }> };
-    return b.single();
+    // Defer .single() as a modifier so it's applied after select/insert/upsert
+    this._modifiers.push({ method: "single", args: [] });
+    const result = await this._execute();
+    return result as unknown as { data: T; error: unknown };
   }
 
   // --- Thenable ---
@@ -192,6 +206,32 @@ class SupabaseTableQuery<T> {
 
   // --- Internal ---
 
+  /**
+   * Apply deferred modifier operations on a builder chain.
+   * This is used after the initial .select()/.insert() etc. call
+   * to apply .order(), .limit(), .eq(), etc.
+   *
+   * Terminal methods like .single() are handled at the end of _execute().
+   */
+  private _applyModifiers(builder: unknown): unknown {
+    let current = builder as Record<string, (...args: unknown[]) => unknown>;
+    for (const op of this._modifiers) {
+      if (op.method === "single") {
+        // .single() is handled in _execute — skip it here
+        continue;
+      }
+      const fn = current[op.method];
+      if (typeof fn !== "function") {
+        // Unknown method — skip (caller will handle)
+        continue;
+      }
+      // Use .call() to preserve the `this` context of the builder chain
+      // Without this, methods like .order() lose access to `this.url`
+      current = fn.call(current, ...op.args) as Record<string, (...args: unknown[]) => unknown>;
+    }
+    return current;
+  }
+
   private async _execute(): Promise<{
     data: T[] | null;
     error: unknown;
@@ -199,41 +239,55 @@ class SupabaseTableQuery<T> {
   }> {
     switch (this._mode) {
       case "select": {
-        const result = await (
-          this._builder.select as (
-            ...args: unknown[]
-          ) => Promise<{ data: T[] | null; error: unknown; count?: number }>
-        )(...this._modeArgs);
+        // Step 1: call .select() on the initial builder (PostgrestQueryBuilder)
+        // This returns a PostgrestFilterBuilder (or PostgrestMaybeSingleBuilder etc.)
+        let query: unknown = this._builder.select(...this._modeArgs);
+
+        // Step 2: apply deferred modifiers (.order, .limit, .eq, etc.) on the filter builder
+        query = this._applyModifiers(query);
+
+        // Step 3: await the result (the builder is thenable)
+        const result = await (query as Promise<{
+          data: T[] | null;
+          error: unknown;
+          count?: number;
+        }>);
         return result;
       }
       case "insert": {
-        const result = await (
-          this._builder.insert as (
-            ...args: unknown[]
-          ) => Promise<{ data: T[] | null; error: unknown }>
-        )(...this._modeArgs);
+        let query: unknown = this._builder.insert(...this._modeArgs);
+        query = this._applyModifiers(query);
+        const result = await (query as Promise<{
+          data: T[] | null;
+          error: unknown;
+        }>);
         return result;
       }
       case "upsert": {
-        const result = await (
-          this._builder.upsert as (
-            ...args: unknown[]
-          ) => Promise<{ data: T[] | null; error: unknown }>
-        )(...this._modeArgs);
+        let query: unknown = this._builder.upsert(...this._modeArgs);
+        query = this._applyModifiers(query);
+        const result = await (query as Promise<{
+          data: T[] | null;
+          error: unknown;
+        }>);
         return result;
       }
       case "update": {
-        const result = await (
-          this._builder.update as (
-            ...args: unknown[]
-          ) => Promise<{ data: T[] | null; error: unknown }>
-        )(...this._modeArgs);
+        let query: unknown = this._builder.update(...this._modeArgs);
+        query = this._applyModifiers(query);
+        const result = await (query as Promise<{
+          data: T[] | null;
+          error: unknown;
+        }>);
         return result;
       }
       case "delete": {
-        const result = await (
-          this._builder.delete as () => Promise<{ data: T[] | null; error: unknown }>
-        )();
+        let query: unknown = this._builder.delete(...this._modeArgs);
+        query = this._applyModifiers(query);
+        const result = await (query as Promise<{
+          data: T[] | null;
+          error: unknown;
+        }>);
         return result;
       }
       default:

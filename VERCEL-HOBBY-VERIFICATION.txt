@@ -1,0 +1,208 @@
+# Vercel Hobby Verification — Build Target + Runtime Constraints
+
+**Generated:** 2026-07-09
+**Scope:** Infrastructure verification only. No provisioning endpoints built. Prior Cloudflare findings declared OBSOLETE.
+**Status:** Build retargeted to Vercel and verified. Constraints researched against live official Vercel docs (URLs quoted per claim).
+
+---
+
+## PART 1 — Build now targets Vercel (evidence)
+
+### 1.1 What changed in `vite.config.ts`
+
+The `@lovable.dev/vite-tanstack-config` package was **kept** (it wires the whole toolchain:
+Tailwind, `vite-tsconfig-paths`, the TanStack Start plugin, the React plugin, and dev error loggers).
+Its only Nitro effect is a `defaultPreset: "cloudflare-module"` fallback. We override **only the preset**:
+
+```ts
+import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+
+export default defineConfig({
+  tanstackStart: {
+    server: { entry: "server" },
+  },
+  nitro: {
+    preset: "vercel", // overrides the cloudflare-module defaultPreset
+  },
+});
+```
+
+**Why preserve wins over `defaultPreset`** (source-proven in `node_modules/nitro/dist/_chunks/nitro.mjs`,
+`resolveNitroPresetOptions`):
+
+```js
+let preset = configOverrides.preset || process.env.NITRO_PRESET || ...;
+let defaultPreset = configOverrides.defaultPreset || ...; // only used inside `else if (!preset)`
+```
+
+An explicit `preset` is taken first; `defaultPreset` is only consulted when `preset` is falsy. So no
+cloudflare output is produced.
+
+### 1.2 Build output — `.vercel/output` produced
+
+`npm run build` exited **0**. The Nitro `vercel` preset emits the Vercel **Build Output API** structure:
+
+```
+.vercel/output/
+├── config.json          # version 3, framework: nitro 3.0.260603-beta
+├── nitro.json
+├── static/              # client assets (hashed JS/CSS/fonts)
+└── functions/
+    └── __server.func/   # single catch-all Node.js serverless function
+        ├── .vc-config.json
+        ├── index.mjs
+        └── ...
+```
+
+- `.vercel/output/config.json` (excerpt):
+  ```json
+  { "version": 3, "framework": { "name": "nitro", "version": "3.0.260603-beta" },
+    "routes": [ { "handle": "filesystem" }, { "src": "/(.*)", "dest": "/__server" } ] }
+  ```
+- `.vercel/output/functions/__server.func/.vc-config.json`:
+  ```json
+  { "handler": "index.mjs", "launcherType": "Nodejs", "shouldAddHelpers": false,
+    "supportsResponseStreaming": true, "runtime": "nodejs24.x" }
+  ```
+
+**This is a Node.js 24.x Serverless Function** (not Edge). All `createFileRoute(...)`
+server handlers deploy as this one catch-all function. => The **Serverless Function** limits below apply.
+
+### 1.3 Safe to deploy via `git push`? — YES, with manual dashboard setup
+
+The build produces a standards-compliant `.vercel/output`, so Vercel will run `npm run build` and
+deploy via the Build Output API. No special deploy script is needed.
+
+**Manual Vercel dashboard config still required:**
+
+1. **Framework Preset:** set to **Other** (or let Vercel auto-detect the Build Output API).
+   Build Command = `npm run build`. Output Directory left to Build Output API auto-detection.
+2. **Node.js version:** build used `nodejs24.x`. In *Project Settings → Node.js Version* select **24**
+   (or add `"engines": { "node": "24.x" }` to `package.json`) so runtime matches the build.
+3. **Environment variables** (from `src/integrations/supabase/client.server.ts`):
+   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Add any `VITE_*` client vars too.
+4. **`maxDuration`** (critical for the 10–30s pipeline — see PART 2.2): raise the server function to
+   the Hobby max of **60s**. Two ways:
+   - In `vite.config.ts`: `nitro: { preset: "vercel", vercel: { functions: { maxDuration: 60 } } }`
+     (the vercel preset spreads `nitro.options.vercel?.functions` into `.vc-config.json` — confirmed in
+     `node_modules/nitro/dist/_presets.mjs` `generateFunctionFiles`).
+   - Or a `vercel.json`: `{ "functions": { "__server.func": { "maxDuration": 60 } } }`.
+   - Or *Project Settings → Functions → maxDuration = 60*.
+   Without this, the function is killed at the **10s** Hobby default — the 10–30s pipeline would never finish.
+
+**Pre-existing warning (not from this change):** the build logs
+`Route file "src/routes/api/provision.ts" does not export a Route`. That untracked file is part of the
+earlier provisioning work and is silently excluded from the route tree. Fix it when the real endpoints are
+built (use `createFileRoute('/api/provision')({ server: { handlers: ... } })` or prefix with `-`).
+
+---
+
+## PART 2 — Vercel Hobby runtime constraints (live docs, cited)
+
+### 2.1 Max execution duration — Serverless vs Edge (Hobby)
+
+| Runtime | Hobby default | Hobby max | Source |
+|---|---|---|---|
+| **Serverless (Node.js)** — our case | 10 s | **60 s (1 min)** | https://vercel.com/docs/limits |
+| **Edge** | — | must start response within **25 s**; may stream up to 300 s | https://vercel.com/docs/functions/runtimes/edge |
+
+> limits table (https://vercel.com/docs/limits):
+> `| Hobby | 10s | 60s (1 minute) |` (Serverless Function duration, default / max)
+>
+> Edge (https://vercel.com/docs/functions/runtimes/edge), "Maximum duration":
+> "Vercel Functions using the Edge runtime must begin sending a response within 25 seconds ... and can
+> continue streaming data for up to 300 seconds."
+
+Our build is **Node.js Serverless**, so the 60s Hobby ceiling is the binding number.
+
+### 2.2 Wall-clock model — does a 10–30s I/O-bound function get killed? — YES, by real elapsed time
+
+maxDuration is **wall-clock (real elapsed time)**, including time spent waiting on I/O. It is NOT CPU-time.
+
+> https://vercel.com/docs/functions/limitations:
+> "This refers to the longest time a function invocation can run before Vercel terminates it. For request
+> handlers, this includes time spent processing the request and sending the response, including streamed responses."
+>
+> "If a Vercel Function doesn't complete within the duration, a 504 error code (`FUNCTION_INVOCATION_TIMEOUT`) is returned."
+
+So a function that sits in DB I/O for 10–30 s **consumes that wall-clock time** and would be terminated at
+the cap. On Hobby the cap is **60s** once `maxDuration` is raised; at the **10s** default it would be killed
+far earlier. **Conclusion:** the pipeline fits within 60s, but only if `maxDuration` is explicitly set to 60.
+
+(Note: https://vercel.com/docs/functions/limitations also states "Waiting for I/O ... does not count towards
+active CPU time" — that is about CPU *billing*, not about maxDuration. maxDuration is the wall-clock timeout.)
+
+### 2.3 Cron Jobs on Hobby — supported, but **daily only**
+
+> https://vercel.com/docs/cron-jobs/usage-and-pricing, usage table:
+> `| Hobby | 100 cron jobs | Once per day | Per-hour (±59 min) |`
+>
+> "Hobby accounts are limited to cron jobs that run **once per day**. Cron expressions that would run more
+> frequently will fail during deployment."
+
+Cron is available on Hobby (100 jobs) but **cannot run more often than once per day** and only within
+±59 min precision. => A server-side cron cannot drive step-execution/polling more than daily. (Client-driven
+polling is unaffected — the client is the scheduler, not a Vercel Cron.)
+
+### 2.4 `waitUntil` (`@vercel/functions`) on Hobby — available, bounded by maxDuration
+
+> https://vercel.com/docs/functions/functions-api-reference/vercel-functions-package, `### waitUntil`:
+> "Promises passed to `waitUntil()` will have the same timeout as the function itself. If the function times
+> out, the promises will be cancelled."
+
+No Hobby-specific restriction is documented. Background work is bounded by the function's maxDuration, i.e.
+**≤ 60s on Hobby**. It does **not** extend past the wall-clock cap.
+
+### 2.5 How TanStack Start server routes deploy on Vercel — limits that apply
+
+Our build (`nitro` `vercel` preset) emits **one Node.js 24.x Serverless Function** (`functions/__server.func`,
+`launcherType: "Nodejs"`, `supportsResponseStreaming: true`) behind a catch-all route `/__server`. Every
+`createFileRoute('/api/...')({ server: { handlers } })` handler runs inside that single function. Therefore:
+
+- **Applicable limit:** Serverless (Node.js) — Hobby **10s default / 60s max**, 2 GB memory, 4.5 MB payload,
+  wall-clock timeout (https://vercel.com/docs/limits, https://vercel.com/docs/functions/limitations).
+- **Not applicable:** Edge's 25 s / 300 s streaming rule (we are not on the Edge runtime). It *would* apply
+  only if a route opts into `export const runtime = "edge"` / Nitro `vercel` edge runtime.
+- Payload cap (https://vercel.com/docs/functions/limitations): "maximum payload size ... is **4.5 MB**"
+  (413 `FUNCTION_PAYLOAD_TOO_LARGE`). Memory: Hobby **2 GB / 1 vCPU**.
+
+---
+
+## PART 2.6 — Verdict: polling/resumable engine vs inline 10–30s pipeline
+
+**The constraint that forced the polling design is gone.**
+
+On Cloudflare Free the hard limit was **10 ms of CPU per request** — that is what made a single inline
+10–30 s pipeline impossible and forced step-splitting + client polling. Vercel Hobby has **no CPU-time
+limit**; it uses a **wall-clock** `maxDuration` of **up to 60 s** on a Node.js Serverless Function.
+
+| Factor | Cloudflare Free (obsolete) | Vercel Hobby (current) |
+|---|---|---|
+| Budget per invocation | 10 ms CPU | **60 s wall-clock** (after raising maxDuration) |
+| A 10–30 s DB-I/O pipeline | Impossible (killed at 10 ms CPU) | **Fits** (raise maxDuration to 60 s) |
+| Server-side sub-daily scheduling | (cron via Tasks) | Cron **daily-only** on Hobby |
+
+**Recommendation: eliminate the client-polling + resumable-engine complexity. Run the provisioning pipeline
+inline in a single Serverless invocation.**
+
+- The 10–30 s pipeline is well within the 60 s Hobby ceiling. An inline `provision()` call that runs all 10
+  steps and returns when done is simpler, has no cross-request state/resumability burden, and removes the
+  `ProvisionResourceMap` persistence problem that the polling design was meant to solve.
+- **Hard prerequisite:** set `maxDuration = 60` (Section 1.3). At the 10 s default the inline pipeline is
+  killed.
+- **Keep the existing `ProvisionTransaction`** record only as a *progress display* mechanism for the UI
+  (currentStepIndex etc.) — not as a resumability contract. No need to persist `ProvisionResourceMap` across
+  requests or implement `provisionStep(txId)`.
+- **Safety margin (optional, not required):** the pre-pivot risk flag — `INSTALL_BLUEPRINT` doing many serial
+  inserts in one command — could push very large blueprints toward/over 60 s. If that happens, either (a) move
+  to Pro (300 s), or (b) sub-split just that one heavy command into a few inline batches. Full step-splitting +
+  client polling is a last-resort fallback, not the baseline.
+- **Cron is not a step driver on Hobby** (daily only), but polling was always client-driven, so this does not
+  block the inline design.
+
+**Bottom line:** Vercel's wall-clock 60 s budget makes the original inline 10–30 s pipeline safe and
+preferable. Drop the resumable polling engine; run inline with `maxDuration=60`. Revisit step-splitting only
+if real blueprints exceed 60 s.
+
+*No provisioning endpoints were built. `vite.config.ts` retargeted to Vercel and verified via `npm run build`
+emitting `.vercel/output`.*

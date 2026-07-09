@@ -40,7 +40,7 @@ export class ProvisionTransactionManager extends BaseRepository {
     workspaceId: string;
     blueprintId: string;
     blueprintVersion: string;
-    initiatedBy: string;
+    initiatedBy: string | null;
     maxRetries?: number;
   }): Promise<ProvisionTransaction> {
     const tx: ProvisionTransaction = {

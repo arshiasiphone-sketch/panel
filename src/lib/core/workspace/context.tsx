@@ -19,7 +19,7 @@ import { createContext, useContext, useEffect, useState, useMemo, useCallback, t
 import type { WorkspaceContext, WorkspaceEntity, WorkspaceLimits } from "./types";
 import { DEFAULT_WORKSPACE, ACTIVE_WORKSPACE_STATUSES } from "./types";
 import { getLogger } from "@/lib/logger";
-import { resolveWorkspace } from "./resolver";
+import { resolveWorkspace, resolveWorkspaceByDomain, resolveWorkspaceFromRequest } from "./resolver";
 import { runWorkspaceHealthChecks, formatHealthSummary } from "./health";
 import { checkLimit, isAdmin, isOwner, hasRole } from "./entity";
 import type { WorkspaceRole } from "./types";
@@ -61,11 +61,89 @@ export interface CurrentWorkspaceProviderProps {
 }
 
 /**
+ * Extract domain/subdomain information from the browser location.
+ * Returns { domain, subdomain, isSubdomain } or null if running in SSR/non-browser context.
+ */
+function extractDomainInfo(): { domain: string | undefined; subdomain: string | undefined; isSubdomain: boolean } | null {
+  if (typeof window === "undefined") return null;
+
+  const hostname = window.location.hostname;
+  if (!hostname) return null;
+
+  // Skip localhost and IP addresses
+  if (hostname === "localhost" || hostname.startsWith("127.") || hostname.startsWith("::")) {
+    return null;
+  }
+
+  const parts = hostname.split(".");
+
+  // Check for subdomain pattern: <subdomain>.<domain>.<tld>
+  if (parts.length >= 3) {
+    const potentialSubdomain = parts[0];
+    // Filter out common non-workspace subdomains
+    const skipPatterns = ["www", "api", "cdn", "static", "assets", "app", "mail", "shop"];
+    if (!skipPatterns.includes(potentialSubdomain.toLowerCase())) {
+      return {
+        domain: parts.slice(1).join("."),
+        subdomain: potentialSubdomain,
+        isSubdomain: true,
+      };
+    }
+  }
+
+  // For bare domains (e.g., "mycafe.com"), check if it matches a workspace domain
+  return {
+    domain: hostname,
+    subdomain: undefined,
+    isSubdomain: false,
+  };
+}
+
+/**
+ * Extract workspace ID from the URL path.
+ * Matches patterns like:
+ *   /cafe/<workspace-id>       — admin/owner cafe mode
+ *   /cafe/<workspace-slug>     — admin/owner cafe slug mode (workspace slug stored in DB)
+ *   /p/<workspace-id>/<page>   — public page URL pattern (new multi-domain format)
+ */
+function extractWorkspaceFromPath(workspaceIdFromRoute?: string): { workspaceId: string | undefined; domain: string | undefined; isSubdomain: boolean } {
+  if (typeof window === "undefined") {
+    return { workspaceId: workspaceIdFromRoute, domain: undefined, isSubdomain: false };
+  }
+
+  const pathname = window.location.pathname;
+
+  // Check for cafe mode first: /cafe/<slug> or /cafe/<workspace-id>
+  // If already resolved by route params, prefer that
+  if (workspaceIdFromRoute) {
+    return { workspaceId: workspaceIdFromRoute, domain: undefined, isSubdomain: false };
+  }
+
+  const cafeMatch = pathname.match(/^\/cafe(?:\/([^/]+))?(?:\/(shop|cms))?$/);
+  if (cafeMatch && cafeMatch[1]) {
+    // /cafe/<slug> — the slug might be a workspace ID or a slug identifier
+    // We'll try it as a path-based lookup; if no workspace found, fall through to domain
+    return { workspaceId: cafeMatch[1], domain: undefined, isSubdomain: false };
+  }
+
+  // Check for subdomain-based resolution
+  const domainInfo = extractDomainInfo();
+  if (domainInfo) {
+    return { workspaceId: undefined, domain: domainInfo.domain ?? undefined, isSubdomain: domainInfo.isSubdomain };
+  }
+
+  return { workspaceId: undefined, domain: undefined, isSubdomain: false };
+}
+
+/**
  * Resolves the current workspace and makes it available to the app tree.
  * Automatically sets workspace context on all repositories.
  *
- * Self-resolves the current user from the auth provider, so it can be
- * placed at the root level without needing a userId prop.
+ * Resolution strategy (in priority order):
+ *   1. Route params (workspaceId from URL)
+ *   2. Subdomain-based domain resolution
+ *   3. Full domain resolution
+ *   4. User membership resolution (fallback for auth flows)
  *
  * Must be placed inside QueryClientProvider (uses getRepositories internally).
  */
@@ -87,37 +165,55 @@ export function CurrentWorkspaceProvider({
         "@/lib/repositories/factory"
       );
 
-      // Get current user from auth provider
       const repos = getRepositories();
-      let userId: string | undefined;
-
-      try {
-        const { user } = await repos.auth.getSession();
-        userId = user?.id;
-      } catch {
-        // Not authenticated — use default workspace
-        setWorkspace(DEFAULT_WORKSPACE);
-        setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
-        setLoading(false);
-        return;
-      }
-
-      if (!userId) {
-        // Not authenticated — use default workspace
-        setWorkspace(DEFAULT_WORKSPACE);
-        setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
-        setLoading(false);
-        return;
-      }
-
-      // Use the existing repository graph (single provider instance)
-      // WorkspaceRepository is already part of repos — reuse it
       const workspaceRepo = repos.workspace;
 
-      const ctx = await resolveWorkspace(
-        { workspaceRepository: workspaceRepo },
-        userId,
-      );
+      // Try domain/subdomain resolution first (public provisioned sites)
+      const pathResolution = extractWorkspaceFromPath();
+
+      let ctx: WorkspaceContext | undefined;
+
+      if (pathResolution.workspaceId) {
+        // Path-based workspace ID from URL (e.g., /cafe/<slug>)
+        ctx = await resolveWorkspaceFromRequest(
+          { workspaceRepository: workspaceRepo },
+          { workspaceId: pathResolution.workspaceId },
+        );
+      } else if (pathResolution.domain) {
+        // Domain or subdomain-based resolution
+        ctx = await resolveWorkspaceFromRequest(
+          { workspaceRepository: workspaceRepo },
+          {
+            domain: pathResolution.domain,
+            isSubdomain: pathResolution.isSubdomain,
+          },
+        );
+      }
+
+      // If domain/path resolution failed, try user-based resolution (auth flow)
+      if (!ctx?.workspaceId) {
+        let userId: string | undefined;
+
+        try {
+          const { user } = await repos.auth.getSession();
+          userId = user?.id;
+        } catch {
+          // Not authenticated
+        }
+
+        if (!userId) {
+          // Not authenticated — use default workspace
+          setWorkspace(DEFAULT_WORKSPACE);
+          setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
+          setLoading(false);
+          return;
+        }
+
+        ctx = await resolveWorkspaceFromRequest(
+          { workspaceRepository: workspaceRepo },
+          { userId },
+        );
+      }
 
       // Set workspace on all repositories
       setWorkspaceOnRepositories(repos, ctx);

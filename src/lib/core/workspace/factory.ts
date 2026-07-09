@@ -73,10 +73,12 @@ export function getAvailablePlans() {
 export interface CreateWorkspaceOptions {
   name: string;
   description?: string;
-  ownerUserId: string;
+  ownerUserId: string | null;
   plan?: string;
   locale?: string;
   timezone?: string;
+  /** Pre-validated full domain (e.g. "foo.nama.app"). Trusted as-is by the caller. */
+  domain?: string;
 }
 
 /**
@@ -107,6 +109,7 @@ export function createWorkspace(options: CreateWorkspaceOptions): WorkspaceEntit
       description: options.description,
       locale: options.locale ?? "fa-IR",
       timezone: options.timezone ?? "Asia/Tehran",
+      domain: options.domain,
       createdAt: now,
       updatedAt: now,
     },
@@ -118,7 +121,7 @@ export function createWorkspace(options: CreateWorkspaceOptions): WorkspaceEntit
  * Used by the WorkspaceResolver when no workspace exists for a user.
  */
 export function createDefaultWorkspace(
-  ownerUserId: string,
+  ownerUserId: string | null,
   name?: string,
 ): WorkspaceEntity {
   return createWorkspace({

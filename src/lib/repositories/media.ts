@@ -32,10 +32,12 @@ export class MediaRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<MediaFileRow[]> {
     try {
-      let query = this.db
-        .from<MediaFileRow>("media_files")
-        .select(SELECT_COLUMNS)
-        .order("created_at", { ascending: false });
+      let query = this.withWorkspace(
+        this.db
+          .from<MediaFileRow>("media_files")
+          .select(SELECT_COLUMNS)
+          .order("created_at", { ascending: false }),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -82,9 +84,10 @@ export class MediaRepository extends BaseRepository {
         "media_files.upload",
       );
 
+      const insertData = this.workspaceId ? { ...metadata, workspace_id: this.workspaceId } : metadata;
       const { data, error } = await this.db
         .from<MediaFileRow>("media_files")
-        .insert(metadata as MediaFileInsert)
+        .insert(insertData as MediaFileInsert)
         .select()
         .single();
 

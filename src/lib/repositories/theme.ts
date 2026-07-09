@@ -18,7 +18,7 @@ export const DEFAULT_THEME_SETTINGS: ThemeRow = {
   accent_color: "#d4af37",
   background_color: "#0a0a0a",
   text_color: "#f0e6d3",
-  text_secondary_color: "#9a8a78",
+  text_secondary_color: "#978876",
   text_tertiary_color: "#c9b89e",
   border_radius: "0.75rem",
   glass_opacity: 0.08,
@@ -37,18 +37,19 @@ export class ThemeRepository extends BaseRepository {
     const cache = getCache();
     return cache.getOrFetch("theme_settings", "get", async () => {
       try {
-        const { data, error } = await this.db
-          .from<ThemeRow>("theme_settings")
-          .select(SELECT_COLUMNS)
-          .order("id", { ascending: true })
-          .limit(1)
-          .maybeSingle();
+        const { data, error } = await this.withWorkspace(
+          this.db
+            .from<ThemeRow>("theme_settings")
+            .select(SELECT_COLUMNS)
+            .order("id", { ascending: true })
+            .limit(1),
+        ).maybeSingle();
         if (error) throw error;
         if (!data) {
           // Insert default if missing — let the database auto-generate the ID
           const { data: inserted } = await this.db
             .from<ThemeRow>("theme_settings")
-            .insert({} as ThemeUpdate)
+            .insert({ workspace_id: this.workspaceId, ...{} } as ThemeUpdate)
             .select()
             .maybeSingle();
           return { ...DEFAULT_THEME_SETTINGS, ...(inserted ?? {}) };
@@ -74,10 +75,9 @@ export class ThemeRepository extends BaseRepository {
     }>;
   }): Promise<void> {
     // Check if any theme settings already exist
-    const { data: existingThemes } = await this.db
-      .from("theme_settings")
-      .select("id")
-      .limit(1);
+    const { data: existingThemes } = await this.withWorkspace(
+      this.db.from("theme_settings").select("id").limit(1),
+    );
 
     if (existingThemes && existingThemes.length > 0) {
       this.logger.info("Theme settings already exist — skipping theme installation");
@@ -101,6 +101,7 @@ export class ThemeRepository extends BaseRepository {
       if (theme.overrides.glassOpacity !== undefined) update.glass_opacity = theme.overrides.glassOpacity;
     }
 
+    if (this.workspaceId) (update as Record<string, unknown>).workspace_id = this.workspaceId;
     const { error } = await this.db.from("theme_settings").upsert(update);
     if (error) throw this.normalizeError("theme_settings", "installBlueprintTheme", error);
   }
@@ -109,11 +110,9 @@ export class ThemeRepository extends BaseRepository {
     try {
       this.validateOrThrow(themeSchema, patch, "theme_settings");
       // Fetch the first theme settings row (no hardcoded id)
-      const { data: existing } = await this.db
-        .from<ThemeRow>("theme_settings")
-        .select("id")
-        .limit(1)
-        .maybeSingle();
+      const { data: existing } = await this.withWorkspace(
+        this.db.from<ThemeRow>("theme_settings").select("id").limit(1),
+      ).maybeSingle();
 
       if (!existing) {
         throw new Error("No theme settings found to update");

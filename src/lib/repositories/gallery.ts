@@ -19,10 +19,12 @@ export class GalleryRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<GalleryRow[]> {
     try {
-      let query = this.db
-        .from<GalleryRow>("gallery_images")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<GalleryRow>("gallery_images")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -34,11 +36,13 @@ export class GalleryRepository extends BaseRepository {
 
   async getVisible(opts?: PaginatedOptions): Promise<GalleryRow[]> {
     try {
-      let query = this.db
-        .from<GalleryRow>("gallery_images")
-        .select(VISIBLE_COLUMNS)
-        .eq("visible", true)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<GalleryRow>("gallery_images")
+          .select(VISIBLE_COLUMNS)
+          .eq("visible", true)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -61,14 +65,16 @@ export class GalleryRepository extends BaseRepository {
 
     for (const item of gallery) {
       const id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      const { error } = await this.db.from("gallery_images").upsert({
+      const upsertItem = {
         id,
         title: item.title,
         image_url: "",
         tags: item.tags,
         sort_order: item.sortOrder,
         visible: true,
-      });
+      };
+      if (this.workspaceId) (upsertItem as GalleryInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
+      const { error } = await this.db.from("gallery_images").upsert(upsertItem);
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue;
@@ -87,9 +93,10 @@ export class GalleryRepository extends BaseRepository {
   async upsert(row: Partial<GalleryRow>): Promise<GalleryRow | null> {
     try {
       const validated = this.validateOrThrow(galleryImageSchema, row, "gallery_images");
+      const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
       const { data, error } = await this.db
         .from<GalleryRow>("gallery_images")
-        .upsert(validated as GalleryInsert)
+        .upsert(upsertData as GalleryInsert)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -105,7 +112,9 @@ export class GalleryRepository extends BaseRepository {
   async batchDelete(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     try {
-      const { error } = await this.db.from("gallery_images").delete().in("id", ids);
+      const { error } = await this.withWorkspace(
+        this.db.from("gallery_images").delete().in("id", ids),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("gallery_images", "batchDelete", err, { count: ids.length });
@@ -114,7 +123,9 @@ export class GalleryRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("gallery_images").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("gallery_images").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("gallery_images", "delete", err, { id });

@@ -19,10 +19,12 @@ export class TestimonialsRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<TestimonialRow[]> {
     try {
-      let query = this.db
-        .from<TestimonialRow>("testimonials")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<TestimonialRow>("testimonials")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -34,11 +36,13 @@ export class TestimonialsRepository extends BaseRepository {
 
   async getVisible(opts?: PaginatedOptions): Promise<TestimonialRow[]> {
     try {
-      let query = this.db
-        .from<TestimonialRow>("testimonials")
-        .select(VISIBLE_COLUMNS)
-        .eq("visible", true)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<TestimonialRow>("testimonials")
+          .select(VISIBLE_COLUMNS)
+          .eq("visible", true)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -51,9 +55,10 @@ export class TestimonialsRepository extends BaseRepository {
   async upsert(row: Partial<TestimonialRow>): Promise<TestimonialRow | null> {
     try {
       const validated = this.validateOrThrow(testimonialSchema, row, "testimonials");
+      const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
       const { data, error } = await this.db
         .from<TestimonialRow>("testimonials")
-        .upsert(validated as TestimonialInsert)
+        .upsert(upsertData as TestimonialInsert)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -69,7 +74,9 @@ export class TestimonialsRepository extends BaseRepository {
   async batchDelete(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     try {
-      const { error } = await this.db.from("testimonials").delete().in("id", ids);
+      const { error } = await this.withWorkspace(
+        this.db.from("testimonials").delete().in("id", ids),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("testimonials", "batchDelete", err, { count: ids.length });
@@ -78,7 +85,9 @@ export class TestimonialsRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("testimonials").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("testimonials").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("testimonials", "delete", err, { id });

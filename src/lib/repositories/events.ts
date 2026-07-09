@@ -19,10 +19,12 @@ export class EventsRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<EventRow[]> {
     try {
-      let query = this.db
-        .from<EventRow>("events")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<EventRow>("events")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -34,11 +36,13 @@ export class EventsRepository extends BaseRepository {
 
   async getVisible(opts?: PaginatedOptions): Promise<EventRow[]> {
     try {
-      let query = this.db
-        .from<EventRow>("events")
-        .select(VISIBLE_COLUMNS)
-        .eq("visible", true)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<EventRow>("events")
+          .select(VISIBLE_COLUMNS)
+          .eq("visible", true)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -51,9 +55,10 @@ export class EventsRepository extends BaseRepository {
   async upsert(row: Partial<EventRow>): Promise<EventRow | null> {
     try {
       const validated = this.validateOrThrow(eventSchema, row, "events");
+      const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
       const { data, error } = await this.db
         .from<EventRow>("events")
-        .upsert(validated as EventInsert)
+        .upsert(upsertData as EventInsert)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -69,7 +74,9 @@ export class EventsRepository extends BaseRepository {
   async batchDelete(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     try {
-      const { error } = await this.db.from("events").delete().in("id", ids);
+      const { error } = await this.withWorkspace(
+        this.db.from("events").delete().in("id", ids),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("events", "batchDelete", err, { count: ids.length });
@@ -78,7 +85,9 @@ export class EventsRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("events").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("events").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("events", "delete", err, { id });

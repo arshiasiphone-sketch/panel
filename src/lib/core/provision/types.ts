@@ -324,8 +324,8 @@ export interface ProvisionTransaction {
   blueprintVersion: string;
   /** Current transaction status. */
   status: ProvisionTransactionStatus;
-  /** User who initiated the provision. */
-  initiatedBy: string;
+  /** User who initiated the provision (null for Public Provisioning API — resolved externally via externalOrderId). */
+  initiatedBy: string | null;
   /** ISO timestamp when the transaction started. */
   startedAt: string;
   /** ISO timestamp when the transaction completed. */
@@ -354,8 +354,8 @@ export interface ProvisionRequest {
   workspaceName?: string;
   /** Workspace description. */
   workspaceDescription?: string;
-  /** Owner user ID. */
-  ownerUserId: string;
+  /** Owner user ID (optional for Public Provisioning API — resolved externally via externalOrderId). */
+  ownerUserId?: string;
   /** Plan to assign. */
   plan?: WorkspacePlan;
   /** Locale (e.g., "fa-IR"). */

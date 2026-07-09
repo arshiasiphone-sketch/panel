@@ -19,10 +19,12 @@ export class PersonalityRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<PersonalityRow[]> {
     try {
-      let query = this.db
-        .from<PersonalityRow>("personality_profiles")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<PersonalityRow>("personality_profiles")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -48,7 +50,7 @@ export class PersonalityRepository extends BaseRepository {
     const keys: string[] = [];
 
     for (const profile of profiles) {
-      const { error } = await this.db.from("personality_profiles").upsert({
+      const upsertProfile = {
         key: profile.key,
         label: profile.label,
         tagline: profile.tagline,
@@ -59,7 +61,9 @@ export class PersonalityRepository extends BaseRepository {
         color_from: profile.colorFrom ?? null,
         color_to: profile.colorTo ?? null,
         sort_order: keys.length,
-      });
+      };
+      if (this.workspaceId) (upsertProfile as PersonalityInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
+      const { error } = await this.db.from("personality_profiles").upsert(upsertProfile);
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue;
@@ -78,9 +82,10 @@ export class PersonalityRepository extends BaseRepository {
   async upsert(row: PersonalityRow): Promise<void> {
     try {
       this.validateOrThrow(personalityProfileUpdateSchema, { ...row }, "personality_profiles");
+      const insertRow = this.workspaceId ? { ...row, workspace_id: this.workspaceId } : row;
       const { error } = await this.db
         .from("personality_profiles")
-        .upsert(row as PersonalityInsert);
+        .upsert(insertRow as PersonalityInsert);
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("personality_profiles", "upsert", err);
@@ -93,7 +98,9 @@ export class PersonalityRepository extends BaseRepository {
   async batchDelete(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
     try {
-      const { error } = await this.db.from("personality_profiles").delete().in("key", keys);
+      const { error } = await this.withWorkspace(
+        this.db.from("personality_profiles").delete().in("key", keys),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("personality_profiles", "batchDelete", err, { count: keys.length });
@@ -103,10 +110,9 @@ export class PersonalityRepository extends BaseRepository {
   async update(key: string, patch: Partial<PersonalityUpdate>): Promise<void> {
     try {
       this.validateOrThrow(personalityProfileUpdateSchema, patch, "personality_profiles.update");
-      const { error } = await this.db
-        .from("personality_profiles")
-        .update(patch as PersonalityUpdate)
-        .eq("key", key);
+      const { error } = await this.withWorkspace(
+        this.db.from("personality_profiles").update(patch as PersonalityUpdate).eq("key", key),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("personality_profiles", "update", err, { key });

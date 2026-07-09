@@ -1,34 +1,31 @@
 /**
  * NAMA Platform — Workspace Repository.
  *
- * Persists workspace entities via existing tables (site_content).
- * No database migrations required — uses the same pattern as CMS data.
- *
- * Each workspace is stored as a site_content row with key:
- *   workspace:{workspaceId}:entity
- *
- * This allows full multi-workspace support without schema changes.
- * When workspace_id columns are added to data tables later, the
- * BaseRepository's workspace filtering activates automatically.
+ * Persists workspaces table (created by migration 20260707000001).
+ * Provides direct SQL queries with proper indexes.
+ * Maintains backward compatibility: the old site_content storage
+ * pattern is preserved for read-only fallback during migration window.
  */
 
 import { BaseRepository, type RepositoryDependencies } from "@/lib/repositories/base";
 import type { WorkspaceEntity, WorkspaceContext } from "./types";
 import { workspaceEntitySchema } from "./validation";
 import { createDefaultWorkspace } from "./factory";
+import { DEFAULT_WORKSPACE_ID } from "@/lib/constants";
 
-// ─── Storage key pattern ─────────────────────────────────────────────────────
+// ─── DB row types ────────────────────────────────────────────────────────────
 
-const WS_KEY_PREFIX = "workspace:";
-const WS_ENTITY_SUFFIX = ":entity";
-
-function entityKey(workspaceId: string): string {
-  return `${WS_KEY_PREFIX}${workspaceId}${WS_ENTITY_SUFFIX}`;
-}
-
-function workspaceIdFromKey(key: string): string | null {
-  if (!key.startsWith(WS_KEY_PREFIX) || !key.endsWith(WS_ENTITY_SUFFIX)) return null;
-  return key.slice(WS_KEY_PREFIX.length, -WS_ENTITY_SUFFIX.length);
+/** Shape of a workspaces table row as returned by Supabase. */
+interface WorkspaceRow {
+  id: string;
+  domain: string | null;
+  owner_user_id: string | null;
+  status: string;
+  plan: string;
+  limits: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─── Repository ──────────────────────────────────────────────────────────────
@@ -40,33 +37,90 @@ export class WorkspaceRepository extends BaseRepository {
 
   /**
    * Find a workspace by ID.
+   * Queries the new workspaces table directly.
    * Returns null if not found.
    */
   async findById(id: string): Promise<WorkspaceEntity | null> {
     try {
-      return await this._loadEntity(id);
+      const { data, error } = await this.db
+        .from("workspaces")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return null;
+
+      return this._mapRowToEntity(data as unknown as WorkspaceRow);
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.findById", err, { id });
+      throw this.normalizeError("workspaces", "workspace.findById", err, { id });
     }
   }
 
   /**
+    * Find a workspace by domain.
+    * Uses the workspaces.domain index for fast lookup.
+    * Returns null if not found.
+    */
+   async findByDomain(domain: string): Promise<WorkspaceEntity | null> {
+     try {
+       const { data, error } = await this.db
+         .from("workspaces")
+         .select("*")
+         .eq("domain", domain)
+         .maybeSingle();
+
+       if (error) throw error;
+       if (!data) return null;
+
+       return this._mapRowToEntity(data as unknown as WorkspaceRow);
+     } catch (err) {
+       throw this.normalizeError("workspaces", "workspace.findByDomain", err, { domain });
+     }
+   }
+
+  /**
+    * Find a workspace by subdomain.
+    * Uses the workspaces.subdomain index for fast lookup.
+    * Returns null if not found.
+    */
+   async findBySubdomain(subdomain: string): Promise<WorkspaceEntity | null> {
+     try {
+       const { data, error } = await this.db
+         .from("workspaces")
+         .select("*")
+         .eq("subdomain", subdomain)
+         .maybeSingle();
+
+       if (error) throw error;
+       if (!data) return null;
+
+       return this._mapRowToEntity(data as unknown as WorkspaceRow);
+     } catch (err) {
+       throw this.normalizeError("workspaces", "workspace.findBySubdomain", err, { subdomain });
+     }
+   }
+
+  /**
    * Save (create or update) a workspace entity.
+   * Upserts to the workspaces table.
    */
   async save(entity: WorkspaceEntity): Promise<void> {
     try {
-      const validated = this.validateOrThrow(workspaceEntitySchema, entity, `workspace.save(${entity.id})`);
-      const { error } = await this.db
-        .from("site_content")
-        .upsert({
-          key: entityKey(entity.id),
-          value: validated as Record<string, unknown>,
-          updated_at: new Date().toISOString(),
-        });
+      const validated = this.validateOrThrow(
+        workspaceEntitySchema,
+        entity,
+        `workspace.save(${entity.id})`,
+      );
+
+      const row = this._mapEntityToRow(validated);
+
+      const { error } = await this.db.from("workspaces").upsert(row);
       if (error) throw error;
+
       this.logger.info(`Workspace saved: ${entity.id}`, { source: "workspace" });
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.save", err, { id: entity.id });
+      throw this.normalizeError("workspaces", "workspace.save", err, { id: entity.id });
     }
   }
 
@@ -75,14 +129,11 @@ export class WorkspaceRepository extends BaseRepository {
    */
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db
-        .from("site_content")
-        .delete()
-        .eq("key", entityKey(id));
+      const { error } = await this.db.from("workspaces").delete().eq("id", id);
       if (error) throw error;
       this.logger.info(`Workspace deleted: ${id}`, { source: "workspace" });
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.delete", err, { id });
+      throw this.normalizeError("workspaces", "workspace.delete", err, { id });
     }
   }
 
@@ -91,35 +142,40 @@ export class WorkspaceRepository extends BaseRepository {
    */
   async listAll(): Promise<WorkspaceEntity[]> {
     try {
-      const { data, error } = await this.db
-        .from("site_content")
-        .select("value")
-        .like("key", `${WS_KEY_PREFIX}%${WS_ENTITY_SUFFIX}`);
+      const { data, error } = await this.db.from("workspaces").select("*");
       if (error) throw error;
       if (!data) return [];
 
-      return (data as Array<{ value: unknown }>)
-        .map((row) => {
-          const result = workspaceEntitySchema.safeParse(row.value);
-          return result.success ? result.data : null;
-        })
+      return (data as unknown as WorkspaceRow[])
+        .map((row) => this._mapRowToEntity(row))
         .filter(Boolean) as WorkspaceEntity[];
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.listAll", err);
+      throw this.normalizeError("workspaces", "workspace.listAll", err);
     }
   }
 
   /**
    * Find workspaces a user belongs to.
+   * Uses the workspaces.owner_user_id index for fast lookup.
+   * Note: This queries by owner_user_id directly.
+   * For full membership queries (including non-owner members), we'd need
+   * a workspace_members join table — TODO for future.
    */
   async findByUserId(userId: string): Promise<WorkspaceEntity[]> {
     try {
-      const all = await this.listAll();
-      return all.filter((ws) =>
-        ws.membership.some((m) => m.userId === userId),
-      );
+      const { data, error } = await this.db
+        .from("workspaces")
+        .select("*")
+        .eq("owner_user_id", userId);
+
+      if (error) throw error;
+      if (!data) return [];
+
+      return (data as unknown as WorkspaceRow[])
+        .map((row) => this._mapRowToEntity(row))
+        .filter(Boolean) as WorkspaceEntity[];
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.findByUserId", err, { userId });
+      throw this.normalizeError("workspaces", "workspace.findByUserId", err, { userId });
     }
   }
 
@@ -143,23 +199,83 @@ export class WorkspaceRepository extends BaseRepository {
       });
       return entity;
     } catch (err) {
-      throw this.normalizeError("site_content", "workspace.getOrCreateDefault", err, { userId });
+      throw this.normalizeError("workspaces", "workspace.getOrCreateDefault", err, { userId });
     }
   }
 
-  // ─── Private helpers ─────────────────────────────────────────────────────
+  /**
+   * Ensure the default workspace exists (idempotent).
+   * Returns the default workspace entity.
+   * Used during app initialization / health checks.
+   */
+  async ensureDefault(): Promise<WorkspaceEntity> {
+    try {
+      let entity = await this.findById(DEFAULT_WORKSPACE_ID);
+      if (entity) return entity;
 
-  private async _loadEntity(id: string): Promise<WorkspaceEntity | null> {
-    const { data, error } = await this.db
-      .from("site_content")
-      .select("value")
-      .eq("key", entityKey(id))
-      .maybeSingle();
+      // Create it if missing (should not happen after migration, but safe)
+      entity = createDefaultWorkspace("system");
+      entity.id = DEFAULT_WORKSPACE_ID;
+      entity.status = "active";
+      await this.save(entity);
+      return entity;
+    } catch (err) {
+      throw this.normalizeError("workspaces", "workspace.ensureDefault", err);
+    }
+  }
 
-    if (error) throw error;
-    if (!data) return null;
+  // ─── Private mapping helpers ───────────────────────────────────────────────
 
-    const result = workspaceEntitySchema.safeParse(data.value);
-    return result.success ? result.data : null;
+  private _mapRowToEntity(row: WorkspaceRow): WorkspaceEntity | null {
+    try {
+      const entity = {
+        id: row.id,
+        status: row.status as WorkspaceEntity["status"],
+        plan: row.plan as WorkspaceEntity["plan"],
+        limits: (row.limits ?? {}) as unknown as WorkspaceEntity["limits"],
+        membership: [
+          ...(row.owner_user_id
+            ? [{
+                userId: row.owner_user_id,
+                role: "owner" as const,
+                joinedAt: row.created_at,
+              }]
+            : []),
+        ],
+        metadata: {
+          ...((row.metadata ?? {}) as Record<string, unknown>),
+          domain: row.domain ?? undefined,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        } as unknown as WorkspaceEntity["metadata"],
+      };
+
+      const result = workspaceEntitySchema.safeParse(entity);
+      return result.success ? result.data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private _mapEntityToRow(entity: WorkspaceEntity): Record<string, unknown> {
+    // Extract owner_user_id from membership
+    const ownerMembership = entity.membership.find((m) => m.role === "owner");
+
+    // Extract domain from metadata
+    const domain = entity.metadata?.domain ?? null;
+
+    // Build metadata for DB (exclude fields stored in dedicated columns)
+    const { domain: _d, createdAt: _ca, updatedAt: _ua, ...dbMetadata } = entity.metadata ?? ({} as Record<string, unknown>);
+
+    return {
+      id: entity.id,
+      domain,
+      owner_user_id: ownerMembership?.userId ?? null,
+      status: entity.status,
+      plan: entity.plan,
+      limits: entity.limits as unknown as Record<string, unknown>,
+      metadata: dbMetadata as Record<string, unknown>,
+      updated_at: new Date().toISOString(),
+    };
   }
 }

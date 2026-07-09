@@ -18,9 +18,9 @@ export class SiteContentRepository extends BaseRepository {
 
   async getAll(): Promise<SiteContentMap> {
     try {
-      const { data, error } = await this.db
-        .from<SiteContentRow>("site_content")
-        .select(SELECT_COLUMNS);
+      const { data, error } = await this.withWorkspace(
+        this.db.from<SiteContentRow>("site_content").select(SELECT_COLUMNS),
+      );
       if (error) throw error;
       const out: SiteContentMap = {};
       for (const row of data ?? []) out[row.key] = (row.value as Record<string, unknown>) ?? {};
@@ -32,11 +32,9 @@ export class SiteContentRepository extends BaseRepository {
 
   async getByKey(key: string): Promise<SiteContentRow | null> {
     try {
-      const { data, error } = await this.db
-        .from<SiteContentRow>("site_content")
-        .select(SELECT_COLUMNS)
-        .eq("key", key)
-        .maybeSingle();
+      const { data, error } = await this.withWorkspace(
+        this.db.from<SiteContentRow>("site_content").select(SELECT_COLUMNS).eq("key", key),
+      ).maybeSingle();
       if (error) throw error;
       return data;
     } catch (err) {
@@ -56,11 +54,9 @@ export class SiteContentRepository extends BaseRepository {
 
     const navKey = `navigation:${workspaceId}`;
 
-    const { data: existing } = await this.db
-      .from("site_content")
-      .select("key")
-      .eq("key", navKey)
-      .maybeSingle();
+    const { data: existing } = await this.withWorkspace(
+      this.db.from("site_content").select("key").eq("key", navKey),
+    ).maybeSingle();
 
     if (existing) return null; // Already exists
 
@@ -74,11 +70,9 @@ export class SiteContentRepository extends BaseRepository {
         visible: true,
       }));
 
-    const { error } = await this.db.from("site_content").upsert({
-      key: navKey,
-      value: { items: navValue } as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
-    });
+    const upsertNav = { key: navKey, value: { items: navValue } as Record<string, unknown>, updated_at: new Date().toISOString() };
+    if (this.workspaceId) (upsertNav as Record<string, unknown>).workspace_id = this.workspaceId;
+    const { error } = await this.db.from("site_content").upsert(upsertNav);
 
     if (error) throw this.normalizeError("site_content", "installBlueprintNavigation", error);
 
@@ -97,23 +91,15 @@ export class SiteContentRepository extends BaseRepository {
     resourceMap?: import("../core/provision/session-context").ProvisionResourceMap,
   ): Promise<string[]> {
     const seoKey = `seo_defaults:${workspaceId}`;
-    const { data: existing } = await this.db
-      .from("site_content")
-      .select("key")
-      .eq("key", seoKey)
-      .maybeSingle();
+    const { data: existing } = await this.withWorkspace(
+      this.db.from("site_content").select("key").eq("key", seoKey),
+    ).maybeSingle();
 
     if (existing) return [];
 
-    const { error } = await this.db.from("site_content").upsert({
-      key: seoKey,
-      value: {
-        title: seo.title,
-        description: seo.description,
-        ogImage: seo.ogImage ?? "",
-      } as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
-    });
+    const upsertSeo = { key: seoKey, value: { title: seo.title, description: seo.description, ogImage: seo.ogImage ?? "" } as Record<string, unknown>, updated_at: new Date().toISOString() };
+    if (this.workspaceId) (upsertSeo as Record<string, unknown>).workspace_id = this.workspaceId;
+    const { error } = await this.db.from("site_content").upsert(upsertSeo);
 
     if (error) throw this.normalizeError("site_content", "installBlueprintSEO", error);
 
@@ -132,22 +118,15 @@ export class SiteContentRepository extends BaseRepository {
     resourceMap?: import("../core/provision/session-context").ProvisionResourceMap,
   ): Promise<string[]> {
     const analyticsKey = `analytics_config:${workspaceId}`;
-    const { data: existing } = await this.db
-      .from("site_content")
-      .select("key")
-      .eq("key", analyticsKey)
-      .maybeSingle();
+    const { data: existing } = await this.withWorkspace(
+      this.db.from("site_content").select("key").eq("key", analyticsKey),
+    ).maybeSingle();
 
     if (existing) return [];
 
-    const { error } = await this.db.from("site_content").upsert({
-      key: analyticsKey,
-      value: {
-        enabled: analytics.enabled,
-        provider: analytics.provider ?? "supabase",
-      } as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
-    });
+    const upsertAnalytics = { key: analyticsKey, value: { enabled: analytics.enabled, provider: analytics.provider ?? "supabase" } as Record<string, unknown>, updated_at: new Date().toISOString() };
+    if (this.workspaceId) (upsertAnalytics as Record<string, unknown>).workspace_id = this.workspaceId;
+    const { error } = await this.db.from("site_content").upsert(upsertAnalytics);
 
     if (error) throw this.normalizeError("site_content", "installBlueprintAnalytics", error);
 
@@ -168,19 +147,15 @@ export class SiteContentRepository extends BaseRepository {
     if (Object.keys(settings).length === 0) return [];
 
     const businessKey = `business_settings:${workspaceId}`;
-    const { data: existing } = await this.db
-      .from("site_content")
-      .select("key")
-      .eq("key", businessKey)
-      .maybeSingle();
+    const { data: existing } = await this.withWorkspace(
+      this.db.from("site_content").select("key").eq("key", businessKey),
+    ).maybeSingle();
 
     if (existing) return [];
 
-    const { error } = await this.db.from("site_content").upsert({
-      key: businessKey,
-      value: settings,
-      updated_at: new Date().toISOString(),
-    });
+    const upsertBusiness = { key: businessKey, value: settings, updated_at: new Date().toISOString() };
+    if (this.workspaceId) (upsertBusiness as Record<string, unknown>).workspace_id = this.workspaceId;
+    const { error } = await this.db.from("site_content").upsert(upsertBusiness);
 
     if (error) throw this.normalizeError("site_content", "installBlueprintBusinessSettings", error);
 
@@ -200,11 +175,9 @@ export class SiteContentRepository extends BaseRepository {
   ): Promise<{ entities: string[] }> {
     const key = `provision:log:${workspaceId}:${blueprintSlug}:${blueprintVersion}`;
     try {
-      const { data } = await this.db
-        .from("site_content")
-        .select("value")
-        .eq("key", key)
-        .maybeSingle();
+      const { data } = await this.withWorkspace(
+        this.db.from("site_content").select("value").eq("key", key),
+      ).maybeSingle();
       if (data?.value) {
         return data.value as unknown as { entities: string[] };
       }
@@ -228,17 +201,13 @@ export class SiteContentRepository extends BaseRepository {
     log: { entities: string[] },
   ): Promise<void> {
     const key = `provision:log:${workspaceId}:${blueprintSlug}:${blueprintVersion}`;
-    const { error } = await this.db.from("site_content").upsert({
+    const upsertLog = {
       key,
-      value: {
-        workspaceId,
-        blueprintSlug,
-        blueprintVersion,
-        provisionedAt: new Date().toISOString(),
-        entities: log.entities,
-      } as Record<string, unknown>,
+      value: { workspaceId, blueprintSlug, blueprintVersion, provisionedAt: new Date().toISOString(), entities: log.entities } as Record<string, unknown>,
       updated_at: new Date().toISOString(),
-    });
+    };
+    if (this.workspaceId) (upsertLog as Record<string, unknown>).workspace_id = this.workspaceId;
+    const { error } = await this.db.from("site_content").upsert(upsertLog);
     if (error) throw this.normalizeError("site_content", "saveProvisionLog", error);
   }
 
@@ -247,7 +216,9 @@ export class SiteContentRepository extends BaseRepository {
    */
   async deleteByKey(key: string): Promise<void> {
     try {
-      const { error } = await this.db.from("site_content").delete().eq("key", key);
+      const { error } = await this.withWorkspace(
+        this.db.from("site_content").delete().eq("key", key),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("site_content", "deleteByKey", err, { key });
@@ -257,9 +228,9 @@ export class SiteContentRepository extends BaseRepository {
   async upsert(key: string, value: Record<string, unknown>): Promise<void> {
     try {
       this.validateOrThrow(siteContentValueSchema, value, "site_content");
-      const { error } = await this.db
-        .from("site_content")
-        .upsert({ key, value } as Record<string, unknown>);
+      const upsertItem = { key, value };
+      if (this.workspaceId) (upsertItem as Record<string, unknown>).workspace_id = this.workspaceId;
+      const { error } = await this.db.from("site_content").upsert(upsertItem as Record<string, unknown>);
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("site_content", "upsert", err, { key });
@@ -275,7 +246,9 @@ export class SiteContentRepository extends BaseRepository {
   async batchDeleteByKeys(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
     try {
-      const { error } = await this.db.from("site_content").delete().in("key", keys);
+      const { error } = await this.withWorkspace(
+        this.db.from("site_content").delete().in("key", keys),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("site_content", "batchDeleteByKeys", err, { count: keys.length });
@@ -293,10 +266,9 @@ export class SiteContentRepository extends BaseRepository {
   async batchGetByKeys(keys: string[]): Promise<Map<string, SiteContentRow>> {
     if (keys.length === 0) return new Map();
     try {
-      const { data, error } = await this.db
-        .from<SiteContentRow>("site_content")
-        .select(SELECT_COLUMNS)
-        .in("key", keys);
+      const { data, error } = await this.withWorkspace(
+        this.db.from<SiteContentRow>("site_content").select(SELECT_COLUMNS).in("key", keys),
+      );
       if (error) throw error;
 
       const result = new Map<string, SiteContentRow>();

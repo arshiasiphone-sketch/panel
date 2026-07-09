@@ -81,12 +81,13 @@ export class ProvisionEngine {
     // 3. Create workspace using the existing WorkspaceFactory
     const workspaceId = await this._createWorkspace(blueprint, parsed);
 
-    // 4. Begin transaction
+    // 4. Begin transaction — use ownerUserId if present, else fallback to "public-api" for Public Provisioning flow
+    const initiatedBy = parsed.ownerUserId ?? "public-api";
     const tx = await this.deps.transactionManager.begin({
       workspaceId,
       blueprintId: resolved.blueprintId,
       blueprintVersion: resolved.blueprintVersion,
-      initiatedBy: parsed.ownerUserId,
+      initiatedBy,
     });
 
     // 5. Create provision session — the single source of truth for this operation
@@ -95,7 +96,7 @@ export class ProvisionEngine {
       transactionId: tx.id,
       blueprintSlug: resolved.blueprintSlug,
       blueprintVersion: resolved.blueprintVersion,
-      initiatedBy: parsed.ownerUserId,
+      initiatedBy,
       startedAt,
     });
 
@@ -314,10 +315,11 @@ export class ProvisionEngine {
     const entity = createWorkspace({
       name: request.workspaceName ?? blueprint.name,
       description: request.workspaceDescription ?? blueprint.description,
-      ownerUserId: request.ownerUserId,
+      ownerUserId: request.ownerUserId ?? null, // Public Provisioning flow has no direct owner
       plan: request.plan ?? "free",
       locale: request.locale ?? "fa-IR",
       timezone: request.timezone ?? "Asia/Tehran",
+      domain: request.domain, // Pre-validated full domain (check-slug already confirmed availability)
     });
 
     await this.deps.workspaceRepository.save(entity);

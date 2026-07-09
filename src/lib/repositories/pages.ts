@@ -20,10 +20,12 @@ export class PagesRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<PageBlockRow[]> {
     try {
-      let query = this.db
-        .from<PageBlockRow>("page_blocks")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<PageBlockRow>("page_blocks")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -74,6 +76,7 @@ export class PagesRepository extends BaseRepository {
           visible: true,
         };
 
+        if (this.workspaceId) (insert as PageBlockInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
         const { error } = await this.db.from("page_blocks").insert(insert as PageBlockInsert);
         if (error) throw this.normalizeError("page_blocks", "installBlueprintPages", error);
         blockIds.push(id);
@@ -90,9 +93,10 @@ export class PagesRepository extends BaseRepository {
   async create(input: { type: string; data: Record<string, unknown>; sort_order: number }): Promise<PageBlockRow | null> {
     try {
       const validated = this.validateOrThrow(blockSchema, { ...input, visible: true }, "page_blocks.create");
+      const insertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
       const { data, error } = await this.db
         .from<PageBlockRow>("page_blocks")
-        .insert(validated as PageBlockInsert)
+        .insert(insertData as PageBlockInsert)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -120,7 +124,9 @@ export class PagesRepository extends BaseRepository {
   async batchDelete(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     try {
-      const { error } = await this.db.from("page_blocks").delete().in("id", ids);
+      const { error } = await this.withWorkspace(
+        this.db.from("page_blocks").delete().in("id", ids),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("page_blocks", "batchDelete", err, { count: ids.length });
@@ -129,7 +135,9 @@ export class PagesRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("page_blocks").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("page_blocks").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("page_blocks", "delete", err, { id });
@@ -160,11 +168,12 @@ export class PagesRepository extends BaseRepository {
    * Check if a block with a given hash already exists.
    */
   private async _blockExistsByKeyHash(blockKeyHash: string): Promise<boolean> {
-    const { data } = await this.db
-      .from("page_blocks")
-      .select("id")
-      .eq("data->>block_key_hash", blockKeyHash)
-      .maybeSingle();
+    const { data } = await this.withWorkspace(
+      this.db
+        .from("page_blocks")
+        .select("id")
+        .eq("data->>block_key_hash", blockKeyHash),
+    ).maybeSingle();
     return !!data;
   }
 }

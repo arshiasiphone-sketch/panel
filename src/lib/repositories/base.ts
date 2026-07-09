@@ -85,6 +85,17 @@ export abstract class BaseRepository {
     return this.workspace.workspaceId;
   }
 
+  /**
+   * Apply workspace filter to a query. Mutates query in-place via .eq().
+   * No-op if workspaceId is undefined (e.g. system-level queries).
+   */
+  protected withWorkspace<T>(query: ITableQuery<T>, column = "workspace_id"): ITableQuery<T> {
+    if (this.workspaceId) {
+      return query.eq(column, this.workspaceId);
+    }
+    return query;
+  }
+
   // ─── Validation helpers ───────────────────────────────────────────────────
 
   /**

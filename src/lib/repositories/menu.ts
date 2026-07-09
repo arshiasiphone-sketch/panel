@@ -20,10 +20,12 @@ export class MenuRepository extends BaseRepository {
 
   async getAll(opts?: PaginatedOptions): Promise<MenuItemRow[]> {
     try {
-      let query = this.db
-        .from<MenuItemRow>("menu_items")
-        .select(SELECT_COLUMNS)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<MenuItemRow>("menu_items")
+          .select(SELECT_COLUMNS)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -35,11 +37,13 @@ export class MenuRepository extends BaseRepository {
 
   async getVisible(opts?: PaginatedOptions): Promise<MenuItemRow[]> {
     try {
-      let query = this.db
-        .from<MenuItemRow>("menu_items")
-        .select(VISIBLE_COLUMNS)
-        .eq("visible", true)
-        .order("sort_order");
+      let query = this.withWorkspace(
+        this.db
+          .from<MenuItemRow>("menu_items")
+          .select(VISIBLE_COLUMNS)
+          .eq("visible", true)
+          .order("sort_order"),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -62,7 +66,7 @@ export class MenuRepository extends BaseRepository {
 
     for (const item of menus) {
       const id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      const { error } = await this.db.from("menu_items").upsert({
+      const upsertItem = {
         id,
         category: item.category,
         name: item.name,
@@ -71,7 +75,9 @@ export class MenuRepository extends BaseRepository {
         image_url: item.imageUrl ?? "",
         sort_order: item.sortOrder,
         visible: true,
-      });
+      };
+      if (this.workspaceId) (upsertItem as MenuItemInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
+      const { error } = await this.db.from("menu_items").upsert(upsertItem);
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue; // Already exists
@@ -90,9 +96,10 @@ export class MenuRepository extends BaseRepository {
   async upsert(row: Partial<MenuItemRow>): Promise<MenuItemRow | null> {
     try {
       const validated = this.validateOrThrow(menuItemSchema, row, "menu_items");
+      const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
       const { data, error } = await this.db
         .from<MenuItemRow>("menu_items")
-        .upsert(validated as MenuItemInsert)
+        .upsert(upsertData as MenuItemInsert)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -108,7 +115,9 @@ export class MenuRepository extends BaseRepository {
   async batchDelete(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     try {
-      const { error } = await this.db.from("menu_items").delete().in("id", ids);
+      const { error } = await this.withWorkspace(
+        this.db.from("menu_items").delete().in("id", ids),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("menu_items", "batchDelete", err, { count: ids.length });
@@ -117,7 +126,9 @@ export class MenuRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("menu_items").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("menu_items").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("menu_items", "delete", err, { id });

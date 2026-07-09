@@ -31,8 +31,8 @@ export interface ProvisionSessionContext {
   blueprintSlug: string;
   /** The blueprint version being installed. */
   blueprintVersion: string;
-  /** The user who initiated the provision. */
-  initiatedBy: string;
+  /** The user who initiated the provision (null for Public Provisioning API — resolved externally via externalOrderId). */
+  initiatedBy: string | null;
   /** Session start timestamp. */
   startedAt: string;
 }

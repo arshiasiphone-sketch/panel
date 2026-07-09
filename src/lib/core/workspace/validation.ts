@@ -52,7 +52,9 @@ export const workspaceLimitsSchema = z.object({
 // ─── Membership schema ───────────────────────────────────────────────────────
 
 export const workspaceMembershipSchema = z.object({
-  userId: z.string().min(1),
+  // Nullable: Public Provisioning API creates workspaces with no direct owner
+  // (ownership is resolved externally via externalOrderId). See WorkspaceMembership.
+  userId: z.string().min(1).nullable(),
   role: workspaceRoleSchema,
   joinedAt: z.string().datetime(),
 });
