@@ -10,17 +10,17 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { createRequire } from "node:module";
 
-// Guard against a development-flavored production build. The real lever is Vite's
-// `--mode development` (which `npm run build:dev` used to pass), NOT `NODE_ENV`:
-// plugin-react emits the DEV JSX transform (jsxDEV) whenever `config.mode === "development"`,
-// while Nitro bundles PRODUCTION React into the SSR server — crashing SSR with
-// "jsxDEV is not a function". `vite build` defaults NODE_ENV to "production", so a
-// NODE_ENV=development env var is the other (rarer) way to force dev mode. `build:dev`
-// is now neutralized in package.json (`vite build`), but keep this safety net for any
-// stray NODE_ENV=development. `vite dev` is unaffected — its argv has no "build" token.
-if (process.env.NODE_ENV === "development" && process.argv.includes("build")) {
-  process.env.NODE_ENV = "production";
-}
+// SSR CRASH FIX: a production SSR build MUST run with Vite `mode === "production"`.
+// plugin-react decides the JSX transform from `config.isProduction` (= `mode === "production"`),
+// NOT from `process.env.NODE_ENV`. Vite resolves `mode` BEFORE loading this file
+// (`mode = options.mode || process.env.NODE_ENV || "production"`), so a stray
+// `NODE_ENV=development` (e.g. on Vercel) locks `mode="development"` and plugin-react
+// emits `jsxDEV`. Nitro then bundles PRODUCTION React into the SSR server, where
+// `jsxDEV` is `void 0` → "jsxDEV is not a function" on every page.
+// The build command (`vite build --mode production` in package.json) forces `mode` to
+// "production", which beats `NODE_ENV` and makes `config.isProduction` true regardless
+// of the host's environment. Do NOT remove that `--mode production` flag.
+
 
 const require = createRequire(import.meta.url);
 // tslib's ESM build: real named exports (__extends, __assign, ...). Nitro's default
