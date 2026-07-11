@@ -10,7 +10,7 @@ import { t as require_jsx_dev_runtime } from "../_libs/react.mjs";
 import { M as redirect, c as HeadContent, d as createRouter, f as Outlet, g as Link, h as createRootRouteWithContext, m as createFileRoute, p as lazyRouteComponent, s as Scripts, y as useRouter } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
 import { t as CmsSyncProvider } from "./theme-provider-BXapPRrv.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-Dw7TVZqe.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-Bx3HoI0u.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_dev_runtime = require_jsx_dev_runtime();
 var styles_default = "/assets/styles-AoIeXAkl.css";
@@ -473,7 +473,7 @@ function CurrentWorkspaceProvider({ children }) {
 		children
 	}, void 0, false, {
 		fileName: _jsxFileName$1,
-		lineNumber: 279,
+		lineNumber: 298,
 		columnNumber: 5
 	}, this);
 }

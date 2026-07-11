@@ -83,7 +83,7 @@ var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-C8D52oam.mjs");
+	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-CqiWNLhA.mjs");
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -295,9 +295,7 @@ var handleServerAction = async ({ request, context, serverFnId }) => {
 					if (typeof serializedContext === "string") try {
 						const deserializedContext = Pu(JSON.parse(serializedContext), { plugins: serovalPlugins });
 						if (typeof deserializedContext === "object" && deserializedContext) params.context = safeObjectMerge(deserializedContext, context);
-					} catch (e) {
-						console.warn("Failed to parse FormData context:", e);
-					}
+					} catch (e) {}
 					return await action(params);
 				}
 				if (methodUpper === "GET") {
@@ -1026,7 +1024,7 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		import("./router-Dw7TVZqe.mjs"),
+		import("./router-Bx3HoI0u.mjs"),
 		import("./start-CC-rJiCG.mjs"),
 		import("./empty-plugin-adapters-D9UWiqvJ.mjs")
 	]);
@@ -1072,7 +1070,7 @@ var ROUTER_BASEPATH = "/";
 var SERVER_FN_BASE = "/_serverFn/";
 var IS_PRERENDERING = process.env.TSS_PRERENDERING === "true";
 var IS_SHELL_ENV = process.env.TSS_SHELL === "true";
-var IS_DEV = true;
+var IS_DEV = false;
 var ERR_NO_RESPONSE = IS_DEV ? `It looks like you forgot to return a response from your server route handler. If you want to defer to the app router, make sure to have a component set in this route.` : "Internal Server Error";
 var ERR_NO_DEFER = IS_DEV ? `You cannot defer to the app router if there is no component defined on this route.` : "Internal Server Error";
 function throwRouteHandlerError() {

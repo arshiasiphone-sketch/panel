@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-C8D52oam.js
+//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-CqiWNLhA.js
 var tsrStartManifest = () => ({ routes: {
 	__root__: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/__root.tsx",
@@ -17,7 +17,7 @@ var tsrStartManifest = () => ({ routes: {
 			"/api/public/provision-status"
 		],
 		preloads: [
-			"/assets/index-CkefHbxm.js",
+			"/assets/index-BwJWT-vN.js",
 			"/assets/rolldown-runtime-CNC7AqOf.js",
 			"/assets/jsx-dev-runtime-CAGjpy4s.js",
 			"/assets/useStore-CHX419Sc.js",
@@ -28,13 +28,13 @@ var tsrStartManifest = () => ({ routes: {
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-CkefHbxm.js"
+			src: "/assets/index-BwJWT-vN.js"
 		} }]
 	},
 	"/": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/index.tsx",
 		children: void 0,
-		preloads: ["/assets/routes-CQFXgb5k.js"]
+		preloads: ["/assets/routes-B5GfIv0d.js"]
 	},
 	"/admin": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.tsx",
@@ -59,7 +59,7 @@ var tsrStartManifest = () => ({ routes: {
 			"/admin/"
 		],
 		css: ["/assets/admin-shell-CqaoNLG9.css"],
-		preloads: ["/assets/admin-BLpl-4Md.js", "/assets/admin-shell-CGwW0FZg.js"]
+		preloads: ["/assets/admin-BPmY3GTR.js", "/assets/admin-shell-D49cUyNU.js"]
 	},
 	"/provision": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/provision.tsx",
@@ -74,16 +74,16 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.analytics.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.analytics-CuOReD3S.js",
+			"/assets/admin.analytics-C7ZKYxQM.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
-			"/assets/test-db-BTHiijwh.js"
+			"/assets/test-db-DzbqrQ_7.js"
 		]
 	},
 	"/admin/events": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.events.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.events-CRaE9awU.js",
+			"/assets/admin.events-CE_1LtxZ.js",
 			"/assets/save-DKKjY_iQ.js",
 			"/assets/trash-2-RShVMVeK.js",
 			"/assets/x-W2nvyU5k.js"
@@ -92,17 +92,17 @@ var tsrStartManifest = () => ({ routes: {
 	"/admin/gallery": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.gallery.tsx",
 		children: void 0,
-		preloads: ["/assets/admin.gallery-H8rx6Ohz.js", "/assets/trash-2-RShVMVeK.js"]
+		preloads: ["/assets/admin.gallery-DodDEZzx.js", "/assets/trash-2-RShVMVeK.js"]
 	},
 	"/admin/media": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.media.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.media-B1NkFpLi.js",
+			"/assets/admin.media-e88HqCuV.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
 			"/assets/chevron-down-C4WEE8HN.js",
 			"/assets/trash-2-RShVMVeK.js",
-			"/assets/test-db-BTHiijwh.js",
+			"/assets/test-db-DzbqrQ_7.js",
 			"/assets/use-mobile-B82OCCWX.js"
 		]
 	},
@@ -110,7 +110,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.menu.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.menu-C-RS9GbC.js",
+			"/assets/admin.menu-Cqxydvt-.js",
 			"/assets/save-DKKjY_iQ.js",
 			"/assets/trash-2-RShVMVeK.js",
 			"/assets/x-W2nvyU5k.js"
@@ -120,7 +120,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.page.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.page-DGTCnldV.js",
+			"/assets/admin.page-lARPoBWL.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
 			"/assets/chevron-down-C4WEE8HN.js",
 			"/assets/sortable.esm-CyylAduE.js",
@@ -134,18 +134,18 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.personality-types.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.personality-types-Di7-2hMK.js",
+			"/assets/admin.personality-types-CYWEG64o.js",
 			"/assets/rotate-ccw-Dgsv4hTe.js",
 			"/assets/x-W2nvyU5k.js",
 			"/assets/test-data-CxmFOi3a.js",
-			"/assets/personality-store-W_Ck9Rik.js"
+			"/assets/personality-store-vXQN0U6e.js"
 		]
 	},
 	"/admin/settings": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.settings.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.settings-BWTFBLMq.js",
+			"/assets/admin.settings-DB1N3BlQ.js",
 			"/assets/proxy-Ci11mO6p.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
 			"/assets/loader-circle-D7-Cg7Ue.js",
@@ -156,26 +156,26 @@ var tsrStartManifest = () => ({ routes: {
 	"/admin/site-content": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.site-content.tsx",
 		children: void 0,
-		preloads: ["/assets/admin.site-content-Xe0HmTE0.js", "/assets/save-DKKjY_iQ.js"]
+		preloads: ["/assets/admin.site-content-C8jDEU4N.js", "/assets/save-DKKjY_iQ.js"]
 	},
 	"/admin/test-analytics": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.test-analytics.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.test-analytics-DtmVVSPp.js",
+			"/assets/admin.test-analytics-uVeVU7sn.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
-			"/assets/test-db-BTHiijwh.js",
-			"/assets/personality-store-W_Ck9Rik.js"
+			"/assets/test-db-DzbqrQ_7.js",
+			"/assets/personality-store-vXQN0U6e.js"
 		]
 	},
 	"/admin/test-questions": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.test-questions.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.test-questions-CcRvzJJF.js",
+			"/assets/admin.test-questions-C1VKseMU.js",
 			"/assets/sortable.esm-CyylAduE.js",
 			"/assets/rotate-ccw-Dgsv4hTe.js",
-			"/assets/test-db-BTHiijwh.js",
+			"/assets/test-db-DzbqrQ_7.js",
 			"/assets/test-data-CxmFOi3a.js",
 			"/assets/test-questions-CKjZeeIW.js"
 		]
@@ -184,23 +184,23 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.test-results.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.test-results-DCB6T4TC.js",
+			"/assets/admin.test-results-Cch6vCPi.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
 			"/assets/chevron-right-D-Er3HJk.js",
 			"/assets/trash-2-RShVMVeK.js",
-			"/assets/test-db-BTHiijwh.js",
+			"/assets/test-db-DzbqrQ_7.js",
 			"/assets/use-mobile-B82OCCWX.js",
-			"/assets/personality-store-W_Ck9Rik.js"
+			"/assets/personality-store-vXQN0U6e.js"
 		]
 	},
 	"/test/$step": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/test.$step.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/test._step-B-1Bc3ss.js",
+			"/assets/test._step-4y9w4daz.js",
 			"/assets/proxy-Ci11mO6p.js",
-			"/assets/test-store-Bmvk7Rdp.js",
-			"/assets/test-db-BTHiijwh.js",
+			"/assets/test-store-Bl13vL7e.js",
+			"/assets/test-db-DzbqrQ_7.js",
 			"/assets/test-questions-CKjZeeIW.js"
 		]
 	},
@@ -208,29 +208,29 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/test.info.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/test.info-8LF8ZZxu.js",
+			"/assets/test.info-BAn_QeaD.js",
 			"/assets/proxy-Ci11mO6p.js",
-			"/assets/test-store-Bmvk7Rdp.js"
+			"/assets/test-store-Bl13vL7e.js"
 		]
 	},
 	"/test/result": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/test.result.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/test.result-DSvNr7UI.js",
+			"/assets/test.result-BQvsuPJx.js",
 			"/assets/proxy-Ci11mO6p.js",
-			"/assets/test-store-Bmvk7Rdp.js",
+			"/assets/test-store-Bl13vL7e.js",
 			"/assets/test-data-CxmFOi3a.js",
-			"/assets/personality-store-W_Ck9Rik.js"
+			"/assets/personality-store-vXQN0U6e.js"
 		]
 	},
 	"/admin/": {
 		filePath: "C:/Users/Admin/Desktop/final/myproject/src/routes/admin.index.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin.index-CuwYR9jo.js",
+			"/assets/admin.index-DtwVTdyF.js",
 			"/assets/createLucideIcon-FCl2imOT.js",
-			"/assets/test-db-BTHiijwh.js"
+			"/assets/test-db-DzbqrQ_7.js"
 		]
 	}
 } });
