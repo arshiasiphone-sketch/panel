@@ -7778,7 +7778,7 @@ var is_prop_valid_framer_motion_exports = /* @__PURE__ */ __exportAll({ default:
 var is_prop_valid_framer_motion_default;
 var init_is_prop_valid_framer_motion = __esmMin((() => {
 	is_prop_valid_framer_motion_default = {};
-	throw new Error(`Could not resolve "@emotion/is-prop-valid" imported by "framer-motion".`);
+	throw new Error(`Could not resolve "@emotion/is-prop-valid" imported by "framer-motion". Is it installed?`);
 }));
 //#endregion
 //#region node_modules/framer-motion/dist/es/render/dom/utils/filter-props.mjs
