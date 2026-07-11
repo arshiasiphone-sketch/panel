@@ -100,6 +100,19 @@ function extractDomainInfo(): { domain: string | undefined; subdomain: string | 
 }
 
 /**
+ * Local-testing-only override: `?preview_domain=<domain>` forces the resolver to
+ * render the workspace that owns that domain, ignoring the real Host header.
+ * Disabled unless VITE_ENABLE_DOMAIN_PREVIEW === "true", so it can never
+ * accidentally work in a real production / customer-facing deployment.
+ */
+function extractPreviewDomain(): string | undefined {
+  if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") return undefined;
+  if (typeof window === "undefined") return undefined;
+  const value = new URLSearchParams(window.location.search).get("preview_domain")?.trim();
+  return value ? value : undefined;
+}
+
+/**
  * Extract workspace ID from the URL path.
  * Matches patterns like:
  *   /cafe/<workspace-id>       — admin/owner cafe mode
@@ -109,6 +122,12 @@ function extractDomainInfo(): { domain: string | undefined; subdomain: string | 
 function extractWorkspaceFromPath(workspaceIdFromRoute?: string): { workspaceId: string | undefined; domain: string | undefined; isSubdomain: boolean } {
   if (typeof window === "undefined") {
     return { workspaceId: workspaceIdFromRoute, domain: undefined, isSubdomain: false };
+  }
+
+  // Local-testing override takes priority over everything else (incl. route params).
+  const previewDomain = extractPreviewDomain();
+  if (previewDomain) {
+    return { workspaceId: undefined, domain: previewDomain, isSubdomain: false };
   }
 
   const pathname = window.location.pathname;
