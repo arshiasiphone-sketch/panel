@@ -10,6 +10,18 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { createRequire } from "node:module";
 
+// Guard against a development-flavored production build. The real lever is Vite's
+// `--mode development` (which `npm run build:dev` used to pass), NOT `NODE_ENV`:
+// plugin-react emits the DEV JSX transform (jsxDEV) whenever `config.mode === "development"`,
+// while Nitro bundles PRODUCTION React into the SSR server — crashing SSR with
+// "jsxDEV is not a function". `vite build` defaults NODE_ENV to "production", so a
+// NODE_ENV=development env var is the other (rarer) way to force dev mode. `build:dev`
+// is now neutralized in package.json (`vite build`), but keep this safety net for any
+// stray NODE_ENV=development. `vite dev` is unaffected — its argv has no "build" token.
+if (process.env.NODE_ENV === "development" && process.argv.includes("build")) {
+  process.env.NODE_ENV = "production";
+}
+
 const require = createRequire(import.meta.url);
 // tslib's ESM build: real named exports (__extends, __assign, ...). Nitro's default
 // resolution picks the CJS UMD (tslib.js), which is what produced the broken interop.
