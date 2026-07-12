@@ -38,7 +38,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
         ? String(captured)
         : `h3 swallowed SSR error: ${body}`;
   console.error(capturedMsg);
-  return new Response(`<h1>SSR_DEBUG_ERROR</h1><pre>${capturedMsg.replace(/</g, "&lt;")}</pre>`, {
+  return new Response(`<h1>Server Error</h1><pre>${capturedMsg.replace(/</g, "&lt;")}</pre>`, {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
@@ -54,7 +54,7 @@ export default {
       console.error(error);
       const msg = error instanceof Error ? `${error.name}: ${error.message}\n\n${error.stack ?? ""}` : String(error);
       return new Response(
-        `<h1>SSR_DEBUG_ERROR</h1><pre>${msg.replace(/</g, "&lt;")}</pre>`,
+        `<h1>Server Error</h1><pre>${msg.replace(/</g, "&lt;")}</pre>`,
         {
           status: 500,
           headers: { "content-type": "text/html; charset=utf-8" },

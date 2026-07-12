@@ -36,6 +36,7 @@ import type { ProvisionTransactionManager } from "./transaction";
 import type { ProvisionValidator, ValidationResult } from "./validator";
 import type { ProvisionReportGenerator } from "./report";
 import { createWorkspace } from "@/lib/core/workspace/factory";
+import { setWorkspaceOnRepositories } from "@/lib/repositories/factory";
 import type { WorkspaceRepository } from "@/lib/core/workspace/repository";
 import type { ILogger } from "@/lib/logger";
 import type { Repositories } from "@/lib/repositories/factory";
@@ -80,6 +81,13 @@ export class ProvisionEngine {
 
     // 3. Create workspace using the existing WorkspaceFactory
     const workspaceId = await this._createWorkspace(blueprint, parsed);
+
+    // 3b. Scope every repository to this workspace BEFORE installing any data.
+    // Without this, BaseRepository.withWorkspace() is a no-op (workspaceId is
+    // undefined) and every installBlueprint*/seed write lands in the shared
+    // DEFAULT_WORKSPACE bucket — i.e. every provisioned workspace silently
+    // shares one dataset.
+    setWorkspaceOnRepositories(this.deps.repos, { workspaceId });
 
     // 4. Begin transaction — use ownerUserId if present, else fallback to "public-api" for Public Provisioning flow
     const initiatedBy = parsed.ownerUserId ?? "public-api";

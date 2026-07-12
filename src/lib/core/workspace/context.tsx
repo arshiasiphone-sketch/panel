@@ -83,10 +83,14 @@ function extractDomainInfo(): { domain: string | undefined; subdomain: string | 
     // Filter out common non-workspace subdomains
     const skipPatterns = ["www", "api", "cdn", "static", "assets", "app", "mail", "shop"];
     if (!skipPatterns.includes(potentialSubdomain.toLowerCase())) {
+      // Workspaces are keyed by their FULL domain (e.g. "khane.nama.app"), so
+      // resolve against the whole hostname. Passing only parts.slice(1)
+      // ("nama.app") made findByDomain miss the row and fall back to the
+      // default workspace, rendering the base project on every subdomain.
       return {
-        domain: parts.slice(1).join("."),
+        domain: hostname,
         subdomain: potentialSubdomain,
-        isSubdomain: true,
+        isSubdomain: false,
       };
     }
   }

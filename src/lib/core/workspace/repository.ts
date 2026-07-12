@@ -11,7 +11,7 @@ import { BaseRepository, type RepositoryDependencies } from "@/lib/repositories/
 import type { WorkspaceEntity, WorkspaceContext } from "./types";
 import { workspaceEntitySchema } from "./validation";
 import { createDefaultWorkspace } from "./factory";
-import { DEFAULT_WORKSPACE_ID } from "@/lib/constants";
+import { DEFAULT_WORKSPACE_ID, PLATFORM_DOMAIN } from "@/lib/constants";
 
 // ─── DB row types ────────────────────────────────────────────────────────────
 
@@ -81,24 +81,14 @@ export class WorkspaceRepository extends BaseRepository {
 
   /**
     * Find a workspace by subdomain.
-    * Uses the workspaces.subdomain index for fast lookup.
+    * Workspaces are persisted by their full domain (`${slug}.${PLATFORM_DOMAIN}`,
+    * e.g. "khane.nama.app"). A subdomain request (e.g. `khane.<platform>`) maps to
+    * the slug `khane`, so resolve via the canonical domain rather than a
+    * (non-existent) `subdomain` column.
     * Returns null if not found.
     */
    async findBySubdomain(subdomain: string): Promise<WorkspaceEntity | null> {
-     try {
-       const { data, error } = await this.db
-         .from("workspaces")
-         .select("*")
-         .eq("subdomain", subdomain)
-         .maybeSingle();
-
-       if (error) throw error;
-       if (!data) return null;
-
-       return this._mapRowToEntity(data as unknown as WorkspaceRow);
-     } catch (err) {
-       throw this.normalizeError("workspaces", "workspace.findBySubdomain", err, { subdomain });
-     }
+     return this.findByDomain(`${subdomain}.${PLATFORM_DOMAIN}`);
    }
 
   /**
@@ -199,6 +189,15 @@ export class WorkspaceRepository extends BaseRepository {
       });
       return entity;
     } catch (err) {
+      // A concurrent visit can race to insert the same user's default workspace
+      // (this is what minted the duplicate "Default Workspace" rows during
+      // root-domain debugging). If a default already exists, return it instead
+      // of surfacing the duplicate-insert error. Pair this with the unique
+      // partial index `uniq_default_workspace_per_owner` to make it impossible.
+      const existing = await this.findByUserId(userId);
+      if (existing.length > 0) {
+        return existing[0];
+      }
       throw this.normalizeError("workspaces", "workspace.getOrCreateDefault", err, { userId });
     }
   }
