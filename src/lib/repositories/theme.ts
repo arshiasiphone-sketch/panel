@@ -63,8 +63,16 @@ export class ThemeRepository extends BaseRepository {
 
   /**
    * Install theme settings from blueprint data.
-   * Checks for existing theme first — idempotent.
-   * Does NOT assume hardcoded id=1.
+   *
+   * theme_settings is a GLOBAL singleton (one row, id=1 — enforced by the
+   * `theme_singleton` CHECK). It is intentionally NOT workspace-scoped (it has
+   * no `workspace_id` column in the deployed schema), so this must upsert the
+   * singleton row directly rather than via withWorkspace(). The previous
+   * implementation filtered/seeded by `workspace_id`, which threw on every
+   * provision and aborted the pipeline before WORKSPACE_READY — leaving every
+   * workspace stuck at `provisioning` despite its content being written.
+   *
+   * Idempotent: re-running upserts the same singleton row.
    */
   async installBlueprintTheme(theme: {
     presetId: string;
@@ -74,15 +82,12 @@ export class ThemeRepository extends BaseRepository {
       textTertiaryColor: string; borderRadius: string; glassOpacity: number;
     }>;
   }): Promise<void> {
-    // Check if any theme settings already exist
-    const { data: existingThemes } = await this.withWorkspace(
-      this.db.from("theme_settings").select("id").limit(1),
-    );
-
-    if (existingThemes && existingThemes.length > 0) {
-      this.logger.info("Theme settings already exist — skipping theme installation");
-      return; // Already installed
-    }
+    // Singleton row is always id=1; reuse it if present, else create it.
+    const { data: existing } = await this.db
+      .from("theme_settings")
+      .select("id")
+      .limit(1);
+    const targetId = (existing && existing[0]?.id) ?? 1;
 
     const update: Partial<ThemeRow> = {
       preset_id: theme.presetId,
@@ -101,8 +106,9 @@ export class ThemeRepository extends BaseRepository {
       if (theme.overrides.glassOpacity !== undefined) update.glass_opacity = theme.overrides.glassOpacity;
     }
 
-    if (this.workspaceId) (update as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("theme_settings").upsert(update);
+    const { error } = await this.db
+      .from("theme_settings")
+      .upsert({ id: targetId, ...update });
     if (error) throw this.normalizeError("theme_settings", "installBlueprintTheme", error);
   }
 

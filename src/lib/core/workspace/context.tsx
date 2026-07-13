@@ -19,6 +19,7 @@ import { createContext, useContext, useEffect, useState, useMemo, useCallback, t
 import type { WorkspaceContext, WorkspaceEntity, WorkspaceLimits } from "./types";
 import { DEFAULT_WORKSPACE, ACTIVE_WORKSPACE_STATUSES } from "./types";
 import { getLogger } from "@/lib/logger";
+import { PLATFORM_DOMAIN } from "@/lib/constants";
 import { resolveWorkspace, resolveWorkspaceByDomain, resolveWorkspaceFromRequest } from "./resolver";
 import { runWorkspaceHealthChecks, formatHealthSummary } from "./health";
 import { checkLimit, isAdmin, isOwner, hasRole } from "./entity";
@@ -53,6 +54,11 @@ export interface WorkspaceContextValue {
 }
 
 const WorkspaceCtx = createContext<WorkspaceContextValue | null>(null);
+
+// Remembers the workspace resolved via ?preview_domain for the lifetime of the
+// tab, so a hard reload of /admin (which drops the query param) keeps rendering
+// the same workspace instead of falling back to DEFAULT. Preview builds only.
+const PREVIEW_WS_STORAGE_KEY = "nama:preview-workspace-id";
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -144,15 +150,29 @@ function extractWorkspaceFromPath(workspaceIdFromRoute?: string): { workspaceId:
 
   const cafeMatch = pathname.match(/^\/cafe(?:\/([^/]+))?(?:\/(shop|cms))?$/);
   if (cafeMatch && cafeMatch[1]) {
-    // /cafe/<slug> — the slug might be a workspace ID or a slug identifier
-    // We'll try it as a path-based lookup; if no workspace found, fall through to domain
-    return { workspaceId: cafeMatch[1], domain: undefined, isSubdomain: false };
+    // /cafe/<slug> — the slug is the workspace's domain prefix, NOT its row id
+    // (ids are UUIDs; the slug lives in the `domain` column as `${slug}.nama.app`).
+    // Resolve via the canonical domain so findByDomain finds the row.
+    return { workspaceId: undefined, domain: `${cafeMatch[1]}.${PLATFORM_DOMAIN}`, isSubdomain: false };
   }
 
   // Check for subdomain-based resolution
   const domainInfo = extractDomainInfo();
   if (domainInfo) {
     return { workspaceId: undefined, domain: domainInfo.domain ?? undefined, isSubdomain: domainInfo.isSubdomain };
+  }
+
+  // Preview fallback (preview builds only): reuse the last ?preview_domain-resolved
+  // workspace so a hard reload that loses the query param (e.g. /admin) still shows it.
+  if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW === "true") {
+    try {
+      const stored = sessionStorage.getItem(PREVIEW_WS_STORAGE_KEY);
+      if (stored) {
+        return { workspaceId: stored, domain: undefined, isSubdomain: false };
+      }
+    } catch {
+      /* sessionStorage unavailable — fall through to default */
+    }
   }
 
   return { workspaceId: undefined, domain: undefined, isSubdomain: false };
@@ -212,6 +232,19 @@ export function CurrentWorkspaceProvider({
             isSubdomain: pathResolution.isSubdomain,
           },
         );
+        // Remember a ?preview_domain-resolved workspace so reloads without the
+        // query param keep rendering it (preview builds only).
+        if (
+          import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW === "true" &&
+          extractPreviewDomain() &&
+          ctx?.workspaceId
+        ) {
+          try {
+            sessionStorage.setItem(PREVIEW_WS_STORAGE_KEY, ctx.workspaceId);
+          } catch {
+            /* sessionStorage unavailable — ignore */
+          }
+        }
       }
 
       // Fall back to user-based resolution (auth flow) ONLY when no explicit

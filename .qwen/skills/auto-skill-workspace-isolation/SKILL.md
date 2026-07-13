@@ -151,6 +151,17 @@ below):
   is already fixed in code — but you must **redeploy** for new provisions to
   self-flip; pre-deploy rows need the manual flip in the diagnostic HOWTO.
 
+> **EXPERIENCE (2026-07-13):** the "redeploy fixes it" assumption is NOT reliable.
+> Fresh re-provisions run via `ProvisionService.provision()` (local code, corrected
+> `findById`) STILL landed at `provisioning` and required the manual `_flip_old.mjs`
+> flip (`workspaces.status='active'` + `provision_transactions.status='completed'`/
+> `completed_at`). So the engine's `provision()` path does NOT reliably execute
+> `WORKSPACE_READY`'s flip. Treat the **manual flip as the dependable remediation**
+> for any `provisioning` row; the root cause (why `WORKSPACE_READY` is skipped in
+> the `provision()` pipeline) is UNRESOLVED — do not assume a redeploy alone makes
+> self-service provisioning self-flip. Before relying on UI provisions, confirm a
+> fresh provision actually reaches `active` end-to-end.
+
 > **PITFALL — `workspaces` has NO `workspace_id` column.**
 > Unlike every data table (`site_content`, `menu`, `gallery`, …) which are
 > scoped by `withWorkspace("workspace_id")`, the `workspaces` table is keyed by
@@ -299,6 +310,78 @@ present with `SELECT key FROM site_content WHERE key LIKE 'blueprint:%';`.)
 > directly against the existing workspace id (loads the blueprint from
 > `site_content`, installs scoped rows). That avoids the delete. Only do this
 > server-side (it needs the admin repo graph + service-role client).
+
+## Cleaning DEFAULT workspace bloat (reset + re-seed)
+
+Fixing the two isolation defects (resolution + isolated content) can still leave
+the DEFAULT workspace (`00000000-0000-0000-0000-000000000001`) bloated with
+orphaned replica rows from historical provisions (timestamped re-seed batches
+accumulate because the old bug appended to DEFAULT instead of the new workspace).
+Functional isolation is already achieved, but the bloat is a separate,
+pre-existing artifact that the re-provision does NOT auto-clean.
+
+### Gotcha — only `workspace_id`-scoped tables bloat; some tables are GLOBAL
+
+Run a row-count-by-`workspace_id` diagnostic across the content tables:
+
+```js
+import { createClient } from "@supabase/supabase-js";
+const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+const DEFAULT = "00000000-0000-0000-0000-000000000001";
+for (const t of ["page_blocks", "menu_items", "gallery_images", "events"]) {
+  const { data } = await sb.from(t).select("workspace_id");
+  const c = {};
+  for (const r of data) { const w = r.workspace_id ?? "(null)"; c[w] = (c[w] ?? 0) + 1; }
+  console.log(t, c);
+}
+```
+
+- `page_blocks`, `menu_items`, `gallery_images`, `events` ARE scoped by
+  `workspace_id` → these are what bloat in DEFAULT.
+- `personality_profiles`, `site_content`, `theme_settings`, `testimonials`,
+  `media_files` have **NO `workspace_id` column** (global/shared) → do NOT touch
+  them in a DEFAULT cleanup; they are not part of the per-tenant bloat.
+- The `events` table is **NOT seeded by the blueprint** — events live inside the
+  `event-list` block's `data.events`. After a correct provision a workspace has
+  **0** `events` rows; any `events` rows in DEFAULT are legacy orphans
+  (delete them, don't re-seed).
+
+### Procedure — clone the engine's own canonical output
+
+The engine provisions a NEW workspace; it cannot target DEFAULT. So clone the
+exact rows the engine wrote for a correctly-provisioned workspace and remap
+`workspace_id` → DEFAULT. This guarantees the row shape matches what the app's
+workspace-scoped readers expect (includes `data`, `block_key_hash`,
+`pageKey`/`pageTitle`, `sort_order`, `visible`, timestamps) — far safer than
+hand-building inserts from the blueprint definition.
+
+```js
+// Make DRY_RUN-by-default; flip `const DRY = false` via edit to actually write
+// (inline `set FORCE=1 && node` does NOT reach node on this shell — see cmd-shell-quirks).
+const DEFAULT = "00000000-0000-0000-0000-000000000001";
+const SRC = "<id of a correctly-provisioned workspace>"; // e.g. khane's new id
+const now = () => new Date().toISOString();
+const source = {};
+for (const t of ["page_blocks", "menu_items", "gallery_images"])
+  source[t] = await sb.from(t).select("*").eq("workspace_id", SRC).order("sort_order", { ascending: true });
+const remap = (rows) => rows.map((r) => ({ ...r, id: crypto.randomUUID(),
+  workspace_id: DEFAULT, created_at: now(), updated_at: now() }));
+const inserts = {
+  page_blocks: remap(source.page_blocks),
+  menu_items: remap(source.menu_items),
+  gallery_images: remap(source.gallery_images),
+};
+for (const t of ["page_blocks", "menu_items", "gallery_images"]) {
+  await sb.from(t).delete().eq("workspace_id", DEFAULT);
+  await sb.from(t).insert(inserts[t]);
+}
+await sb.from("events").delete().eq("workspace_id", DEFAULT); // legacy orphans; blueprint seeds 0
+```
+
+Expected result: DEFAULT holds exactly **7 page_blocks / 6 menu_items / 3
+gallery_images / 0 events** — identical to any freshly-provisioned workspace.
+Source workspace is only read, never modified. Always print a dry-run plan
+(counts to delete / insert) before writing.
 
 ## When to apply
 

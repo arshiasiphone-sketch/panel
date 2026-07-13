@@ -48,6 +48,28 @@ curl. Both had `set` + `%VAR%` and multiple lines.
 3. Plain `del /q a b c && echo CLEANED` and `node script.mjs` (single line, no
    `set`) work fine too.
 
+## Passing a flag/env to a Node script — inline `set VAR=x &&` does NOT reach node
+
+A destructive `.mjs` script often reads `process.env.FORCE` (or `DRY_RUN`) to
+decide whether to write. **On this project's `cmd` shell, `set FORCE=1 && node
+script.mjs` does NOT propagate the variable into the node process** — the script
+runs with the flag unset (a DRY-by-default script performs REAL writes, or a
+real-by-default one can't be suppressed). `FORCE=1 node ...` (bash syntax) also
+fails because `cmd.exe` doesn't support `VAR=val command`.
+
+Reliable pattern (used to reset DEFAULT content safely, 2026-07-13):
+1. Make the script **DRY_RUN-by-default**: `const DRY = process.env.FORCE !== "1";`
+   and print a plan (counts to delete / insert) when DRY.
+2. To actually run it, **flip a constant via the edit tool** rather than an env
+   var: change `const DRY = process.env.FORCE !== "1";` → `const DRY = false;`,
+   run, then revert to the safe default. Editing one line is reviewable and
+   deterministic on `cmd`.
+3. Alternatively gate on a sentinel file: `const DRY = !fs.existsSync("_force.flag");`
+   and `write_file("_force.flag","")` to enable — but delete the flag afterward.
+
+`node --env-file=.env script.mjs` DOES work for loading the project `.env`
+(supabase creds) — only ad-hoc inline flags are the problem.
+
 ## How to recognize you've hit it
 
 - Tool result shows `Output: (empty)`, `Error: (none)`, `Exit Code: 0` for a

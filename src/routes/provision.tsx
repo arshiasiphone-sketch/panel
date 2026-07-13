@@ -77,7 +77,12 @@ function ProvisionPage() {
       if (data.success) {
         setResult({ success: true, workspaceId: data.workspaceId });
         setTimeout(() => {
-          window.location.href = `/${formData.slug || data.workspaceId}`;
+          // Send the user to THEIR provisioned admin. The workspace is keyed by
+          // its full domain, so we carry it as ?preview_domain (preview builds
+          // only) — redirecting to /{slug} on the main host resolved to DEFAULT.
+          window.location.href = `/admin?preview_domain=${encodeURIComponent(
+            data.domain ?? `${formData.slug}.nama.app`,
+          )}`;
         }, 3000);
       } else {
         setResult({ success: false, error: data.error || "Failed to create workspace" });

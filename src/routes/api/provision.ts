@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/provision")({
 
         if (report.success) {
           return Response.json(
-            { success: true, workspaceId: report.workspace.id },
+            { success: true, workspaceId: report.workspace.id, domain: fullDomain(slug) },
             { status: 201 },
           );
         }
