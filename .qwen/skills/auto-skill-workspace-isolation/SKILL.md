@@ -243,6 +243,63 @@ Because every legacy row was stamped `00000000-…-0001`, there is no owner sign
 to split it back out. Clean isolation for old workspaces requires **re-provisioning**
 them (new runs write correctly-scoped rows), not a backfill.
 
+## Re-seeding a workspace that was provisioned BEFORE the `workspace_id` columns existed
+
+This is the common "the schema is applied, but my existing workspace is empty /
+shows nothing" case. The workspace row + a (failed or empty) `provision_transactions`
+row exist, but the seed steps errored on the missing `workspace_id` column, so no
+content was written. Two non-obvious facts drive the fix:
+
+### Gotcha A — the public provision API always MINTS A NEW workspace id
+
+`ProvisionEngine._createWorkspace` calls `createWorkspace(...)` which generates a
+**fresh** `entity.id` (`gen_random_uuid`), then `WorkspaceRepository.save` does
+`upsert(row)` keyed on **`id` only** (not domain). So re-POSTing
+`/api/public/provision` for an existing slug does NOT refill the existing
+workspace — it either (a) returns `already_exists` (idempotency: `status==='completed'`
+→ no re-provision), or (b) when the old tx is `failed` it reuses the tx but still
+**creates a new workspace with a new id and the same domain** → domain conflict on
+`save` or a duplicate workspace. **You cannot refill an existing workspace by
+re-POSTing alone.** The reliable path is delete-then-re-provision.
+
+### Gotcha B — the blueprint comes from `site_content`, NOT the `blueprints` table
+
+`BlueprintLoader` → `BlueprintRegistry` stores/reads blueprints in the
+**`site_content`** table under keys `blueprint:{slug}:{version}` and
+`blueprint:index` (`registry.ts`). The `blueprints` catalog table created by
+migration 04 (`20260707000004_create_provisioning_tables.sql`) is a **separate,
+unused-by-the-provisioner catalog** — it is NOT what `loadOrThrow('cafeteria')`
+reads. So when you re-provision, the blueprint def is pulled from `site_content`;
+the `blueprints` seed row is harmless dead weight. (Confirm the blueprint is
+present with `SELECT key FROM site_content WHERE key LIKE 'blueprint:%';`.)
+
+### The procedure (zero code change)
+
+1. In the Supabase **SQL Editor**, clear the empty workspace and its transaction.
+   The `workspaces` FK to content tables is `ON DELETE CASCADE`, so deleting the
+   workspace also removes its (empty) content. Delete the `provision_transactions`
+   row first (its FK to `workspaces` is `ON DELETE SET NULL`, so it would
+   otherwise linger and block a clean re-provision via idempotency):
+
+   ```sql
+   DELETE FROM provision_transactions
+     WHERE workspace_id = (SELECT id FROM workspaces WHERE domain = 'SLUG.nama.app');
+   DELETE FROM workspaces WHERE domain = 'SLUG.nama.app';
+   ```
+
+2. Re-provision the **same slug** through the normal flow (the provision page, or
+   `POST /api/public/provision` with the `X-API-Key` header + a **fresh**
+   `externalOrderId`). Now that the `workspace_id` columns exist, every
+   `installBlueprint*` / seed write is stamped with the new workspace's id →
+   fully isolated content. `BlueprintInstaller.install(blueprint, workspaceId, …)`
+   is idempotent (checks a `provision:log` per slug) and scopes every write to
+   `workspaceId`, so a clean run is safe.
+
+> Alternative for automation: call `BlueprintInstaller.install(blueprint, yekWorkspaceId, resourceMap)`
+> directly against the existing workspace id (loads the blueprint from
+> `site_content`, installs scoped rows). That avoids the delete. Only do this
+> server-side (it needs the admin repo graph + service-role client).
+
 ## When to apply
 
 Any task mentioning "workspaces share data", "multi-tenant isolation",

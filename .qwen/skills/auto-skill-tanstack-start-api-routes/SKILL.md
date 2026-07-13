@@ -1,6 +1,6 @@
 ---
 name: tanstack-start-api-routes
-description: Correct file-based server/API route convention for @tanstack/react-start ~1.166-1.168 (createFileRoute + server.handlers), how to verify it actually works via curl, and the project's Cloudflare build target.
+description: Correct file-based server/API route convention for @tanstack/react-start ~1.166-1.168 (createFileRoute + server.handlers); the route-tree regeneration gotcha, why tsc is not the deploy gate, and the actual Vercel build target.
 source: auto-skill
 extracted_at: '2026-07-08T15:30:27.397Z'
 ---
@@ -84,24 +84,66 @@ export const Route = createFileRoute('/api/health')({
    Success = `HTTP/1.1 200` + `content-type: application/json` + body `{"status":"ok"}`.
    Only report success if you personally see that raw 200.
 
-## Project build/hosting target (verified)
+## Gotcha: `tsc` false-positive on a newly added route file (route-tree regeneration)
 
-- `vite.config.ts` uses `@lovable.dev/vite-tanstack-config`. Its source sets Nitro
-  `defaultPreset: "cloudflare-module"` → `preset: "cloudflare-module"`,
-  `cloudflare: { nodeCompat: true, deployConfig: true }`, output to `dist/`
-  (`serverDir: dist/server`, `publicDir: dist/client`).
+When you ADD a new route file (e.g. `src/routes/api/provision.ts`), `npx tsc --noEmit`
+immediately fails with:
+
+```
+src/routes/api/provision.ts(15,38): error TS2345: Argument of type '"/api/provision"' is not assignable to parameter of type 'keyof FileRoutesByPath | undefined'.
+```
+
+Root cause: `src/routeTree.gen.ts` is **stale**. The TanStack Router generator writes
+it only when Vite runs (dev or build) — it is NOT updated by merely editing the file.
+So `/api/provision` is absent from `FileRoutesByPath` until the tree is regenerated.
+
+**`npx tsr generate` does NOT work in this project** — it errors
+`No files matched the entrypoints pattern`. Reason: the router plugin is wired inside
+`@lovable.dev/vite-tanstack-config`, not a standalone `tsr.config`, so the standalone
+CLI cannot locate the entrypoints.
+
+**Fix: regenerate by running the real build (or dev):**
+```
+npm run build        # node scripts/build.mjs -> vite build (regenerates routeTree.gen.ts)
+```
+After a successful build, re-running `tsc --noEmit` shows NO error for the new route
+file. Confirm registration by grepping `routeTree.gen.ts` for the route id
+(e.g. `id: '/api/provision'`).
+
+## Gotcha: `tsc` is NOT the deploy gate in this project
+
+The deploy build is `node scripts/build.mjs` → `vite build`, which transpiles with
+**esbuild**, NOT `tsc`. Therefore pre-existing `tsc` errors do NOT block the Vercel
+deploy. Known-benign `tsc` errors that persist even after a route is correctly built:
+- `src/lib/core/provision/public-idempotency.ts` + `src/routes/api/public/provision-status.ts`:
+  `provision_transactions` / `workspaces` missing from the (stale) `database.types.ts`
+  — the generated Supabase type lags the live DB schema. Cosmetic for the deploy.
+- `vite.config.ts(41,5)`: `vercel` preset key absent from the Nitro type defs shipped
+  by the lovable config — cosmetic; the real Nitro build honors `preset: "vercel"`.
+
+**Do not** treat a red `tsc --noEmit` as "the build failed." The authoritative gate is
+`npm run build` succeeding AND emitting the route's SSR chunk
+(`_ssr/<name>-*.mjs` under `.vercel/output/functions/__server.func/_ssr/`). That chunk
+appearing is proof the route compiled into the deploy output.
+
+## Project build/hosting target (verified — UPDATED this session)
+
+- `vite.config.ts` uses `@lovable.dev/vite-tanstack-config`, whose source sets Nitro
+  `defaultPreset: "cloudflare-module"`. **But our `vite.config.ts` overrides this** with
+  `nitro: { preset: "vercel", vercel: { functions: { maxDuration: 60 } }, ... }`.
+  An explicit `preset` wins over `defaultPreset` in Nitro resolution, so **NO cloudflare
+  output is produced** — the active target is **Vercel** (`.vercel/output`, Build Output
+  API), NOT Cloudflare.
 - Nitro runs **only on `build`**, not `dev`.
-- There is **no** `vercel.json` / `Dockerfile` / `ecosystem.config.js` / CI config.
-- Conclusion: the active build target is **Cloudflare Workers (`cloudflare-module`)**
-  — a serverless/edge bundle, not a persistent Node server. Hosting is Cloudflare,
-  not Lovable, so there is no Lovable-specific header/CORS restriction on custom
-  `X-API-Key` headers or server-to-server (Convex) POSTs.
-- Caveat: this derives from the still-active Lovable Vite plugin. To deploy to a
-  VPS/pm2 or Vercel instead, override the Nitro preset, e.g.
-  `tanstackStart({ ... })` → set `nitro: { preset: 'node-server' }` (or `'vercel'`).
+- `npm run build` → `node scripts/build.mjs` → forces `NODE_ENV=production` then
+  `vite build`. The build script pins NODE_ENV *before* spawning vite so the SSR bundle
+  gets the production JSX transform (a stray `NODE_ENV=development` on the host would
+  otherwise emit `jsxDEV` and crash SSR with "jsxDEV is not a function").
+- Custom `X-API-Key` headers / server-to-server (Convex) POSTs are fine on Vercel — no
+  Lovable-specific CORS/header restriction applies at the edge.
 
 ## When to apply
 Use this skill whenever adding or fixing a file-based HTTP endpoint under
-`src/routes/**` in this TanStack Start project, or when asked about the production
-hosting target / custom-header (X-API-Key) or CORS feasibility for external
-server-to-server calls.
+`src/routes/**` in this TanStack Start project (incl. the stale-route-tree / `tsc`-
+is-not-the-gate pitfalls), or when asked about the Vercel hosting target /
+custom-header (X-API-Key) or CORS feasibility for external server-to-server calls.

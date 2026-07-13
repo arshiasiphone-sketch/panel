@@ -8,7 +8,6 @@ import {
   useSiteContent,
   usePageBlocks,
   useRecordPageView,
-  useTheme,
   fetchThemeSettings,
   QK,
 } from "@/lib/cms";
@@ -28,7 +27,15 @@ const BlockFallback = () => <div className="w-full h-48 animate-pulse rounded-lg
 
 export const Route = createFileRoute("/")({
   loader: async ({ context: { queryClient } }) => {
-    await queryClient.ensureQueryData({ queryKey: QK.theme, queryFn: fetchThemeSettings });
+    const theme = await queryClient.ensureQueryData({
+      queryKey: QK.theme,
+      queryFn: fetchThemeSettings,
+    });
+    // Returned so the theme travels through route `loaderData`, which TanStack
+    // Start dehydrates on the server and rehydrates on the client. The React
+    // Query cache is NOT auto-hydrated, so the landing <style> would otherwise
+    // exist only on the server and cause a hydration mismatch (#418).
+    return { theme };
   },
   head: () => ({
     meta: [
@@ -44,10 +51,10 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   useRecordPageView();
-  const { data: theme } = useTheme();
+  const { theme } = Route.useLoaderData();
 
   return (
-    <LandingThemeProvider>
+    <LandingThemeProvider loaderTheme={theme}>
       <main
         dir="rtl"
         className="relative min-h-screen overflow-hidden bg-background text-foreground"

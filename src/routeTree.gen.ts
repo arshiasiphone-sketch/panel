@@ -17,6 +17,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as TestResultRouteImport } from './routes/test.result'
 import { Route as TestInfoRouteImport } from './routes/test.info'
 import { Route as TestStepRouteImport } from './routes/test.$step'
+import { Route as ApiProvisionRouteImport } from './routes/api/provision'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminTestResultsRouteImport } from './routes/admin.test-results'
 import { Route as AdminTestQuestionsRouteImport } from './routes/admin.test-questions'
@@ -78,6 +79,11 @@ const TestInfoRoute = TestInfoRouteImport.update({
 const TestStepRoute = TestStepRouteImport.update({
   id: '/test/$step',
   path: '/test/$step',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProvisionRoute = ApiProvisionRouteImport.update({
+  id: '/api/provision',
+  path: '/api/provision',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/provision': typeof ApiProvisionRoute
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/provision': typeof ApiProvisionRoute
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/admin/test-questions': typeof AdminTestQuestionsRoute
   '/admin/test-results': typeof AdminTestResultsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/provision': typeof ApiProvisionRoute
   '/test/$step': typeof TestStepRoute
   '/test/info': typeof TestInfoRoute
   '/test/result': typeof TestResultRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/test-questions'
     | '/admin/test-results'
     | '/api/health'
+    | '/api/provision'
     | '/test/$step'
     | '/test/info'
     | '/test/result'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/admin/test-questions'
     | '/admin/test-results'
     | '/api/health'
+    | '/api/provision'
     | '/test/$step'
     | '/test/info'
     | '/test/result'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/admin/test-questions'
     | '/admin/test-results'
     | '/api/health'
+    | '/api/provision'
     | '/test/$step'
     | '/test/info'
     | '/test/result'
@@ -391,6 +403,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   ProvisionRoute: typeof ProvisionRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiProvisionRoute: typeof ApiProvisionRoute
   TestStepRoute: typeof TestStepRoute
   TestInfoRoute: typeof TestInfoRoute
   TestResultRoute: typeof TestResultRoute
@@ -457,6 +470,13 @@ declare module '@tanstack/react-router' {
       path: '/test/$step'
       fullPath: '/test/$step'
       preLoaderRoute: typeof TestStepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/provision': {
+      id: '/api/provision'
+      path: '/api/provision'
+      fullPath: '/api/provision'
+      preLoaderRoute: typeof ApiProvisionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -665,6 +685,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   ProvisionRoute: ProvisionRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiProvisionRoute: ApiProvisionRoute,
   TestStepRoute: TestStepRoute,
   TestInfoRoute: TestInfoRoute,
   TestResultRoute: TestResultRoute,

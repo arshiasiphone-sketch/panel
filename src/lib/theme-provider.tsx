@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { useTheme, useRealtimeCmsSync } from "@/lib/cms";
+import { useTheme, useRealtimeCmsSync, type ThemeSettings } from "@/lib/cms";
 import { themeRowToDocument } from "@/lib/theme/bridge";
 import { deriveTokens } from "@/lib/theme/derive";
 import { LANDING_THEME_CLASS, applyTokensToElement, tokensToCss } from "@/lib/theme/css-vars";
@@ -31,10 +31,20 @@ export const CmsSyncProvider = memo(function CmsSyncProvider({
  */
 export const LandingThemeProvider = memo(function LandingThemeProvider({
   children,
+  loaderTheme,
 }: {
   children: ReactNode;
+  /** Theme from the route `loaderData` (server-dehydrated, client-rehydrated). */
+  loaderTheme?: ThemeSettings;
 }) {
-  const { data: row } = useTheme();
+  const { data: liveRow } = useTheme();
+  // Route `loaderData` is server-dehydrated and client-rehydrated by TanStack
+  // Start, so it is present on BOTH the server render and the client's first
+  // render. The React Query cache is NOT auto-hydrated, so rely on the loader
+  // theme for the SSR <style> to keep the markup identical and avoid the
+  // #418 hydration mismatch. Fall back to the live query once it resolves so
+  // realtime preset/token changes still propagate.
+  const row = liveRow ?? loaderTheme;
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const tokens = useMemo(() => {

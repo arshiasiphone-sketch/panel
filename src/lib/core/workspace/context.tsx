@@ -193,6 +193,7 @@ export function CurrentWorkspaceProvider({
 
       // Try domain/subdomain resolution first (public provisioned sites)
       const pathResolution = extractWorkspaceFromPath();
+      const requestedDomain = pathResolution.domain;
 
       let ctx: WorkspaceContext | undefined;
 
@@ -202,19 +203,24 @@ export function CurrentWorkspaceProvider({
           { workspaceRepository: workspaceRepo },
           { workspaceId: pathResolution.workspaceId },
         );
-      } else if (pathResolution.domain) {
+      } else if (requestedDomain) {
         // Domain or subdomain-based resolution
         ctx = await resolveWorkspaceFromRequest(
           { workspaceRepository: workspaceRepo },
           {
-            domain: pathResolution.domain,
+            domain: requestedDomain,
             isSubdomain: pathResolution.isSubdomain,
           },
         );
       }
 
-      // If domain/path resolution failed, try user-based resolution (auth flow)
-      if (!ctx?.workspaceId) {
+      // Fall back to user-based resolution (auth flow) ONLY when no explicit
+      // domain was requested. If a domain WAS requested but not found, creating
+      // a brand-new default workspace is both wrong (renders the wrong site)
+      // and trips the `uniq_default_workspace_per_owner` constraint
+      // (POST 409 / 23505 "Failed to resolve workspace"). Degrade to the
+      // default context instead of attempting a conflicting insert.
+      if (!ctx?.workspaceId && !requestedDomain) {
         let userId: string | undefined;
 
         try {
@@ -236,6 +242,15 @@ export function CurrentWorkspaceProvider({
           { workspaceRepository: workspaceRepo },
           { userId },
         );
+      }
+
+      // No context resolved (e.g. a domain was requested but does not exist,
+      // or auth resolution returned nothing). Degrade to the default workspace
+      // instead of calling getOrCreateDefault — which would insert a conflicting
+      // default row and trip `uniq_default_workspace_per_owner`
+      // (POST 409 / 23505 "Failed to resolve workspace").
+      if (!ctx?.workspaceId) {
+        ctx = DEFAULT_WORKSPACE;
       }
 
       // Set workspace on all repositories
