@@ -1,6 +1,6 @@
 ---
 name: workspace-isolation
-description: Why multi-tenant data lands in one shared bucket in this TanStack Start + Supabase app — the setWorkspace()/withWorkspace() isolation hinge, the findBySubdomain missing-column trap, the client extractDomainInfo subdomain-mangling bug (#4), the provisioning-vs-active status signal, and the VITE_ENABLE_DOMAIN_PREVIEW env requirement.
+description: Why multi-tenant data lands in one shared bucket in this TanStack Start + Supabase app — the setWorkspace()/withWorkspace() isolation hinge, the findBySubdomain missing-column trap, the client extractDomainInfo subdomain-mangling bug (#4), the provisioning-vs-active status signal (incl. the silent no-flip Signature B: completed transaction + still-provisioning row from a findById returning null on the workspace_id-less workspaces table), the two separate transaction trackers, and the VITE_ENABLE_DOMAIN_PREVIEW env requirement.
 source: auto-skill
 extracted_at: '2026-07-12T14:03:08.126Z'
 ---
@@ -115,9 +115,7 @@ rows are present and `findBySubdomain` is correct, suspect the client
 
 ## Provisioning status signal (why some rows are `provisioning`, others `active`)
 
-Two different code paths create workspaces, and they set **different default
-statuses** — this explains the CSV pattern where no-domain rows are `active` but
-domain rows are stuck at `provisioning`:
+Two different code paths create workspaces and set **different default statuses**:
 
 - Rows with **no domain** that are `active` come from
   `WorkspaceRepository.getOrCreateDefault()` / `ensureDefault()`, which
@@ -125,22 +123,96 @@ domain rows are stuck at `provisioning`:
 - Rows with a **domain** are created by the **provision engine**
   (`ProvisionEngine._createWorkspace` → `createWorkspace` in `factory.ts`), which
   sets `status: "provisioning"` and only flips to `"active"` in the final
-  `WORKSPACE_READY` step (`steps.ts`): it does `findById(workspaceId)` →
+  `WORKSPACE_READY` step (`steps.ts`): `findById(workspaceId)` →
   `entity.status = "active"` → `save`.
 
-So a domain row stuck at `provisioning` means the provisioning pipeline **never
-reached / completed `workspace_ready`** → `provision()` threw partway → the
-`/api/public/provision` route returned 500 and recorded the failure. That is a
-**separate bug from the resolution issue** (Bug #4) and from tenant bleed (Bug
-#1/#2): the workspace row exists but is half-built and has no real content, so
-its link still won't render correctly even after the resolution fix until
-provisioning actually completes.
+A domain workspace reaches `active` ONLY via `WORKSPACE_READY`. When it stays
+`provisioning`, there are exactly two signatures — tell them apart by reading
+`provision_transactions.status` (NOT the engine's own log; see the tracker note
+below):
 
-To find WHY provisioning failed, read `provision_transactions.error`:
-- `GET /api/public/provision-status?externalOrderId=<id>` returns `status` + `error`.
-- SQL: `SELECT external_order_id, status, error FROM provision_transactions ORDER BY started_at DESC;`
-- `failed` orders are retried by the idempotency logic (only `completed` returns
-  `already_exists`), so after fixing the pipeline error, re-call provision.
+- **Signature A — pipeline threw (expected/obvious):** `provision_transactions.status = "failed"`
+  with an `error`. `provision()` threw before/during a step (incl. before
+  `WORKSPACE_READY`), so the route returned 500. Fix the step error, then
+  re-call provision (the idempotency logic retries `failed` orders; only
+  `completed` returns `already_exists`).
+- **Signature B — silent no-flip (subtle, THIS was the real bug):** `provision_transactions.status = "completed"`
+  BUT the workspace is STILL `provisioning`. The pipeline ran to completion
+  with **no throw**, so `report.success` (= `finalTx.status === "completed"`)
+  was true and the public row was marked `completed` — yet the status flag never
+  flipped. This means `WORKSPACE_READY`'s `findById(workspaceId)` returned
+  `null`, so its `if (entity) { ...save }` was skipped silently.
+  **Usual cause:** the `workspaces` table has **NO `workspace_id` column** (see
+  pitfall box). If a deployed `WorkspaceRepository.findById` applied
+  `withWorkspace("workspace_id")` (the `BaseRepository` default column) to the
+  `workspaces` query, the filter `workspace_id = <id>` matches nothing →
+  `findById` returns `null` → status never flips, but nothing throws. The
+  current repo code queries `eq("id", id)` directly (no `withWorkspace`), so it
+  is already fixed in code — but you must **redeploy** for new provisions to
+  self-flip; pre-deploy rows need the manual flip in the diagnostic HOWTO.
+
+> **PITFALL — `workspaces` has NO `workspace_id` column.**
+> Unlike every data table (`site_content`, `menu`, `gallery`, …) which are
+> scoped by `withWorkspace("workspace_id")`, the `workspaces` table is keyed by
+> `id` and `domain` only. `WorkspaceRepository.findById` / `save` / `upsert`
+> MUST hit it directly (`eq("id", id)` / `eq("domain", domain)`), never via
+> `withWorkspace`. Applying `withWorkspace()` there returns `null`/empty
+> instead of erroring, which silently breaks `WORKSPACE_READY` (Signature B) and
+> any other workspace-row read. If you ever "fix" workspace reads by adding
+> `withWorkspace`, you create this exact bug.
+
+### Two DIFFERENT transaction trackers — don't confuse them
+
+- **Engine's own journal** — `ProvisionTransactionManager` (`src/lib/core/provision/transaction.ts`)
+  persists to `site_content` under key `provision:tx:<id>` (NOT a table). It is
+  the engine's internal step log; its `status` is also `completed`/`failed` but
+  it is NOT what `/api/public/provision-status` reads.
+- **Public API journal** — `public-idempotency.ts` owns the **`provision_transactions`
+  TABLE**. Idempotency is keyed by `external_order_id`; columns are
+  `status`, `error`, `workspace_id`, `blueprint_slug`. The route sets this row
+  to `completed` ONLY after `report.success`. **This is the table to query** when
+  reconciling "transaction vs workspace status". Correlate via
+  `provision_transactions.workspace_id → workspaces.id`.
+
+### Live diagnostic / fix — run against PROD from this environment
+
+`node` (v24) is available and `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+**are already exported in the shell** (there is no local `.env` file — only
+`.env.example` — but the vars are in the environment, so a bare
+`node script.mjs` reading `process.env` works). The `supabase` CLI is **NOT**
+installed, so use a `@supabase/supabase-js` script instead:
+
+```js
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } });
+
+// 1) Find workspaces with a COMPLETED transaction but still 'provisioning' (Signature B)
+const { data: txs } = await supabase.from("provision_transactions")
+  .select("workspace_id").eq("status", "completed").not("workspace_id", "is", null);
+const ids = [...new Set(txs.map(t => t.workspace_id).filter(Boolean))];
+const { data: targets } = await supabase.from("workspaces").select("id, domain, status").in("id", ids);
+const stuck = targets.filter(w => w.status === "provisioning");
+
+// 2) Optional: replicate _mapRowToEntity/_mapEntityToRow to see WHY findById
+//    would return null (e.g. a withWorkspace("workspace_id") on workspaces).
+
+// 3) Reversible bulk flip (data is fully installed for a completed tx; only the
+//    flag is wrong). To test on one row first, drop .in() and add .eq("domain", "x").
+await supabase.from("workspaces")
+  .update({ status: "active", updated_at: new Date().toISOString() })
+  .in("id", stuck.map(w => w.id));
+```
+
+- The flip is **reversible** (set `status` back to `provisioning`) and safe:
+  a `completed` transaction means all blueprint/site-content data installed
+  successfully; only the status flag is stale.
+- After flipping, `context.tsx`'s `isOperational` (`ACTIVE_WORKSPACE_STATUSES =
+  {"active","trial"}` in `types.ts`) becomes `true`, so the link renders the
+  real workspace instead of being flagged non-operational.
+- **Caveat:** flipping data does NOT fix the code path. Until the corrected
+  `findById` (no `withWorkspace`) is **redeployed**, the NEXT provision will
+  also land in Signature B. Redeploy, then re-provision any `failed` orders.
 
 ## How to diagnose a "workspaces not separated" report
 
