@@ -16,6 +16,7 @@
  */
 
 import { createContext, useContext, useEffect, useState, useMemo, useCallback, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { WorkspaceContext, WorkspaceEntity, WorkspaceLimits } from "./types";
 import { DEFAULT_WORKSPACE, ACTIVE_WORKSPACE_STATUSES } from "./types";
 import { getLogger } from "@/lib/logger";
@@ -204,6 +205,19 @@ export function CurrentWorkspaceProvider({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const logger = useMemo(() => getLogger(), []);
+  const queryClient = useQueryClient();
+
+  // Once the workspace resolves, the repository singletons carry the correct
+  // workspace_id, but the public read hooks (useMenuItems, useGalleryImages,
+  // etc.) already cached their mount-time queries — which ran BEFORE resolution
+  // with an undefined workspace_id, so withWorkspace() was a no-op and returned
+  // every workspace's rows. Their query keys are static, so they never
+  // refetch on their own. Invalidate them so they re-run against the now-correct
+  // workspace context and show only this workspace's isolated content.
+  const refetchCmsForWorkspace = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["cms"] });
+    queryClient.invalidateQueries({ queryKey: ["test"] });
+  }, [queryClient]);
 
   const resolve = useCallback(async () => {
     // Dynamic import to avoid circular dependency with workspace barrel.
@@ -276,6 +290,7 @@ export function CurrentWorkspaceProvider({
           // Not authenticated — use default workspace
           setWorkspace(DEFAULT_WORKSPACE);
           setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
+          refetchCmsForWorkspace();
           setLoading(false);
           return;
         }
@@ -304,6 +319,10 @@ export function CurrentWorkspaceProvider({
       // Set workspace on all repositories
       setWorkspaceOnRepositories(repos, ctx);
       setWorkspace(ctx);
+      // Re-run public CMS read queries against the now-resolved workspace so
+      // the site shows only this workspace's isolated content (not the
+      // mount-time unfiltered union of every workspace).
+      refetchCmsForWorkspace();
 
       // Log health check
       const health = runWorkspaceHealthChecks(ctx);
@@ -325,10 +344,11 @@ export function CurrentWorkspaceProvider({
       });
       setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
       setWorkspace(DEFAULT_WORKSPACE);
+      refetchCmsForWorkspace();
     } finally {
       setLoading(false);
     }
-  }, [logger]);
+  }, [logger, refetchCmsForWorkspace]);
 
   useEffect(() => {
     resolve();

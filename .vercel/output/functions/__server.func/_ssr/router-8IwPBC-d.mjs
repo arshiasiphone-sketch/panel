@@ -5,14 +5,14 @@ import { a as createRepositories, d as workspacePlanSchema, i as createId, n as 
 import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
 import { n as require_jsx_runtime } from "../_libs/radix-ui__react-context+react.mjs";
-import { r as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
+import { i as useQueryClient, r as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { i as fetchThemeSettings, n as QK } from "./cms-Bhq-qmPK.mjs";
 import { M as redirect, c as HeadContent, d as createRouter, f as Outlet, g as Link, h as createRootRouteWithContext, m as createFileRoute, p as lazyRouteComponent, s as Scripts, y as useRouter } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
 import { t as CmsSyncProvider } from "./theme-provider-BpT9yysc.mjs";
 import { t as Route$31 } from "./routes-aMj7Ul1v.mjs";
 import { randomUUID } from "node:crypto";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-D7IJNAaY.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-8IwPBC-d.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-CF-QSdXy.css";
@@ -454,6 +454,11 @@ function CurrentWorkspaceProvider({ children }) {
 	const [loading, setLoading] = (0, import_react.useState)(true);
 	const [error, setError] = (0, import_react.useState)(null);
 	const logger = (0, import_react.useMemo)(() => getLogger(), []);
+	const queryClient = useQueryClient();
+	const refetchCmsForWorkspace = (0, import_react.useCallback)(() => {
+		queryClient.invalidateQueries({ queryKey: ["cms"] });
+		queryClient.invalidateQueries({ queryKey: ["test"] });
+	}, [queryClient]);
 	const resolve = (0, import_react.useCallback)(async () => {
 		const { getRepositories, setWorkspaceOnRepositories } = await import("./factory-CqMbxsed.mjs").then((n) => n.s).then((n) => n.n);
 		const repos = getRepositories();
@@ -483,6 +488,7 @@ function CurrentWorkspaceProvider({ children }) {
 				if (!userId) {
 					setWorkspace(DEFAULT_WORKSPACE);
 					setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
+					refetchCmsForWorkspace();
 					setLoading(false);
 					return;
 				}
@@ -494,6 +500,7 @@ function CurrentWorkspaceProvider({ children }) {
 			}
 			setWorkspaceOnRepositories(repos, ctx);
 			setWorkspace(ctx);
+			refetchCmsForWorkspace();
 			const health = runWorkspaceHealthChecks(ctx);
 			if (!health.healthy) logger.warn(formatHealthSummary(health), { source: "workspace" });
 			else logger.info(formatHealthSummary(health), { source: "workspace" });
@@ -506,10 +513,11 @@ function CurrentWorkspaceProvider({ children }) {
 			});
 			setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
 			setWorkspace(DEFAULT_WORKSPACE);
+			refetchCmsForWorkspace();
 		} finally {
 			setLoading(false);
 		}
-	}, [logger]);
+	}, [logger, refetchCmsForWorkspace]);
 	(0, import_react.useEffect)(() => {
 		resolve();
 	}, [resolve]);
