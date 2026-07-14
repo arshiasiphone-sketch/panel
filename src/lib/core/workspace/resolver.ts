@@ -20,6 +20,7 @@ import type { WorkspaceEntity, WorkspaceContext } from "./types";
 import type { WorkspaceRepository } from "./repository";
 import { getDefaultLimits } from "./factory";
 import { getCache } from "@/lib/core/repository-cache";
+import { getLogger } from "@/lib/logger";
 
 export interface ResolverDependencies {
   workspaceRepository: WorkspaceRepository;
@@ -44,6 +45,7 @@ export async function resolveWorkspaceByDomain(
   isSubdomain = false,
 ): Promise<{ workspaceId?: string; entity?: WorkspaceEntity }> {
   const cache = getCache();
+  const logger = getLogger();
   return cache.getOrFetch(
     "workspace_resolver",
     `domain:${domainOrSubdomain}:${isSubdomain}`,
@@ -51,12 +53,24 @@ export async function resolveWorkspaceByDomain(
       if (!domainOrSubdomain) return {};
 
       let exactWorkspace: WorkspaceEntity | null | undefined;
-      let subdomainWorkspace: WorkspaceEntity | null | undefined;
 
       try {
         // Try exact domain match first
         exactWorkspace = await deps.workspaceRepository.findByDomain(domainOrSubdomain);
-      } catch { /* workspace by domain not available in this env */ }
+      } catch (err) {
+        // Surface the real error instead of silently degrading. A bare catch
+        // here used to swallow the exception and cache `{}` for 30s, which made
+        // a transient DB/RLS/network failure look like "no workspace -> default"
+        // with zero diagnostic signal. Rethrow so the error propagates to the
+        // provider (which logs it) and is NOT cached as a successful miss.
+        logger.error("resolveWorkspaceByDomain: findByDomain failed", {
+          source: "workspace",
+          domain: domainOrSubdomain,
+          isSubdomain,
+          cause: err instanceof Error ? err : new Error(String(err)),
+        });
+        throw err instanceof Error ? err : new Error(String(err));
+      }
 
       if (exactWorkspace) return { workspaceId: exactWorkspace.id, entity: exactWorkspace };
 
@@ -65,7 +79,13 @@ export async function resolveWorkspaceByDomain(
           // Try subdomain-based lookup
           const sw = await deps.workspaceRepository.findBySubdomain(domainOrSubdomain);
           if (sw) return { workspaceId: sw.id, entity: sw };
-        } catch { /* workspace by subdomain not available in this env */ }
+        } catch (err) {
+          logger.warn("resolveWorkspaceByDomain: findBySubdomain failed (ignored)", {
+            source: "workspace",
+            domain: domainOrSubdomain,
+            cause: err instanceof Error ? err : new Error(String(err)),
+          });
+        }
       } else {
         // For full domains, also try stripping www. and TLD variations
         const withoutWww = domainOrSubdomain.startsWith("www.")
@@ -75,16 +95,33 @@ export async function resolveWorkspaceByDomain(
           try {
             const ew2 = await deps.workspaceRepository.findByDomain(withoutWww);
             if (ew2) return { workspaceId: ew2.id, entity: ew2 };
-          } catch { /* skip */ }
+          } catch (err) {
+            logger.warn("resolveWorkspaceByDomain: findByDomain(www-stripped) failed (ignored)", {
+              source: "workspace",
+              domain: withoutWww,
+              cause: err instanceof Error ? err : new Error(String(err)),
+            });
+          }
 
           const baseDomain = withoutWww.replace(/\.[^.]+$/, "");
           try {
             const sw2 = await deps.workspaceRepository.findBySubdomain(baseDomain);
             if (sw2) return { workspaceId: sw2.id, entity: sw2 };
-          } catch { /* skip */ }
+          } catch (err) {
+            logger.warn("resolveWorkspaceByDomain: findBySubdomain(base) failed (ignored)", {
+              source: "workspace",
+              domain: baseDomain,
+              cause: err instanceof Error ? err : new Error(String(err)),
+            });
+          }
         }
       }
 
+      logger.debug("resolveWorkspaceByDomain: no workspace found for domain", {
+        source: "workspace",
+        domain: domainOrSubdomain,
+        isSubdomain,
+      });
       return { };
     },
     30_000, // 30 second TTL for domain resolution (domains change less frequently)

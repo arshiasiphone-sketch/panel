@@ -1,6 +1,6 @@
 ---
 name: workspace-isolation
-description: Why multi-tenant data lands in one shared bucket in this TanStack Start + Supabase app — the setWorkspace()/withWorkspace() isolation hinge, the findBySubdomain missing-column trap, the client extractDomainInfo subdomain-mangling bug (#4), the provisioning-vs-active status signal (incl. the silent no-flip Signature B: completed transaction + still-provisioning row from a findById returning null on the workspace_id-less workspaces table), the two separate transaction trackers, and the VITE_ENABLE_DOMAIN_PREVIEW env requirement.
+description: Why multi-tenant data lands in one shared bucket in this TanStack Start + Supabase app — the setWorkspace()/withWorkspace() isolation hinge, the findBySubdomain missing-column trap, the client extractDomainInfo subdomain-mangling bug (#4), the resolveWorkspaceByDomain catch{}-swallows-findByDomain-errors anti-pattern (cached as {} for 30s → silent default degrade, #5), the provisioning-vs-active status signal (incl. the silent no-flip Signature B: completed transaction + still-provisioning row from a findById returning null on the workspace_id-less workspaces table), the two separate transaction trackers, and the VITE_ENABLE_DOMAIN_PREVIEW env requirement.
 source: auto-skill
 extracted_at: '2026-07-12T14:03:08.126Z'
 ---
@@ -112,6 +112,69 @@ subdomain→full-domain mapping in `repository.ts` is now only used by server co
 parent domain. If you see "every subdomain shows the base project" but the
 rows are present and `findBySubdomain` is correct, suspect the client
 `extractDomainInfo`/`extractWorkspaceFromPath` slicing.
+
+## Bug pattern #5 — `resolveWorkspaceByDomain` swallowed `findByDomain` errors and cached `{}` for 30s (silent default degrade)
+
+**Signature (2026-07-15):** an incognito/provisioned test of
+`?preview_domain=khane.nama.app` STILL rendered the DEFAULT workspace, console
+only showed `Workspace Health` → `✗ workspace-resolution: Workspace ID is not
+set — using single-tenant default` (plus workspace-entity / -limits / -status),
+yet every layer was provably fine: the DB row exists, `findByDomain`
+(Node repro) returns it, RLS allows SELECT for anon + authenticated, the
+deployed `Mp()` reads `preview_domain` (gate eliminated), schema `K` accepts
+empty membership + nullable owner. So why default?
+
+**Root cause:** `src/lib/core/workspace/resolver.ts` `resolveWorkspaceByDomain`
+wraps its whole body in
+`cache.getOrFetch("workspace_resolver", "domain:…", async () => { … }, 30_000)`
+and inside the exact-match lookup did:
+
+```ts
+try { exactWorkspace = await deps.workspaceRepository.findByDomain(domain); }
+catch { /* swallowed */ }   // ← bug
+```
+
+`findByDomain` genuinely THROWS on DB/RLS/network error (via `normalizeError`);
+the bare `catch {}` swallowed it, let the function fall through to `return {}`,
+and `getOrFetch` then **cached that `{}` as a *successful* empty lookup for the
+full 30s TTL**. A transient browser-side fetch failure therefore became a
+persistent 30-second window of silent default resolution with **zero diagnostic
+signal** — exactly the symptom. (When the gate is compiled out and the domain is
+correct, the only way to reach DEFAULT is a thrown+swallowed error, which the
+`catch {}` hid.)
+
+**Fix pattern (applied 2026-07-15):**
+
+```ts
+try {
+  exactWorkspace = await deps.workspaceRepository.findByDomain(domainOrSubdomain);
+} catch (err) {
+  logger.error("resolveWorkspaceByDomain: findByDomain failed",
+    { source: "workspace", domain: domainOrSubdomain, isSubdomain,
+      cause: err instanceof Error ? err : new Error(String(err)) });
+  throw err instanceof Error ? err : new Error(String(err));   // rethrow → NOT cached as miss
+}
+```
+
+- The **exact-match** `findByDomain` path must surface its error (log + rethrow).
+  The subdomain / www-stripped fallbacks can stay `logger.warn` + ignore (they
+  are non-fatal variants), but the primary lookup must NOT be swallowed.
+- In `src/lib/core/workspace/context.tsx` `CurrentWorkspaceProvider.resolve()`,
+  move the `import("@/lib/repositories/factory")` (→ `getRepositories` /
+  `setWorkspaceOnRepositories`) **OUTSIDE** the `try` so the `catch` can still
+  call `setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE)` +
+  `setWorkspace(DEFAULT_WORKSPACE)`. Otherwise a thrown resolution error leaves
+  the repo Singleton **unconfigured** → app hangs / silently reads DEFAULT.
+- Add `logger.warn("No workspace resolved for requested domain … — degrading to
+  default workspace")` when `requestedDomain` is set but unresolved, so a real
+  miss is visible in the console (the user's "fix the resolveWorkspaceByDomain
+  error" ask = surface it, not silently degrade).
+
+**Rule of thumb:** never wrap a repository lookup that THROWS in a bare
+`catch {}` *inside* a `getOrFetch`-cached resolver — you convert a transient
+failure into a persistent (TTL-length) silent degrade. Log + rethrow. And if the
+provider's resolution throws, still configure the repos with DEFAULT in the
+`catch` so the Singleton isn't left unconfigured.
 
 ## Provisioning status signal (why some rows are `provisioning`, others `active`)
 

@@ -132,6 +132,78 @@ node scripts/diag_bundle.mjs
 If `preview_domain` is absent from the bundle, the live (and next) deploy was
 NOT built with the flag → the param is dead code there.
 
+### When the shell can't run `diag_bundle.mjs` (blocked shell / can't run node)
+
+You can run the same `preview_domain`-present check **entirely from the browser
+DevTools console** on the preview URL — no node, no `.env`. **Gotcha:** do NOT
+try `import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW` in the console. The console
+evaluates as a **classic script, not an ES module**, so it throws
+`SyntaxError: Cannot use 'import.meta' outside a module`. Instead, fetch the live
+bundle HTML, pull each JS chunk URL, fetch the chunks, and grep for the literal
+(the same logic `diag_bundle.mjs` uses):
+
+```js
+fetch(location.href).then(r=>r.text()).then(html=>{
+  const urls=[...html.matchAll(/(?:src|href)="([^"]+\.js[^"]*)"/g)].map(m=>new URL(m[1],location.href).href);
+  return Promise.all(urls.map(u=>fetch(u).then(r=>r.text()).catch(()=> "")));
+}).then(chunks=>{
+  const all=chunks.join("\n");
+  console.log("JS chunks checked:", chunks.length);
+  console.log("'preview_domain' present in bundle:", all.includes("preview_domain"));
+});
+```
+
+- `false` → flag NOT inlined → Vercel "Redeploy" reused the old env snapshot.
+  Set `VITE_ENABLE_DOMAIN_PREVIEW=true` in Vercel **scoped to Production** and
+  trigger a **fresh build** (a plain Redeploy does NOT re-read an env var added
+  after the build was made).
+- `true` → flag shipped; the failure is a domain lookup/mismatch issue, not the
+  build flag.
+
+### Discriminating a domain mismatch vs an anon-read block (console REST query)
+
+When `preview_domain` IS in the bundle but the workspace still resolves to
+DEFAULT, the remaining causes are (b1) `workspaces.domain` isn't exactly the
+`?preview_domain` string, or (b2) the anon read is blocked at runtime. Replicate
+the resolver's exact `findByDomain` (and list every stored domain) from the
+console using the app's own anon key + Supabase URL, which Vite inlined as
+literals into the bundle:
+
+```js
+(async () => {
+  const html = await (await fetch(location.href)).text();
+  const urls = [...html.matchAll(/(?:src|href)="([^"]+\.js[^"]*)"/g)].map(m => new URL(m[1], location.href).href);
+  let bundle = html;
+  for (const u of urls) { try { bundle += "\n" + await (await fetch(u)).text(); } catch {} }
+  const supaUrl = (bundle.match(/https:\/\/[a-z0-9-]+\.supabase\.co/g) || [])[0];
+  const anonKey = (bundle.match(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/) || [])[0];
+  console.log("supabase url:", supaUrl, "| anon key found:", !!anonKey);
+  if (!supaUrl || !anonKey) { console.log("could not extract config"); return; }
+  const h = { apikey: anonKey, Authorization: "Bearer " + anonKey };
+  const r1 = await fetch(`${supaUrl}/rest/v1/workspaces?domain=eq.khane.nama.app&select=id,domain,status`, { headers: h });
+  console.log("findByDomain('khane.nama.app') ->", JSON.stringify(await r1.json()));
+  const r2 = await fetch(`${supaUrl}/rest/v1/workspaces?select=id,domain,status&order=created_at`, { headers: h });
+  const all = await r2.json();
+  console.log("ALL workspaces (id | domain | status):");
+  for (const w of all) console.log(`  ${String(w.id).slice(0,8)} | ${w.domain} | ${w.status}`);
+})();
+```
+
+Read it:
+- `findByDomain` returns the row → lookup works; the bug is elsewhere (e.g. the
+  resolved `workspaceId` not reaching `setWorkspaceOnRepositories`).
+- `findByDomain` returns `[]` but a khane row exists with `domain` null/different
+  → NULL/domain-mismatch. Fix: `UPDATE workspaces SET domain='khane.nama.app'
+  WHERE ...` (or re-provision).
+- `findByDomain` returns `[]` AND "ALL workspaces" is empty for the anon key →
+  the anon read is blocked by RLS at runtime (contrary to migration
+  `20260707000001` "public read workspaces" / `GRANT SELECT ... TO anon`) → DB
+  policy fix, not code.
+
+This console-REST approach is the dependable fallback whenever the agent shell
+is blocked and you must inspect live DB state or verify a build flag without
+running node.
+
 ## When to apply
 
 Whenever asked to test / preview / render a provisioned workspace's public site

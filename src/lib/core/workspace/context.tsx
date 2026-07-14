@@ -206,16 +206,18 @@ export function CurrentWorkspaceProvider({
   const logger = useMemo(() => getLogger(), []);
 
   const resolve = useCallback(async () => {
+    // Dynamic import to avoid circular dependency with workspace barrel.
+    // Resolved up-front (outside the try) so the catch handler can still
+    // configure repositories if resolution fails.
+    const { getRepositories, setWorkspaceOnRepositories } = await import(
+      "@/lib/repositories/factory"
+    );
+    const repos = getRepositories();
+
     try {
       setLoading(true);
       setError(null);
 
-      // Dynamic import to avoid circular dependency with workspace barrel
-      const { getRepositories, setWorkspaceOnRepositories } = await import(
-        "@/lib/repositories/factory"
-      );
-
-      const repos = getRepositories();
       const workspaceRepo = repos.workspace;
 
       // Try domain/subdomain resolution first (public provisioned sites)
@@ -290,6 +292,12 @@ export function CurrentWorkspaceProvider({
       // default row and trip `uniq_default_workspace_per_owner`
       // (POST 409 / 23505 "Failed to resolve workspace").
       if (!ctx?.workspaceId) {
+        if (requestedDomain) {
+          logger.warn(
+            `No workspace resolved for requested domain "${requestedDomain}" — degrading to default workspace`,
+            { source: "workspace" },
+          );
+        }
         ctx = DEFAULT_WORKSPACE;
       }
 
@@ -307,10 +315,16 @@ export function CurrentWorkspaceProvider({
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
+      // Surface the real resolution error (previously swallowed inside
+      // resolveWorkspaceByDomain). Degrade gracefully so repositories are still
+      // configured and the app keeps rendering instead of hanging on an
+      // unconfigured workspace context.
       logger.error("Failed to resolve workspace", {
         source: "workspace",
         cause: error,
       });
+      setWorkspaceOnRepositories(repos, DEFAULT_WORKSPACE);
+      setWorkspace(DEFAULT_WORKSPACE);
     } finally {
       setLoading(false);
     }
