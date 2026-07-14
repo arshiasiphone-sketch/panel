@@ -92,6 +92,46 @@ scope CMS queries (menu/gallery/events/blocks) to it. If you see the default
 empty landing page, either (a) the flag wasn't set at build time, or (b) the
 `preview_domain` string doesn't exactly match `workspaces.domain`.
 
+## GitHub push / Vercel auto-deploy — the common misconception
+
+When asked *"if I push this to GitHub, will the routes work differently?"* the
+answer is **not** "yes, the push changes routing." A GitHub push only matters
+because Vercel **auto-deploys** the connected branch, which triggers a rebuild.
+What changes at runtime depends on the build, not the push:
+
+- **Code fixes take effect on ANY rebuild.** e.g. a `theme.ts` Signature-B fix
+  (see `workspace-isolation`) self-flips provisions on the next deploy with no
+  extra setting.
+- **`?preview_domain=` only activates if `VITE_ENABLE_DOMAIN_PREVIEW=true` was
+  set in the DEPLOY build environment** (Vercel project env var) AND the deploy
+  was rebuilt. Pushing code alone does NOT set this flag — the flag is a
+  Vercel project env var that **persists across deploys**. If it is absent, the
+  param stays inert and routes behave exactly as before.
+- **Data operations are NOT re-triggered by a code push.** e.g. a one-off
+  DEFAULT re-seed was a data op already applied; pushing code won't re-run it
+  (and `_reset_default.mjs` is dry-run unless `FORCE=1`).
+
+So: deploying changes behavior only via (a) code fixes (automatic) and
+(b) build-time env flags (must be set in Vercel, not the push). The DEFAULT
+re-seed / content fixes are data-level and independent of the push.
+
+### Verify whether the LIVE deploy was built with the flag
+
+`scripts/diag_bundle.mjs` fetches the shipped bundle from the live Vercel host
+(`https://panel-plum-alpha.vercel.app/`), collects the JS module URLs, and
+greps them for `preview_domain` and the `VITE_ENABLE_DOMAIN_PREVIEW` literal.
+Because Vercel env vars persist across deploys, this also tells you what the
+NEXT build from a push will contain:
+
+```bash
+node scripts/diag_bundle.mjs
+# → "bundle references 'preview_domain':" true|false
+# → "flag context snippet:"  VITE_ENABLE_DOMAIN_PREVIEW=...   (or "unknown")
+```
+
+If `preview_domain` is absent from the bundle, the live (and next) deploy was
+NOT built with the flag → the param is dead code there.
+
 ## When to apply
 
 Whenever asked to test / preview / render a provisioned workspace's public site

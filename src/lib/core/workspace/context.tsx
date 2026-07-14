@@ -118,7 +118,14 @@ function extractDomainInfo(): { domain: string | undefined; subdomain: string | 
 function extractPreviewDomain(): string | undefined {
   if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") return undefined;
   if (typeof window === "undefined") return undefined;
-  const value = new URLSearchParams(window.location.search).get("preview_domain")?.trim();
+  // Strip leading/trailing slashes so "?preview_domain=khane.nama.app/" (a
+  // common typo / copy-paste from a URL bar) still matches the stored
+  // "khane.nama.app" domain exactly in findByDomain.
+  const value = new URLSearchParams(window.location.search)
+    .get("preview_domain")
+    ?.trim()
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
   return value ? value : undefined;
 }
 

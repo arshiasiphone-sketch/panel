@@ -248,6 +248,59 @@ await supabase.from("workspaces")
    `SELECT workspace_id, count(*) FROM site_content GROUP BY 1;` — after a
    correct provision you should see a new id, not only `00000000-…-0001`.
 
+## Read-path isolation audit (proving an admin page loads ONLY its workspace's data)
+
+The "isolation" bugs above are mostly about the **write** path (nobody called
+`setWorkspace`, so rows went to DEFAULT). But when someone asks *"does every
+provision have its own admin page with separate data — for sure?"* you must
+also verify the **read** path, because a repo only filters by `workspace_id`
+if its `this.workspaceId` was actually set to the resolved workspace. The proof
+chain in THIS repo (verified 2026-07-13):
+
+1. **Admin/page components read via `useRepositories()`, the SAME singleton the
+   provider scopes.** Every CMS hook in `src/lib/cms.ts`
+   (`useAllMenuItems`, `usePageBlocks`, `useAllEvents`, `useAllGalleryImages`,
+   `usePageViewStats`, …) does `const repos = useRepositories();` then calls
+   `repos.<domain>.getAll()` / `getVisible()`.
+2. **`useRepositories()` returns the singleton.** `src/lib/providers/index.ts`:
+   `useRepositories()` → `initializeRepositories()` → `initRepositories(providers)`
+   → `createRepositories(deps)`, cached in the module-level `_repositories`
+   singleton. `getRepositories()` (used by the provider) returns that SAME
+   instance. So the provider and the hooks share one repo graph.
+3. **The provider sets the workspace on that singleton BEFORE data loads.**
+   `src/lib/core/workspace/context.tsx` `CurrentWorkspaceProvider.resolve()`
+   resolves the workspace (from the request domain → `findByDomain`, or
+   `/cafe/<slug>`, or `?preview_domain`) and then calls
+   `setWorkspaceOnRepositories(getRepositories(), ctx)` — which loops every
+   repo and calls `repo.setWorkspace(ctx)`, stamping `this.workspaceId`.
+4. **Every content repo filters by `workspace_id`.** `withWorkspace()` in
+   `src/lib/repositories/base.ts` does `.eq("workspace_id", this.workspaceId)`.
+   Confirmed callers: `menu.ts`, `pages.ts`, `gallery.ts`, `events.ts`,
+   `testimonials.ts`, `siteContent.ts`, `personality.ts`, `media.ts`
+   (grep `withWorkspace` in `src/lib/repositories`). So
+   `repos.menu.getAll()` resolves to `SELECT … WHERE workspace_id = <ws>`.
+
+**Conclusion:** when an admin page is opened via its own domain
+(`<slug>.nama.app/admin` or `/cafe/<slug>`), the provider resolves that
+workspace, scopes the singleton repos, and every CMS query is filtered to it —
+the admin physically cannot read another provision's rows. This holds for
+content tables. (Theme is the global `theme_settings` singleton — intended; see
+the bloat section's "NO `workspace_id` column" list.)
+
+**Audit procedure when verifying a report:**
+- Grep the page/route's data hooks: confirm they go through `useRepositories()`
+  (or `getRepositories()`), NOT a fresh `createRepositories()` that would skip
+  the provider's `setWorkspace`.
+- Confirm `CurrentWorkspaceProvider` is mounted above the routes
+  (`src/routes/__root.tsx` wraps `<Outlet/>` in `<CurrentWorkspaceProvider>`).
+- Confirm the repo method in question calls `withWorkspace()`.
+- Confirm `ctx.workspaceId` is the resolved workspace (not `undefined`/DEFAULT)
+  for the access URL used — i.e. the domain resolves to that workspace row.
+- **Caveat — initial-render flash:** the provider resolves in a `useEffect`
+  (async). On the very first paint the singleton still has `DEFAULT_WORKSPACE`;
+  react-query refetches once the workspace is set, so the FINAL render is
+  correct, but don't assert isolation from a single pre-resolution frame.
+
 ## Caveat: existing DEFAULT data can't be auto-separated
 
 Because every legacy row was stamped `00000000-…-0001`, there is no owner signal
