@@ -56,7 +56,11 @@ export const workspaceMembershipSchema = z.object({
   // (ownership is resolved externally via externalOrderId). See WorkspaceMembership.
   userId: z.string().min(1).nullable(),
   role: workspaceRoleSchema,
-  joinedAt: z.string().datetime(),
+  // Postgres `timestamptz` serializes as ISO 8601 with a `+HH:MM` offset
+  // (e.g. "2026-07-13T17:14:27.447762+00:00"); the default `datetime()` only
+  // accepts a trailing `Z`, so it rejects every DB-backed workspace and makes
+  // findByDomain return null. `offset: true` accepts both forms.
+  joinedAt: z.string().datetime({ offset: true }),
 });
 
 // ─── Metadata schema ─────────────────────────────────────────────────────────
@@ -68,8 +72,8 @@ export const workspaceMetadataSchema = z.object({
   domain: z.string().optional(),
   locale: z.string().min(2).max(10),
   timezone: z.string().min(1).max(50),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
 });
 
 // ─── Full entity schema ──────────────────────────────────────────────────────
