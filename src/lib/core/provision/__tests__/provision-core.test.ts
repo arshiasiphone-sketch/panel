@@ -1478,8 +1478,9 @@ describe("ProvisionEngine", () => {
     });
     const engine = new ProvisionEngine(deps as any);
 
-    await expect(engine.provision(validProvisionInput({ blueprintSlug: "nonexistent" })))
-      .rejects.toThrow("Provision validation failed");
+    await expect(
+      engine.provision(validProvisionInput({ blueprintSlug: "nonexistent" })),
+    ).rejects.toThrow("Provision validation failed");
 
     expect(deps.transactionManager.begin).not.toHaveBeenCalled();
   });
