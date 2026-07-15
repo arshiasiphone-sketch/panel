@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Command } from "cmdk";
 import {
   Search,
@@ -19,6 +19,9 @@ import { ADMIN_NAV } from "./admin-shell";
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const previewDomain = useRouterState({
+    select: (s) => new URLSearchParams(s.location.search).get("preview_domain") ?? undefined,
+  });
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -33,7 +36,7 @@ export function CommandPalette() {
   }, []);
 
   function go(to: string) {
-    navigate({ to });
+    navigate({ to, search: previewDomain ? { preview_domain: previewDomain } : undefined });
     setOpen(false);
   }
 

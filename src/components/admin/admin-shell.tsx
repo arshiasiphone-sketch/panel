@@ -159,6 +159,12 @@ export function Label({ children, className = "" }: { children: ReactNode; class
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Carry the active ?preview_domain across every admin section so multi-tenant
+  // previews stay scoped to the same workspace while navigating the CMS.
+  const previewDomain = useRouterState({
+    select: (s) => new URLSearchParams(s.location.search).get("preview_domain") ?? undefined,
+  });
+  const previewSearch = previewDomain ? { preview_domain: previewDomain } : undefined;
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -214,7 +220,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </svg>
         </button>
 
-        <Link to="/admin" className="flex items-center gap-2 shrink-0">
+        <Link to="/admin" search={previewSearch} className="flex items-center gap-2 shrink-0">
           <div className="h-8 w-8 md:h-7 md:w-7 rounded-lg bg-foreground text-background grid place-items-center text-xs md:text-[11px] font-bold">
             ک
           </div>
@@ -262,7 +268,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
             </div>
             <div className="px-3 pt-2">
-              <NavList isActive={isActive} onPick={() => setMobileNav(false)} />
+              <NavList isActive={isActive} previewSearch={previewSearch} onPick={() => setMobileNav(false)} />
             </div>
           </aside>
         </div>
@@ -273,10 +279,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         {/* Desktop sidebar */}
         <aside className="hidden md:block">
           <nav className="sticky top-[68px] rounded-2xl border border-border bg-card p-2 space-y-0.5 max-h-[calc(100vh-80px)] overflow-y-auto">
-            <NavList isActive={isActive} />
+            <NavList isActive={isActive} previewSearch={previewSearch} />
             <div className="mt-3 pt-3 border-t border-border">
               <button
-                onClick={() => navigate({ to: "/admin/page" })}
+                onClick={() => navigate({ to: "/admin/page", search: previewSearch })}
                 className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background px-3 py-2.5 text-xs font-semibold hover:bg-foreground/90 min-h-[44px]"
               >
                 <Plus className="h-3.5 w-3.5" /> افزودن بلوک
@@ -306,6 +312,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
+                search={previewSearch}
                 className={`flex flex-col items-center gap-0.5 py-1.5 px-2 min-w-0 flex-1 rounded-lg transition ${
                   active
                     ? "text-foreground"
@@ -346,6 +353,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {pathname === "/admin/page" && (
         <Link
           to="/admin/page"
+          search={previewSearch}
           onClick={() => {
             // Dispatch custom event to open block picker
             window.dispatchEvent(new CustomEvent("open-block-picker"));
@@ -363,9 +371,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
 function NavList({
   isActive,
+  previewSearch,
   onPick,
 }: {
   isActive: (to: string, exact?: boolean) => boolean;
+  previewSearch?: { preview_domain?: string };
   onPick?: () => void;
 }) {
   return (
@@ -376,6 +386,7 @@ function NavList({
           <Link
             key={item.to}
             to={item.to}
+            search={previewSearch}
             onClick={onPick}
             className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 md:py-2 text-sm transition min-h-[44px] ${
               active

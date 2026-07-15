@@ -17,6 +17,7 @@
 
 import { createContext, useContext, useEffect, useState, useMemo, useCallback, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouterState } from "@tanstack/react-router";
 import type { WorkspaceContext, WorkspaceEntity, WorkspaceLimits } from "./types";
 import { DEFAULT_WORKSPACE, ACTIVE_WORKSPACE_STATUSES } from "./types";
 import { getLogger } from "@/lib/logger";
@@ -111,18 +112,15 @@ function extractDomainInfo(): { domain: string | undefined; subdomain: string | 
 }
 
 /**
- * Local-testing-only override: `?preview_domain=<domain>` forces the resolver to
- * render the workspace that owns that domain, ignoring the real Host header.
- * Disabled unless VITE_ENABLE_DOMAIN_PREVIEW === "true", so it can never
- * accidentally work in a real production / customer-facing deployment.
+ * Parse the `?preview_domain=<domain>` override from a search string.
+ * Local-testing-only: disabled unless VITE_ENABLE_DOMAIN_PREVIEW === "true".
+ * Strips leading/trailing slashes so "?preview_domain=khane.nama.app/" (a common
+ * typo / copy-paste from a URL bar) still matches the stored "khane.nama.app"
+ * domain exactly in findByDomain.
  */
-function extractPreviewDomain(): string | undefined {
+function parsePreviewDomain(search: string): string | undefined {
   if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") return undefined;
-  if (typeof window === "undefined") return undefined;
-  // Strip leading/trailing slashes so "?preview_domain=khane.nama.app/" (a
-  // common typo / copy-paste from a URL bar) still matches the stored
-  // "khane.nama.app" domain exactly in findByDomain.
-  const value = new URLSearchParams(window.location.search)
+  const value = new URLSearchParams(search)
     .get("preview_domain")
     ?.trim()
     .replace(/^\/+/, "")
@@ -136,14 +134,20 @@ function extractPreviewDomain(): string | undefined {
  *   /cafe/<workspace-id>       — admin/owner cafe mode
  *   /cafe/<workspace-slug>     — admin/owner cafe slug mode (workspace slug stored in DB)
  *   /p/<workspace-id>/<page>   — public page URL pattern (new multi-domain format)
+ *
+ * `previewDomain` is passed in (read reactively from the router by the provider)
+ * so resolution re-runs whenever the param changes — e.g. navigating between
+ * admin sections that preserve ?preview_domain, or adding/removing it.
  */
-function extractWorkspaceFromPath(workspaceIdFromRoute?: string): { workspaceId: string | undefined; domain: string | undefined; isSubdomain: boolean } {
+function extractWorkspaceFromPath(
+  previewDomain: string | undefined,
+  workspaceIdFromRoute?: string,
+): { workspaceId: string | undefined; domain: string | undefined; isSubdomain: boolean } {
   if (typeof window === "undefined") {
     return { workspaceId: workspaceIdFromRoute, domain: undefined, isSubdomain: false };
   }
 
   // Local-testing override takes priority over everything else (incl. route params).
-  const previewDomain = extractPreviewDomain();
   if (previewDomain) {
     return { workspaceId: undefined, domain: previewDomain, isSubdomain: false };
   }
@@ -207,6 +211,15 @@ export function CurrentWorkspaceProvider({
   const logger = useMemo(() => getLogger(), []);
   const queryClient = useQueryClient();
 
+  // Read the preview override from the live router location (not a one-shot
+  // window.location read) so the workspace re-resolves whenever ?preview_domain
+  // changes — e.g. navigating between admin sections that preserve the param.
+  const locationSearch = useRouterState({ select: (s) => s.location.search });
+  const previewDomain = useMemo(
+    () => parsePreviewDomain(locationSearch),
+    [locationSearch],
+  );
+
   // Once the workspace resolves, the repository singletons carry the correct
   // workspace_id, but the public read hooks (useMenuItems, useGalleryImages,
   // etc.) already cached their mount-time queries — which ran BEFORE resolution
@@ -235,7 +248,7 @@ export function CurrentWorkspaceProvider({
       const workspaceRepo = repos.workspace;
 
       // Try domain/subdomain resolution first (public provisioned sites)
-      const pathResolution = extractWorkspaceFromPath();
+      const pathResolution = extractWorkspaceFromPath(previewDomain);
       const requestedDomain = pathResolution.domain;
 
       let ctx: WorkspaceContext | undefined;
@@ -259,7 +272,7 @@ export function CurrentWorkspaceProvider({
         // query param keep rendering it (preview builds only).
         if (
           import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW === "true" &&
-          extractPreviewDomain() &&
+          previewDomain &&
           ctx?.workspaceId
         ) {
           try {
@@ -348,7 +361,7 @@ export function CurrentWorkspaceProvider({
     } finally {
       setLoading(false);
     }
-  }, [logger, refetchCmsForWorkspace]);
+  }, [logger, refetchCmsForWorkspace, previewDomain]);
 
   useEffect(() => {
     resolve();

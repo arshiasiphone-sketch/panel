@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { PageHeader, Stat, Card } from "@/components/admin/admin-shell";
 import {
   useAllMenuItems,
@@ -20,6 +20,10 @@ function Dashboard() {
   const { data: testResponses = [] } = useTestResponses();
   const { data: views, isLoading: viewsLoading, isError: viewsError } = usePageViewStats();
   const recentTests = testResponses.slice(0, 5);
+  const previewDomain = useRouterState({
+    select: (s) => new URLSearchParams(s.location.search).get("preview_domain") ?? undefined,
+  });
+  const previewSearch = previewDomain ? { preview_domain: previewDomain } : undefined;
 
   const totalVisits = viewsLoading
     ? "…"
@@ -66,26 +70,27 @@ function Dashboard() {
             </div>
             <Link
               to="/admin/page"
+              search={previewSearch}
               className="text-xs text-foreground/70 hover:text-foreground inline-flex items-center gap-1"
             >
               سازنده صفحه <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <MiniStat label="گالری" value={gallery.length} to="/admin/gallery" />
-            <MiniStat label="منو" value={menu.length} to="/admin/menu" />
-            <MiniStat label="رویداد" value={events.length} to="/admin/events" />
-            <MiniStat label="بلوک" value={blocks.length} to="/admin/page" />
+            <MiniStat label="گالری" value={gallery.length} to="/admin/gallery" previewSearch={previewSearch} />
+            <MiniStat label="منو" value={menu.length} to="/admin/menu" previewSearch={previewSearch} />
+            <MiniStat label="رویداد" value={events.length} to="/admin/events" previewSearch={previewSearch} />
+            <MiniStat label="بلوک" value={blocks.length} to="/admin/page" previewSearch={previewSearch} />
           </div>
         </Card>
 
         <Card className="p-4">
           <div className="text-sm font-semibold mb-3">دسترسی سریع</div>
           <ul className="space-y-2 text-sm">
-            <QuickLink to="/admin/page" label="ویرایش صفحه اصلی" />
-            <QuickLink to="/admin/site-content" label="محتوای سایت" />
-            <QuickLink to="/admin/personality-types" label="تیپ‌های شخصیتی" />
-            <QuickLink to="/admin/settings" label="تنظیمات و تم" />
+            <QuickLink to="/admin/page" label="ویرایش صفحه اصلی" previewSearch={previewSearch} />
+            <QuickLink to="/admin/site-content" label="محتوای سایت" previewSearch={previewSearch} />
+            <QuickLink to="/admin/personality-types" label="تیپ‌های شخصیتی" previewSearch={previewSearch} />
+            <QuickLink to="/admin/settings" label="تنظیمات و تم" previewSearch={previewSearch} />
           </ul>
         </Card>
       </div>
@@ -95,6 +100,7 @@ function Dashboard() {
           <div className="text-sm font-semibold">پاسخ‌های اخیر تست</div>
           <Link
             to="/admin/test-results"
+            search={previewSearch}
             className="text-xs text-foreground/70 hover:text-foreground"
           >
             همه
@@ -126,10 +132,11 @@ function Dashboard() {
   );
 }
 
-function MiniStat({ label, value, to }: { label: string; value: number; to: string }) {
+function MiniStat({ label, value, to, previewSearch }: { label: string; value: number; to: string; previewSearch?: { preview_domain?: string } }) {
   return (
     <Link
       to={to}
+      search={previewSearch}
       className="rounded-xl border border-border bg-muted/30 p-3 hover:bg-muted/50 transition"
     >
       <div className="text-[11px] text-muted-foreground">{label}</div>
@@ -138,10 +145,10 @@ function MiniStat({ label, value, to }: { label: string; value: number; to: stri
   );
 }
 
-function QuickLink({ to, label }: { to: string; label: string }) {
+function QuickLink({ to, label, previewSearch }: { to: string; label: string; previewSearch?: { preview_domain?: string } }) {
   return (
     <li>
-      <Link to={to} className="text-foreground/80 hover:text-foreground hover:underline">
+      <Link to={to} search={previewSearch} className="text-foreground/80 hover:text-foreground hover:underline">
         {label}
       </Link>
     </li>

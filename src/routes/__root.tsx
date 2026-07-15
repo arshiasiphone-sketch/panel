@@ -75,7 +75,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+// Global search params shared by every route. Declaring `preview_domain` here
+// makes TanStack Router treat it as a first-class param and preserve it across
+// all client-side navigations (admin section switches, etc.) automatically.
+export interface RootSearch {
+  preview_domain?: string;
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  validateSearch: (search: Record<string, unknown>): RootSearch => ({
+    preview_domain:
+      typeof search.preview_domain === "string" && search.preview_domain.length > 0
+        ? search.preview_domain
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
