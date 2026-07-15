@@ -90,7 +90,7 @@ export class PagesRepository extends BaseRepository {
     return { blockIds };
   }
 
-  async create(input: { type: string; data: Record<string, unknown>; sort_order: number }): Promise<PageBlockRow | null> {
+  async create(input: { type: string; data: Record<string, unknown>; sort_order: number }): Promise<PageBlockRow> {
     try {
       const validated = this.validateOrThrow(blockSchema, { ...input, visible: true }, "page_blocks.create");
       const insertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
@@ -100,6 +100,16 @@ export class PagesRepository extends BaseRepository {
         .select()
         .maybeSingle();
       if (error) throw error;
+      // An insert that succeeds but returns no row means RLS filtered the
+      // RETURNING set — the block exists nowhere the caller can read it.
+      // Surface this as a real error instead of a silent "fake success".
+      if (!data) {
+        throw this.normalizeError(
+          "page_blocks",
+          "create",
+          new Error("Insert succeeded but no row was returned (RLS may have filtered the result)"),
+        );
+      }
       return data;
     } catch (err) {
       throw this.normalizeError("page_blocks", "create", err);

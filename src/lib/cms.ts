@@ -286,10 +286,32 @@ export function useCreateBlock() {
     }) => {
       return repos.pages.create(input as never);
     },
+    onMutate: async (input) => {
+      const optimistic = {
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        type: input.type,
+        data: input.data,
+        sort_order: input.sort_order,
+        visible: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as unknown as PageBlock;
+      const { prev } = await beginOptimisticUpdate<PageBlock[]>(qc, QK.blocks, (list) =>
+        upsertById(list, optimistic),
+      );
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prev !== undefined) rollbackOptimisticUpdate(qc, QK.blocks, ctx.prev);
+    },
     onSuccess: (data) => {
-      if (!data) return;
       touchLocalCmsEdit();
       qc.setQueryData<PageBlock[]>(QK.blocks, (list) => upsertById(list, data));
+    },
+    onSettled: () => {
+      // Re-sync from the source of truth so the block list reflects the DB
+      // (and the temp row is dropped if the insert failed server-side).
+      void qc.invalidateQueries({ queryKey: QK.blocks });
     },
   });
 }
