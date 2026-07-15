@@ -46,6 +46,16 @@ export const Route = createFileRoute("/api/public/provision")({
           );
         }
         const input = parsed.data;
+
+        // Self-serve ownership is mandatory for the public provisioning flow:
+        // the tenant must be owned by the customer (their auth user id) so RLS
+        // owner-scoping grants them edit access. Reject requests without it.
+        if (!input.ownerUserId || input.ownerUserId.length < 1) {
+          return Response.json(
+            { success: false, error: "ownerUserId is required for self-serve provisioning" },
+            { status: 400 },
+          );
+        }
         const domain = fullDomain(input.requestedSlug);
 
         // 3. Idempotency by externalOrderId.

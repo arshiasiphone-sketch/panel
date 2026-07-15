@@ -4,10 +4,26 @@ import { ProvisionService } from "@/lib/core/provision/service";
 import { WorkspaceRepository } from "@/lib/core/workspace/repository";
 import { PLATFORM_DOMAIN } from "@/lib/constants";
 import { getLogger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 import {
   provisionRequestSchema,
   type ProvisionRequestInput,
 } from "@/lib/core/provision/validation";
+
+// Resolve the authenticated caller's user id from the request's bearer token.
+// Returns null when unauthenticated. Used to make the provisioning customer the
+// workspace owner so RLS owner-scoping grants them self-serve edit access.
+async function resolveCallerUserId(request: Request): Promise<string | null> {
+  const authHeader = request.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) return null;
+  try {
+    const { data } = await supabase.auth.getUser(token);
+    return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // Build the full domain the platform expects (e.g. "foo.nama.app").
 const fullDomain = (slug: string) => `${slug}.${PLATFORM_DOMAIN}`;
@@ -56,6 +72,16 @@ export const Route = createFileRoute("/api/provision")({
         // 3. Map the form payload into a valid ProvisionRequestInput.
         const displayName = String(p.workspaceName ?? "My Site");
         const email = String(p.email ?? "");
+
+        // Self-serve ownership: if the request supplies an ownerUserId use it,
+        // otherwise capture the authenticated caller (the customer provisioning
+        // their own tenant) so RLS owner-scoping grants them edit access later.
+        const sessionOwnerId = await resolveCallerUserId(request);
+        const ownerUserId =
+          (typeof p.ownerUserId === "string" && p.ownerUserId.length > 0
+            ? p.ownerUserId
+            : sessionOwnerId) || undefined;
+
         const input: ProvisionRequestInput = {
           blueprintSlug: resolved.slug,
           requestedSlug: slug,
@@ -64,6 +90,7 @@ export const Route = createFileRoute("/api/provision")({
           customerEmail: email || `${slug}@nama.app`,
           workspaceName: displayName,
           domain: fullDomain(slug),
+          ownerUserId,
           metadata: { theme: p.theme, phone: p.phone, customerEmail: p.email },
         };
 
