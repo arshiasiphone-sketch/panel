@@ -4,6 +4,7 @@
 import { BaseRepository, type RepositoryDependencies } from "./base";
 import type { Database } from "@/integrations/supabase/types";
 import { siteContentValueSchema } from "@/lib/cms-schemas";
+import { DEFAULT_WORKSPACE_ID } from "@/lib/constants";
 
 type SiteContentRow = Database["public"]["Tables"]["site_content"]["Row"];
 
@@ -24,6 +25,24 @@ export class SiteContentRepository extends BaseRepository {
       if (error) throw error;
       const out: SiteContentMap = {};
       for (const row of data ?? []) out[row.key] = (row.value as Record<string, unknown>) ?? {};
+
+      // Merge in the global (default-workspace-owned) keys — hero, contact,
+      // social, meta, etc. — so the landing page always has them regardless of
+      // which workspace context is active. Workspace-scoped rows take
+      // precedence on key collisions. Skipped when no workspace is resolved
+      // (the unfiltered query already returns everything) or when the active
+      // workspace is the default (it owns these keys outright).
+      if (this.workspaceId && this.workspaceId !== DEFAULT_WORKSPACE_ID) {
+        const { data: globals, error: globalsError } = await this.db
+          .from<SiteContentRow>("site_content")
+          .select(SELECT_COLUMNS)
+          .eq("workspace_id", DEFAULT_WORKSPACE_ID);
+        if (globalsError) throw globalsError;
+        for (const row of globals ?? []) {
+          if (!(row.key in out)) out[row.key] = (row.value as Record<string, unknown>) ?? {};
+        }
+      }
+
       return out;
     } catch (err) {
       throw this.normalizeError("site_content", "getAll", err);
