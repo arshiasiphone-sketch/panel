@@ -49,47 +49,53 @@ computing gzip size...
 .vercel/output/static/assets/test-questions-CKjZeeIW.js                       0.45 kB │ gzip:   0.29 kB
 .vercel/output/static/assets/react-DZUi3tYC.js                                0.69 kB │ gzip:   0.42 kB
 .vercel/output/static/assets/rolldown-runtime-CNC7AqOf.js                     0.87 kB │ gzip:   0.50 kB
-.vercel/output/static/assets/personality-store-CkB7ycyc.js                    1.16 kB │ gzip:   0.63 kB
-.vercel/output/static/assets/test-db-NAqGk2qy.js                              1.21 kB │ gzip:   0.47 kB
+.vercel/output/static/assets/personality-store-DW809cRJ.js                    1.16 kB │ gzip:   0.63 kB
+.vercel/output/static/assets/test-db-BXC5_BVh.js                              1.21 kB │ gzip:   0.47 kB
 .vercel/output/static/assets/createLucideIcon-C3-9FVOn.js                     1.23 kB │ gzip:   0.71 kB
-.vercel/output/static/assets/routes-CGa1RcHZ.js                               2.30 kB │ gzip:   1.17 kB
-.vercel/output/static/assets/admin.gallery-C9gbR4lw.js                        2.75 kB │ gzip:   1.32 kB
-.vercel/output/static/assets/admin.analytics-BCORqT8V.js                      3.09 kB │ gzip:   1.24 kB
-.vercel/output/static/assets/admin.site-content-CS3n4o3O.js                   3.28 kB │ gzip:   1.15 kB
-.vercel/output/static/assets/admin.events-DWVYNSbC.js                         3.59 kB │ gzip:   1.46 kB
-.vercel/output/static/assets/admin.menu-4YmNr5jr.js                           3.95 kB │ gzip:   1.61 kB
+.vercel/output/static/assets/routes-BADv9cKE.js                               2.30 kB │ gzip:   1.17 kB
+.vercel/output/static/assets/admin.gallery-BIBwBJYf.js                        2.76 kB │ gzip:   1.33 kB
+.vercel/output/static/assets/admin.analytics-CdjXtyyt.js                      3.10 kB │ gzip:   1.25 kB
+.vercel/output/static/assets/admin.site-content-y_EHLix6.js                   3.28 kB │ gzip:   1.15 kB
+.vercel/output/static/assets/admin.events-BXzDz5xq.js                         3.59 kB │ gzip:   1.47 kB
+.vercel/output/static/assets/admin.menu-Bs27q3cL.js                           3.96 kB │ gzip:   1.61 kB
 .vercel/output/static/assets/orb-background-BQz7QR7Z.js                       3.98 kB │ gzip:   1.56 kB
-.vercel/output/static/assets/admin.test-analytics-BRq2iOI7.js                 4.28 kB │ gzip:   1.80 kB
-.vercel/output/static/assets/admin-CUqBZq2g.js                                4.45 kB │ gzip:   1.69 kB
-.vercel/output/static/assets/cms.functions-Bph2jegy.js                        4.51 kB │ gzip:   1.93 kB
-.vercel/output/static/assets/admin.index-L0t5U-yG.js                          4.57 kB │ gzip:   1.64 kB
-.vercel/output/static/assets/test._step-DAMbH9ax.js                           4.79 kB │ gzip:   2.18 kB
-.vercel/output/static/assets/admin.test-questions-DNT_6Ys9.js                 4.91 kB │ gzip:   2.02 kB
-.vercel/output/static/assets/test-store-KZEruMtO.js                           5.27 kB │ gzip:   2.39 kB
-.vercel/output/static/assets/test.info-CY5apD8w.js                            5.42 kB │ gzip:   2.05 kB
-.vercel/output/static/assets/admin.personality-types-BwWzEQrK.js              6.28 kB │ gzip:   2.18 kB
-.vercel/output/static/assets/admin.media-ci9Mn7jw.js                          6.53 kB │ gzip:   2.67 kB
+.vercel/output/static/assets/admin.test-analytics-BJj5upgq.js                 4.27 kB │ gzip:   1.80 kB
+.vercel/output/static/assets/admin-B60m1ZMf.js                                4.45 kB │ gzip:   1.69 kB
+.vercel/output/static/assets/cms.functions-DwcoKEMQ.js                        4.51 kB │ gzip:   1.93 kB
+.vercel/output/static/assets/test._step-CIFKmjUt.js                           4.79 kB │ gzip:   2.18 kB
+.vercel/output/static/assets/admin.index-CRyKtpH5.js                          4.90 kB │ gzip:   1.75 kB
+.vercel/output/static/assets/admin.test-questions-CZiYCG5-.js                 4.90 kB │ gzip:   2.03 kB
+.vercel/output/static/assets/test-store-CZcYgFAA.js                           5.27 kB │ gzip:   2.39 kB
+.vercel/output/static/assets/test.info-CJUupljz.js                            5.42 kB │ gzip:   2.06 kB
+.vercel/output/static/assets/admin.personality-types-DJSR_jL0.js              6.29 kB │ gzip:   2.19 kB
+.vercel/output/static/assets/admin.media-BznfiINk.js                          6.53 kB │ gzip:   2.67 kB
 .vercel/output/static/assets/test-data-CxmFOi3a.js                            6.97 kB │ gzip:   2.51 kB
 .vercel/output/static/assets/jsx-runtime-CaR_m4Xc.js                          7.89 kB │ gzip:   2.99 kB
-.vercel/output/static/assets/admin.test-results-B0m7xurw.js                   8.67 kB │ gzip:   2.77 kB
+.vercel/output/static/assets/admin.test-results-ZtR5kgHJ.js                   8.67 kB │ gzip:   2.77 kB
 .vercel/output/static/assets/useStore-BEJ02IBT.js                             9.55 kB │ gzip:   3.72 kB
 .vercel/output/static/assets/provision-DZ_D1qXI.js                            9.85 kB │ gzip:   2.75 kB
-.vercel/output/static/assets/test.result-D_tF6rRB.js                         24.36 kB │ gzip:   8.55 kB
-.vercel/output/static/assets/admin.settings-C-fvr_H7.js                      31.70 kB │ gzip:   9.06 kB
+.vercel/output/static/assets/test.result-Y4XusILO.js                         24.36 kB │ gzip:   8.55 kB
+.vercel/output/static/assets/admin.settings-BvtiCAxh.js                      31.71 kB │ gzip:   9.07 kB
 .vercel/output/static/assets/blocks-Cxl0LgVY.js                              32.82 kB │ gzip:   8.25 kB
-.vercel/output/static/assets/admin.page-D8xs2J7t.js                          41.73 kB │ gzip:  12.64 kB
+.vercel/output/static/assets/admin.page-BNq8OF85.js                          41.73 kB │ gzip:  12.64 kB
 .vercel/output/static/assets/sortable.esm-yxGYmwQo.js                        43.60 kB │ gzip:  14.46 kB
-.vercel/output/static/assets/landing-sections-BAaVbIxe.js                    46.75 kB │ gzip:  11.82 kB
-.vercel/output/static/assets/admin-shell-BNaJKuq-.js                         62.62 kB │ gzip:  21.04 kB
+.vercel/output/static/assets/landing-sections-ClTXROgw.js                    46.75 kB │ gzip:  11.82 kB
+.vercel/output/static/assets/admin-shell-xM7gZB8r.js                         62.83 kB │ gzip:  21.11 kB
 .vercel/output/static/assets/theme-VpPzSlS3.js                               66.04 kB │ gzip:  15.95 kB
 .vercel/output/static/assets/proxy-M8rpbohb.js                              121.14 kB │ gzip:  39.32 kB
 .vercel/output/static/assets/html2canvas-CNjex5NH.js                        199.57 kB │ gzip:  46.79 kB
 .vercel/output/static/assets/supabase-AuSz8w5f.js                           208.42 kB │ gzip:  53.54 kB
-.vercel/output/static/assets/index-CWseWO3z.js                              467.19 kB │ gzip: 141.52 kB
+.vercel/output/static/assets/index-ZnIJAGa0.js                              467.79 kB │ gzip: 141.70 kB
 
 [33m[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/repositories/factory.ts is dynamically imported by src/lib/core/workspace/context.tsx but also statically imported by src/lib/repositories/index.ts, dynamic import will not move module into another chunk.
 [39m
-[32m✓ built in 12.94s[39m
+[33m[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
+  - vite-tsconfig-paths (62%)
+  - tanstack-start-core:import-protection (28%)
+  - tanstack-start-core:import-protection-transform-cache (9%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+[39m
+[32m✓ built in 14.06s[39m
 [36mvite v8.1.3 [32mbuilding ssr environment for production...[36m[39m
 [2Ktransforming...✓ 201 modules transformed.
 rendering chunks...
@@ -131,60 +137,60 @@ node_modules/.nitro/vite/services/ssr/assets/rolldown-runtime-D7D4PA-g.js       
 node_modules/.nitro/vite/services/ssr/assets/use-mobile-DM96sOa1.js                               0.59 kB │ gzip:  0.34 kB
 node_modules/.nitro/vite/services/ssr/assets/__23tanstack-start-server-fn-resolver-MllkSnwY.js    0.78 kB │ gzip:  0.42 kB
 node_modules/.nitro/vite/services/ssr/assets/cms.functions-DADAJU0E.js                            0.83 kB │ gzip:  0.50 kB
-node_modules/.nitro/vite/services/ssr/assets/routes-aMj7Ul1v.js                                   0.83 kB │ gzip:  0.55 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-DE7KrxcC.js                                   0.83 kB │ gzip:  0.55 kB
 node_modules/.nitro/vite/services/ssr/assets/test-questions-B_RC_EWL.js                           0.93 kB │ gzip:  0.49 kB
 node_modules/.nitro/vite/services/ssr/assets/cms.functions-DAkRQM5R.js                            1.24 kB │ gzip:  0.65 kB
 node_modules/.nitro/vite/services/ssr/assets/client-DYndNgbq.js                                   1.40 kB │ gzip:  0.69 kB
 node_modules/.nitro/vite/services/ssr/assets/createStart-Dt05N14y.js                              1.65 kB │ gzip:  0.57 kB
-node_modules/.nitro/vite/services/ssr/assets/test-store-DwvThWAw.js                               1.90 kB │ gzip:  0.89 kB
-node_modules/.nitro/vite/services/ssr/assets/personality-store-4GEaZtmU.js                        1.94 kB │ gzip:  0.91 kB
-node_modules/.nitro/vite/services/ssr/assets/theme-provider-BpT9yysc.js                           2.15 kB │ gzip:  1.06 kB
+node_modules/.nitro/vite/services/ssr/assets/test-store-CChM1EYT.js                               1.90 kB │ gzip:  0.89 kB
+node_modules/.nitro/vite/services/ssr/assets/personality-store-DaNLzCwI.js                        1.94 kB │ gzip:  0.91 kB
+node_modules/.nitro/vite/services/ssr/assets/theme-provider-Dvc_C8WS.js                           2.15 kB │ gzip:  1.06 kB
 node_modules/.nitro/vite/services/ssr/index.js                                                    2.21 kB │ gzip:  0.89 kB
-node_modules/.nitro/vite/services/ssr/assets/test-db-Ydv1zst1.js                                  2.36 kB │ gzip:  0.70 kB
+node_modules/.nitro/vite/services/ssr/assets/test-db-DBO4XYZm.js                                  2.36 kB │ gzip:  0.71 kB
 node_modules/.nitro/vite/services/ssr/assets/start-4MFgQP4F.js                                    2.42 kB │ gzip:  1.19 kB
-node_modules/.nitro/vite/services/ssr/assets/routes-CxhdKvi1.js                                   2.87 kB │ gzip:  1.21 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.gallery-D3-381hM.js                            4.13 kB │ gzip:  1.64 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.analytics-B5s0y3V7.js                          4.52 kB │ gzip:  1.51 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.site-content-fjMKFj-l.js                       5.29 kB │ gzip:  1.47 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.events-CAUGmBpe.js                             5.67 kB │ gzip:  1.86 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.test-analytics-CVxVHy5P.js                     5.68 kB │ gzip:  1.96 kB
-node_modules/.nitro/vite/services/ssr/assets/admin-DpGhmOxV.js                                    6.25 kB │ gzip:  2.02 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.menu-Ba2s6Utu.js                               6.32 kB │ gzip:  2.04 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-Bgz5ROZo.js                                   2.87 kB │ gzip:  1.21 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.gallery-D1cmWIz7.js                            4.13 kB │ gzip:  1.64 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.analytics-DWTj9CnG.js                          4.52 kB │ gzip:  1.51 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.site-content-BUeX4iqD.js                       5.29 kB │ gzip:  1.47 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.events-fRVKQwxr.js                             5.67 kB │ gzip:  1.86 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.test-analytics-jNk0JGhJ.js                     5.68 kB │ gzip:  1.96 kB
+node_modules/.nitro/vite/services/ssr/assets/admin-BDFlBH7V.js                                    6.25 kB │ gzip:  2.02 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.menu-V3oJREhX.js                               6.32 kB │ gzip:  2.04 kB
 node_modules/.nitro/vite/services/ssr/assets/orb-background-DbIowEgh.js                           6.62 kB │ gzip:  2.05 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.index-C8zsn0FV.js                              6.96 kB │ gzip:  2.03 kB
-node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-D0aYz4mv.js               6.97 kB │ gzip:  1.38 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.test-questions-DRw8KUTU.js                     8.06 kB │ gzip:  2.62 kB
-node_modules/.nitro/vite/services/ssr/assets/test._step-CDQJO5aj.js                               8.57 kB │ gzip:  3.02 kB
-node_modules/.nitro/vite/services/ssr/assets/test.info-aprJDjRm.js                                8.62 kB │ gzip:  2.60 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.media-CXBuAMSr.js                              8.78 kB │ gzip:  2.96 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-C2VgLZJr.js               6.97 kB │ gzip:  1.38 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.index-DUHQ-BQ8.js                              7.50 kB │ gzip:  2.15 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.test-questions-4fl1UAaP.js                     8.06 kB │ gzip:  2.62 kB
+node_modules/.nitro/vite/services/ssr/assets/test._step-Di0TsT8u.js                               8.57 kB │ gzip:  3.02 kB
+node_modules/.nitro/vite/services/ssr/assets/test.info-Cnt7sHlU.js                                8.62 kB │ gzip:  2.60 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.media-BjskLfOW.js                              8.78 kB │ gzip:  2.96 kB
 node_modules/.nitro/vite/services/ssr/assets/test-data-CeIpy77Z.js                                9.09 kB │ gzip:  2.79 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.personality-types-BKWxg2yV.js                 10.10 kB │ gzip:  2.84 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.personality-types-CUfMaz5m.js                 10.10 kB │ gzip:  2.84 kB
 node_modules/.nitro/vite/services/ssr/assets/supabase-B2jjn2gh.js                                10.28 kB │ gzip:  2.86 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.test-results-L-YxPzFo.js                      12.27 kB │ gzip:  3.15 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.test-results-vGN4dqyW.js                      12.27 kB │ gzip:  3.15 kB
 node_modules/.nitro/vite/services/ssr/assets/esm-Dova13aH.js                                     12.61 kB │ gzip:  3.72 kB
 node_modules/.nitro/vite/services/ssr/assets/provision-B6XUseWW.js                               14.89 kB │ gzip:  3.37 kB
-node_modules/.nitro/vite/services/ssr/assets/cms-Bhq-qmPK.js                                     16.70 kB │ gzip:  4.38 kB
+node_modules/.nitro/vite/services/ssr/assets/cms-TqyDBlHH.js                                     16.70 kB │ gzip:  4.38 kB
 node_modules/.nitro/vite/services/ssr/assets/theme-BCfTkcdv.js                                   18.81 kB │ gzip:  5.66 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.page-DiCBcaUg.js                              20.33 kB │ gzip:  5.53 kB
-node_modules/.nitro/vite/services/ssr/assets/admin-shell-CxyCER2q.js                             21.52 kB │ gzip:  5.81 kB
-node_modules/.nitro/vite/services/ssr/assets/test.result-D05ZG9pL.js                             23.02 kB │ gzip:  5.80 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.page-gmnknBKH.js                              20.33 kB │ gzip:  5.54 kB
+node_modules/.nitro/vite/services/ssr/assets/admin-shell-QVL-1Ogp.js                             22.17 kB │ gzip:  5.94 kB
+node_modules/.nitro/vite/services/ssr/assets/test.result-D2BBn7wU.js                             23.02 kB │ gzip:  5.80 kB
 node_modules/.nitro/vite/services/ssr/assets/css-vars-C0sowH2S.js                                23.03 kB │ gzip:  6.79 kB
 node_modules/.nitro/vite/services/ssr/assets/blocks-SD5k4s2V.js                                  45.02 kB │ gzip:  8.99 kB
-node_modules/.nitro/vite/services/ssr/assets/admin.settings-CkjiTfOx.js                          47.58 kB │ gzip: 11.95 kB
-node_modules/.nitro/vite/services/ssr/assets/server-D5-QXsa1.js                                  52.69 kB │ gzip: 13.62 kB
-node_modules/.nitro/vite/services/ssr/assets/factory-CqMbxsed.js                                 56.51 kB │ gzip: 11.41 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.settings-DS2H2jmK.js                          47.58 kB │ gzip: 11.95 kB
+node_modules/.nitro/vite/services/ssr/assets/server-BUVp3xK5.js                                  52.69 kB │ gzip: 13.62 kB
 node_modules/.nitro/vite/services/ssr/assets/landing-sections-BvlKRTsO.js                        56.61 kB │ gzip: 10.95 kB
-node_modules/.nitro/vite/services/ssr/assets/router-D7IJNAaY.js                                 118.65 kB │ gzip: 28.54 kB
+node_modules/.nitro/vite/services/ssr/assets/factory-CSKAid6Q.js                                 56.89 kB │ gzip: 11.52 kB
+node_modules/.nitro/vite/services/ssr/assets/router-D483GRiX.js                                 119.55 kB │ gzip: 28.83 kB
 
 [33m[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
-  - tanstack-start-core:import-protection (38%)
-  - vite-tsconfig-paths (24%)
-  - tanstack-start-core:import-protection-transform-cache (18%)
-  - tanstack-router:code-splitter:compile-reference-file (10%)
-  - tanstack-router:code-splitter:compile-virtual-file (4%)
+  - tanstack-start-core:import-protection (37%)
+  - vite-tsconfig-paths (36%)
+  - tanstack-start-core:import-protection-transform-cache (13%)
+  - tanstack-router:code-splitter:compile-reference-file (9%)
+  - tanstack-router:code-splitter:compile-virtual-file (3%)
 See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
 [39m
-[32m✓ built in 5.96s[39m
+[32m✓ built in 8.48s[39m
 
 [90m[[90mnitro[90m][39m [35m◐[39m Building [[35mNitro[39m] [2m(preset: [36mvercel[39m, compatibility: [36m2026-07-15[39m)[22m
 [90m[[90mnitro[90m][39m [32m✔[39m Generated public [36m.vercel/output/static[39m
@@ -199,7 +205,7 @@ computing gzip size...
 .vercel/output/functions/__server.func/_ssr/cms.functions-DADAJU0E.mjs                       0.79 kB │ gzip:   0.50 kB
 .vercel/output/functions/__server.func/_ssr/use-mobile-DM96sOa1.mjs                          0.81 kB │ gzip:   0.45 kB
 .vercel/output/functions/__server.func/__23tanstack-start-server-fn-resolver-MllkSnwY.mjs    0.84 kB │ gzip:   0.46 kB
-.vercel/output/functions/__server.func/_ssr/routes-aMj7Ul1v.mjs                              0.91 kB │ gzip:   0.60 kB
+.vercel/output/functions/__server.func/_ssr/routes-DE7KrxcC.mjs                              0.91 kB │ gzip:   0.60 kB
 .vercel/output/functions/__server.func/_ssr/test-questions-B_RC_EWL.mjs                      0.98 kB │ gzip:   0.52 kB
 .vercel/output/functions/__server.func/_libs/radix-ui__react-compose-refs.mjs                1.02 kB │ gzip:   0.50 kB
 .vercel/output/functions/__server.func/_ssr/cms.functions-DAkRQM5R.mjs                       1.19 kB │ gzip:   0.64 kB
@@ -207,59 +213,59 @@ computing gzip size...
 .vercel/output/functions/__server.func/_ssr/createStart-Dt05N14y.mjs                         1.56 kB │ gzip:   0.57 kB
 .vercel/output/functions/__server.func/_runtime.mjs                                          1.89 kB │ gzip:   0.86 kB
 .vercel/output/functions/__server.func/_libs/zustand.mjs                                     1.91 kB │ gzip:   0.71 kB
-.vercel/output/functions/__server.func/_ssr/test-store-DwvThWAw.mjs                          2.06 kB │ gzip:   0.94 kB
-.vercel/output/functions/__server.func/_ssr/personality-store-4GEaZtmU.mjs                   2.17 kB │ gzip:   1.02 kB
+.vercel/output/functions/__server.func/_ssr/test-store-CChM1EYT.mjs                          2.06 kB │ gzip:   0.95 kB
+.vercel/output/functions/__server.func/_ssr/personality-store-DaNLzCwI.mjs                   2.17 kB │ gzip:   1.02 kB
 .vercel/output/functions/__server.func/_ssr/ssr.mjs                                          2.19 kB │ gzip:   0.89 kB
 .vercel/output/functions/__server.func/_ssr/start-4MFgQP4F.mjs                               2.36 kB │ gzip:   1.20 kB
-.vercel/output/functions/__server.func/_ssr/test-db-Ydv1zst1.mjs                             2.44 kB │ gzip:   0.74 kB
-.vercel/output/functions/__server.func/_ssr/theme-provider-BpT9yysc.mjs                      2.61 kB │ gzip:   1.18 kB
-.vercel/output/functions/__server.func/_ssr/routes-CxhdKvi1.mjs                              3.58 kB │ gzip:   1.33 kB
+.vercel/output/functions/__server.func/_ssr/test-db-DBO4XYZm.mjs                             2.44 kB │ gzip:   0.74 kB
+.vercel/output/functions/__server.func/_ssr/theme-provider-Dvc_C8WS.mjs                      2.61 kB │ gzip:   1.18 kB
+.vercel/output/functions/__server.func/_ssr/routes-Bgz5ROZo.mjs                              3.58 kB │ gzip:   1.33 kB
 .vercel/output/functions/__server.func/_libs/radix-ui__react-context+react.mjs               4.10 kB │ gzip:   1.43 kB
-.vercel/output/functions/__server.func/_ssr/admin.gallery-D3-381hM.mjs                       5.02 kB │ gzip:   1.78 kB
-.vercel/output/functions/__server.func/_ssr/admin.analytics-B5s0y3V7.mjs                     5.28 kB │ gzip:   1.57 kB
-.vercel/output/functions/__server.func/_ssr/admin.site-content-fjMKFj-l.mjs                  6.42 kB │ gzip:   1.55 kB
-.vercel/output/functions/__server.func/_ssr/admin.test-analytics-CVxVHy5P.mjs                6.81 kB │ gzip:   2.10 kB
-.vercel/output/functions/__server.func/_ssr/admin.events-CAUGmBpe.mjs                        6.87 kB │ gzip:   2.00 kB
-.vercel/output/functions/__server.func/_tanstack-start-manifest_v-D0aYz4mv.mjs               7.03 kB │ gzip:   1.42 kB
+.vercel/output/functions/__server.func/_ssr/admin.gallery-D1cmWIz7.mjs                       5.02 kB │ gzip:   1.79 kB
+.vercel/output/functions/__server.func/_ssr/admin.analytics-DWTj9CnG.mjs                     5.28 kB │ gzip:   1.57 kB
+.vercel/output/functions/__server.func/_ssr/admin.site-content-BUeX4iqD.mjs                  6.42 kB │ gzip:   1.56 kB
+.vercel/output/functions/__server.func/_ssr/admin.test-analytics-jNk0JGhJ.mjs                6.81 kB │ gzip:   2.10 kB
+.vercel/output/functions/__server.func/_ssr/admin.events-fRVKQwxr.mjs                        6.87 kB │ gzip:   2.00 kB
+.vercel/output/functions/__server.func/_tanstack-start-manifest_v-C2VgLZJr.mjs               7.03 kB │ gzip:   1.42 kB
 .vercel/output/functions/__server.func/_ssr/orb-background-DbIowEgh.mjs                      7.19 kB │ gzip:   2.20 kB
 .vercel/output/functions/__server.func/index.mjs                                             7.21 kB │ gzip:   2.58 kB
-.vercel/output/functions/__server.func/_ssr/admin-DpGhmOxV.mjs                               7.32 kB │ gzip:   2.17 kB
+.vercel/output/functions/__server.func/_ssr/admin-BDFlBH7V.mjs                               7.32 kB │ gzip:   2.17 kB
 .vercel/output/functions/__server.func/_libs/tanstack__react-query.mjs                       7.36 kB │ gzip:   1.95 kB
-.vercel/output/functions/__server.func/_ssr/admin.menu-Ba2s6Utu.mjs                          7.66 kB │ gzip:   2.19 kB
-.vercel/output/functions/__server.func/_ssr/admin.index-C8zsn0FV.mjs                         8.25 kB │ gzip:   2.14 kB
-.vercel/output/functions/__server.func/_ssr/admin.test-questions-DRw8KUTU.mjs                9.07 kB │ gzip:   2.73 kB
+.vercel/output/functions/__server.func/_ssr/admin.menu-V3oJREhX.mjs                          7.66 kB │ gzip:   2.19 kB
+.vercel/output/functions/__server.func/_ssr/admin.index-DUHQ-BQ8.mjs                         8.79 kB │ gzip:   2.26 kB
+.vercel/output/functions/__server.func/_ssr/admin.test-questions-4fl1UAaP.mjs                9.07 kB │ gzip:   2.73 kB
 .vercel/output/functions/__server.func/_ssr/test-data-CeIpy77Z.mjs                           9.13 kB │ gzip:   2.84 kB
-.vercel/output/functions/__server.func/_ssr/test._step-CDQJO5aj.mjs                          9.33 kB │ gzip:   3.15 kB
+.vercel/output/functions/__server.func/_ssr/test._step-Di0TsT8u.mjs                          9.33 kB │ gzip:   3.15 kB
 .vercel/output/functions/__server.func/_libs/h3-v2.mjs                                       9.62 kB │ gzip:   2.98 kB
-.vercel/output/functions/__server.func/_ssr/test.info-aprJDjRm.mjs                           9.72 kB │ gzip:   2.75 kB
-.vercel/output/functions/__server.func/_ssr/admin.media-CXBuAMSr.mjs                        10.11 kB │ gzip:   3.09 kB
+.vercel/output/functions/__server.func/_ssr/test.info-Cnt7sHlU.mjs                           9.72 kB │ gzip:   2.75 kB
+.vercel/output/functions/__server.func/_ssr/admin.media-BjskLfOW.mjs                        10.11 kB │ gzip:   3.10 kB
 .vercel/output/functions/__server.func/_ssr/supabase-B2jjn2gh.mjs                           10.52 kB │ gzip:   3.05 kB
 .vercel/output/functions/__server.func/_ssr/esm-Dova13aH.mjs                                11.93 kB │ gzip:   3.69 kB
-.vercel/output/functions/__server.func/_ssr/admin.personality-types-BKWxg2yV.mjs            11.94 kB │ gzip:   2.99 kB
+.vercel/output/functions/__server.func/_ssr/admin.personality-types-CUfMaz5m.mjs            11.94 kB │ gzip:   2.99 kB
 .vercel/output/functions/__server.func/_libs/tanstack__history.mjs                          12.09 kB │ gzip:   3.48 kB
 .vercel/output/functions/__server.func/_libs/supabase__functions-js.mjs                     12.12 kB │ gzip:   3.31 kB
 .vercel/output/functions/__server.func/_libs/dnd-kit__sortable.mjs                          12.28 kB │ gzip:   3.43 kB
-.vercel/output/functions/__server.func/_ssr/admin.test-results-L-YxPzFo.mjs                 14.27 kB │ gzip:   3.31 kB
+.vercel/output/functions/__server.func/_ssr/admin.test-results-vGN4dqyW.mjs                 14.27 kB │ gzip:   3.31 kB
 .vercel/output/functions/__server.func/_libs/cmdk.mjs                                       16.60 kB │ gzip:   5.50 kB
 .vercel/output/functions/__server.func/_libs/dnd-kit__accessibility+react.mjs               16.69 kB │ gzip:   4.69 kB
-.vercel/output/functions/__server.func/_ssr/cms-Bhq-qmPK.mjs                                16.95 kB │ gzip:   4.46 kB
+.vercel/output/functions/__server.func/_ssr/cms-TqyDBlHH.mjs                                16.95 kB │ gzip:   4.46 kB
 .vercel/output/functions/__server.func/_ssr/provision-B6XUseWW.mjs                          17.16 kB │ gzip:   3.54 kB
 .vercel/output/functions/__server.func/_ssr/theme-BCfTkcdv.mjs                              19.63 kB │ gzip:   5.88 kB
 .vercel/output/functions/__server.func/_libs/canvas-confetti.mjs                            20.25 kB │ gzip:   5.82 kB
 .vercel/output/functions/__server.func/_libs/h3+rou3+srvx.mjs                               22.55 kB │ gzip:   6.12 kB
 .vercel/output/functions/__server.func/_ssr/css-vars-C0sowH2S.mjs                           22.89 kB │ gzip:   6.78 kB
-.vercel/output/functions/__server.func/_ssr/admin.page-DiCBcaUg.mjs                         23.17 kB │ gzip:   5.69 kB
-.vercel/output/functions/__server.func/_ssr/admin-shell-CxyCER2q.mjs                        24.49 kB │ gzip:   6.02 kB
-.vercel/output/functions/__server.func/_ssr/test.result-D05ZG9pL.mjs                        25.46 kB │ gzip:   6.00 kB
+.vercel/output/functions/__server.func/_ssr/admin.page-gmnknBKH.mjs                         23.17 kB │ gzip:   5.69 kB
+.vercel/output/functions/__server.func/_ssr/admin-shell-QVL-1Ogp.mjs                        25.15 kB │ gzip:   6.15 kB
+.vercel/output/functions/__server.func/_ssr/test.result-D2BBn7wU.mjs                        25.46 kB │ gzip:   6.00 kB
 .vercel/output/functions/__server.func/_libs/lucide-react.mjs                               27.77 kB │ gzip:   5.61 kB
 .vercel/output/functions/__server.func/_libs/supabase__supabase-js.mjs                      33.97 kB │ gzip:   9.89 kB
 .vercel/output/functions/__server.func/_libs/supabase__phoenix.mjs                          49.12 kB │ gzip:  12.36 kB
 .vercel/output/functions/__server.func/_ssr/blocks-SD5k4s2V.mjs                             51.41 kB │ gzip:   9.19 kB
-.vercel/output/functions/__server.func/_ssr/server-D5-QXsa1.mjs                             51.64 kB │ gzip:  13.53 kB
+.vercel/output/functions/__server.func/_ssr/server-BUVp3xK5.mjs                             51.64 kB │ gzip:  13.53 kB
 .vercel/output/functions/__server.func/_libs/sonner.mjs                                     51.95 kB │ gzip:  11.78 kB
-.vercel/output/functions/__server.func/_ssr/admin.settings-CkjiTfOx.mjs                     52.70 kB │ gzip:  12.16 kB
+.vercel/output/functions/__server.func/_ssr/admin.settings-DS2H2jmK.mjs                     52.70 kB │ gzip:  12.16 kB
 .vercel/output/functions/__server.func/_libs/vaul.mjs                                       55.98 kB │ gzip:  12.49 kB
-.vercel/output/functions/__server.func/_ssr/factory-CqMbxsed.mjs                            56.27 kB │ gzip:  11.53 kB
+.vercel/output/functions/__server.func/_ssr/factory-CSKAid6Q.mjs                            56.65 kB │ gzip:  11.63 kB
 .vercel/output/functions/__server.func/_ssr/landing-sections-BvlKRTsO.mjs                   63.83 kB │ gzip:  11.28 kB
 .vercel/output/functions/__server.func/_libs/tanstack__query-core.mjs                       65.81 kB │ gzip:  13.90 kB
 .vercel/output/functions/__server.func/_libs/@radix-ui/react-dialog+[...].mjs               74.47 kB │ gzip:  17.88 kB
@@ -269,14 +275,14 @@ computing gzip size...
 .vercel/output/functions/__server.func/_libs/@dnd-kit/core+[...].mjs                        90.51 kB │ gzip:  20.35 kB
 .vercel/output/functions/__server.func/_libs/zod.mjs                                       100.12 kB │ gzip:  17.34 kB
 .vercel/output/functions/__server.func/_libs/supabase__postgrest-js.mjs                    105.41 kB │ gzip:  21.66 kB
-.vercel/output/functions/__server.func/_ssr/router-D7IJNAaY.mjs                            117.59 kB │ gzip:  28.43 kB
+.vercel/output/functions/__server.func/_ssr/router-D483GRiX.mjs                            118.54 kB │ gzip:  28.73 kB
 .vercel/output/functions/__server.func/_libs/@supabase/storage-js+[...].mjs                118.89 kB │ gzip:  22.06 kB
 .vercel/output/functions/__server.func/_libs/supabase__auth-js.mjs                         300.78 kB │ gzip:  59.88 kB
 .vercel/output/functions/__server.func/_libs/html2canvas.mjs                               318.37 kB │ gzip:  63.06 kB
 .vercel/output/functions/__server.func/_libs/framer-motion.mjs                             376.43 kB │ gzip:  98.53 kB
 .vercel/output/functions/__server.func/_libs/@tanstack/react-router+[...].mjs              664.35 kB │ gzip: 139.23 kB
 
-[32m✓ built in 4.02s[39m
+[32m✓ built in 4.58s[39m
 [36mℹ[39m Generated [36m.vercel/output/nitro.json[39m
 
 [90m[[90mnitro[90m][39m [32m✔[39m You can preview this build using [36mnpx vite preview[39m

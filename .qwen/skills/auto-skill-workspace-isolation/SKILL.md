@@ -176,6 +176,110 @@ failure into a persistent (TTL-length) silent degrade. Log + rethrow. And if the
 provider's resolution throws, still configure the repos with DEFAULT in the
 `catch` so the Singleton isn't left unconfigured.
 
+## Bug pattern #6 — Zod `z.string().datetime()` rejects Postgres `timestamptz`, so `_mapRowToEntity` returns null and `findByDomain` silently misses (silent default degrade, NO throw)
+
+**Signature (2026-07-15):** the EXACT same symptom as Bug #5 — `?preview_domain=khane.nama.app` (or any `*.nama.app` subdomain) renders DEFAULT; console shows the 4 `Workspace Health` warnings (`✗ workspace-resolution` / `✗ workspace-entity` / `✗ workspace-limits` / `✗ workspace-status`) and `No workspace resolved for requested domain "<domain>" — degrading to default workspace` — BUT this time the resolver did NOT throw. So the Bug #5 rethrow fix doesn't help: nothing was thrown, `findByDomain` simply returned `null`.
+
+**Root cause:** `src/lib/core/workspace/validation.ts`. `workspaceEntitySchema`
+(and `workspaceMembershipSchema`) parse the timestamps with
+`z.string().datetime()` — **without `offset: true`**. Postgres `timestamptz`
+serializes over the wire as an ISO 8601 string **with a `+HH:MM` offset and
+microsecond precision**, e.g. `2026-07-13T17:14:27.447762+00:00`. The default
+`datetime()` only accepts a trailing `Z` (UTC), so it **rejects every
+DB-backed workspace row**. `repository.ts` `_mapRowToEntity` does
+`return result.success ? result.data : null` — a schema failure therefore
+returns `null` **silently (no throw)**. `findByDomain` (`maybeSingle`) then sees
+`null` → resolver degrades to `DEFAULT_WORKSPACE`. Net effect: every workspace
+read from the DB silently resolves to DEFAULT, with zero diagnostic signal and
+no exception for the Bug #5 rethrow to catch. (Affects ALL DB-backed workspaces,
+not just one — the worked example was `khane.nama.app`.)
+
+**Diagnostic HOWTO (the decisive test — rules RLS in/out):**
+Write a Node `@supabase/supabase-js` script that (a) runs the EXACT
+`findByDomain` query (`.from("workspaces").select("*").eq("domain","<domain>").maybeSingle()`)
+and confirms the row comes back, then (b) replicates `_mapRowToEntity` +
+`workspaceEntitySchema.safeParse(entity)` and prints `result.error.issues`. If
+the query returns the row but `safeParse` FAILS on `metadata.createdAt` /
+`metadata.updatedAt` / `membership[].joinedAt` with `code: "invalid_string"`
+(`invalid_date`), you have THIS bug, not RLS. (Working repros:
+`_diag_map_khane.mjs` / `_verify_schema_fix.mjs`.) A row that is returned by the
+query but fails schema validation = the entity layer is the culprit, full stop.
+
+**Fix (applied 2026-07-15, commit `53e5f36`):** in `validation.ts`, change the
+three datetime fields to accept the offset form:
+
+```ts
+// workspaceMembershipSchema
+joinedAt: z.string().datetime({ offset: true }),
+// workspaceMetadataSchema
+createdAt: z.string().datetime({ offset: true }),
+updatedAt: z.string().datetime({ offset: true }),
+```
+
+`datetime({ offset: true })` accepts BOTH `Z` and `+HH:MM` forms, so it works
+whether Postgres sends `…Z` or `…+00:00`. (Alternative: `z.coerce.date()` if you
+want a `Date` object instead of a string — but the entity keeps strings, so
+`offset: true` is the minimal fix.)
+
+**Rule of thumb:** ANY Zod field that parses a Postgres `timestamptz` /
+`timestamp` column MUST use `datetime({ offset: true })` (or `z.coerce.date()`),
+because Postgres emits ISO strings with a `+HH:MM` offset and microsecond
+precision, never a bare `Z`. A strict `datetime()` will silently null every
+row-level map and LOOK exactly like "RLS is blocking it" — but the query
+succeeds and only `safeParse` fails. When you see "row exists + resolver
+degrades to DEFAULT + no error thrown", check the schema BEFORE assuming RLS.
+
+## Bug pattern #7 — write-path `RETURNING`-null produces a silent "fake success" (block appears to add but never persists)
+
+**Signature (2026-07-15):** in `/admin/page`, clicking "add block" shows the
+success toast (`بلوک افزوده شد`) but the block never appears in the builder and
+never shows on the public page. `getAll()` (which applies
+`withWorkspace(...).eq("workspace_id", wsId)`) returns the workspace's EXISTING
+blocks fine, so the table is readable and isolation works — yet new inserts vanish.
+
+**Root cause:** `PagesRepository.create()` read the inserted row back with
+`.insert(insertData).select().maybeSingle()` and then did `return data;` with
+**no null check**. Under any RLS that also filters the `RETURNING` set
+(workspace-scoped SELECT applied via the SQL Editor during the multi-tenant
+epic — NOT present in the committed `.sql` files), the just-inserted row is
+filtered out of the returning set, so `.select()` yields `null` even though the
+`INSERT` succeeded. The data layer swallowed that null, the `useCreateBlock`
+`onSuccess` (`if (!data) return;`) correctly no-op'd — but `admin.page.tsx`
+fired its success toast unconditionally on mutation resolve. Result: a toast
+that lies, and a row that exists in the DB nowhere the caller can read it.
+
+This is the WRITE-path mirror of Bug #6's silent-null: there the entity map
+returned `null`; here the RETURNING `select()` returned `null`. In both cases a
+success signal fires while the data is silently absent.
+
+**Fix pattern (applied 2026-07-15, commit `2b3c4e3`):**
+
+1. Writes that read-back the inserted row MUST throw when the RETURNING set is
+   empty — never return `null` silently:
+   ```ts
+   const { data, error } = await this.db.from("page_blocks").insert(insertData).select().maybeSingle();
+   if (error) throw error;
+   if (!data) throw this.normalizeError("page_blocks", "create",
+     new Error("Insert succeeded but no row was returned (RLS may have filtered the result)"));
+   return data;
+   ```
+2. The UI must re-sync from the source of truth instead of trusting a cache
+   write that may have been handed `null`. `useCreateBlock` now (a) optimistically
+   inserts a temp row via `beginOptimisticUpdate` so the block shows instantly,
+   (b) on error rolls back, and (c) calls
+   `qc.invalidateQueries({ queryKey: QK.blocks })` in `onSettled` so the list
+   reflects the actual DB state. A bare `setQueryData(... upsertById(list, data))`
+   is insufficient when `data` can be `null`.
+
+**Rule of thumb:** any repository `create`/`insert` that returns the inserted row
+via `.select().maybeSingle()` is a latent "fake success" vector the moment a
+workspace-scoped (or any) RLS filters the RETURNING set. Assert the row came
+back (throw a `RepositoryError` otherwise) and make the calling mutation
+re-fetch its list on settle. If, after this fix, the user sees an ERROR toast on
+add (not a silent no-op), the deployed `page_blocks` SELECT RLS is filtering the
+insert's RETURNING row — fix the deployed policy (ensure the row's
+`workspace_id` is readable by the inserting session), not the app code.
+
 ## Provisioning status signal (why some rows are `provisioning`, others `active`)
 
 Two different code paths create workspaces and set **different default statuses**:
@@ -310,6 +414,14 @@ await supabase.from("workspaces")
 6. Verify isolation in Supabase SQL:
    `SELECT workspace_id, count(*) FROM site_content GROUP BY 1;` — after a
    correct provision you should see a new id, not only `00000000-…-0001`.
+7. **If the row exists and resolution is correct but it STILL degrades with NO
+   error thrown, suspect the Zod schema (Bug #6), NOT RLS.** Run the
+   `_mapRowToEntity` + `workspaceEntitySchema.safeParse` repro (see Bug #6
+   diagnostic HOWTO). A successful query that yields a `null` from the entity
+   map is a schema-validation failure on the `timestamptz` offset, not a
+   permission problem. RLS/permission errors THROW; a silent `null` miss while
+   the row is returned is almost always a `z.string().datetime()` (no
+   `offset: true`) rejection of Postgres's `+HH:MM` timestamps.
 
 ## Read-path isolation audit (proving an admin page loads ONLY its workspace's data)
 
@@ -499,13 +611,64 @@ gallery_images / 0 events** — identical to any freshly-provisioned workspace.
 Source workspace is only read, never modified. Always print a dry-run plan
 (counts to delete / insert) before writing.
 
+## Trap — isolation can be CORRECT yet every slug shows identical content (template clone)
+
+**Signature (2026-07-15):** the isolation fix is deployed and verified, but the
+user still reports "all provisions show the same thing / khane still uses
+default data". Re-auditing shows the isolation bug IS fixed — khane now returns
+only its own rows — yet the content is still identical to every other slug. This
+is NOT a regression; it is **template cloning**.
+
+**Root cause:** the provisioning engine seeds every new workspace from the SAME
+starter blueprint (cafeteria). Each workspace gets its OWN, correctly
+`workspace_id`-scoped rows that are **byte-for-byte identical** to every other
+workspace's rows. After a correct isolation fix, `?preview_domain=khane.nama.app`
+shows khane's 6 menu items — which are the *same* 6 items as yek's and default's.
+The app isolates correctly; the seed data is just cloned. "Still the same thing"
+refers to the *content*, not a *leak*.
+
+**Tell "isolation-broken (union/leak)" apart from "isolation-OK-but-cloned":**
+run a per-slug data-layer audit. Broken = a slug returns the UNION of all
+workspaces (e.g. khane shows 48 menu items instead of 6). OK = each slug returns
+only its own count (e.g. 6), but the *text* of those rows is identical across
+slugs.
+
+```js
+import { createClient } from "@supabase/supabase-js";
+const sb = createClient(URL, KEY, { auth: { persistSession: false } });
+const { data: ws } = await sb.from("workspaces").select("id, domain, owner_user_id, metadata").order("created_at");
+for (const w of ws) {
+  const { count } = await sb.from("menu_items").select("id", { count: "exact", head: true }).eq("workspace_id", w.id);
+  console.log(w.domain ?? "(none)", "menu=", count, "owner=", w.owner_user_id ?? "null");
+}
+```
+
+Expected AFTER a correct fix: every provisioned slug shows the SAME small count
+(e.g. 6 menu / 3 gallery) and the menu text is identical across slugs. That is
+template cloning, not a bug. To MAKE slugs differ you must either (a) edit each
+workspace's CMS content, or (b) change the provisioning seed to brand
+per-workspace — the isolation layer cannot create distinct content on its own.
+
+**Gotcha — `menu_items` uses `name`, NOT `title`.** The repo's stale TS types
+imply a `title` column, but the LIVE `menu_items` table has **no `title`**
+(querying it errors `column menu_items.title does not exist`). Use
+`name`/`category`/`description`/`price` for menu comparisons. Likewise the slug
+column on `workspaces` is `domain` (e.g. `khane.nama.app`), not `subdomain`, and
+there are TWO "Default Workspace" rows — don't confuse them when auditing:
+- `00000000-0000-0000-0000-000000000001` (domain=`localhost`) = `DEFAULT_WORKSPACE_ID`,
+  owns the global `site_content` keys; this is the app's fallback workspace.
+- `a57c0f1a-f643-40f7-b1a2-2cf2e95676d2` (domain=`null`, has an `owner_user_id`) =
+  the single-tenant default from `getOrCreateDefault`; typically EMPTY (0 content)
+  and NOT the globals owner.
+
 ## When to apply
 
 Any task mentioning "workspaces share data", "multi-tenant isolation",
 "tenant bleed", provisioning writing to the wrong workspace, "my change shows
 up in other workspaces", "every subdomain shows the base project", "links show
-the default workspace", or "my provisioned workspace is stuck at provisioning".
-Always check the `setWorkspace` call on the active repo graph first — it is the
-single most common root cause. Then check the client `extractDomainInfo` slicing
-(Bug #4) for subdomain-resolution-to-DEFAULT, and `provision_transactions.error`
-for `provisioning`-stuck rows.
+the default workspace", "my provisioned workspace is stuck at provisioning", or
+"add block / create shows success but nothing is saved" (the fake-success
+RETURNING-null trap, Bug #7). Always check the `setWorkspace` call on the active
+repo graph first — it is the single most common root cause. Then check the
+client `extractDomainInfo` slicing (Bug #4) for subdomain-resolution-to-DEFAULT,
+and `provision_transactions.error` for `provisioning`-stuck rows.
