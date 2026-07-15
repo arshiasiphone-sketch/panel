@@ -29,6 +29,22 @@ import {
   DEFAULT_RETRY_CONFIG,
 } from "../retry";
 
+// Minimal valid public-provision input. The real schema (validation.ts) requires the
+// public-API fields (requestedSlug/externalOrderId/customerEmail/businessName) in addition
+// to blueprintSlug/ownerUserId. Tests exercise the validator/engine with the real schema,
+// so they must supply all of them.
+function validProvisionInput(overrides: Record<string, unknown> = {}) {
+  return {
+    blueprintSlug: "test",
+    ownerUserId: "user-1",
+    requestedSlug: "test-cafe",
+    externalOrderId: "order_test_001",
+    customerEmail: "owner@example.com",
+    businessName: "Test Cafe",
+    ...overrides,
+  };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockBlueprint = {
@@ -540,8 +556,7 @@ describe("ProvisionValidator", () => {
     });
 
     const result = await validator.validate({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(result.valid).toBe(true);
@@ -565,8 +580,7 @@ describe("ProvisionValidator", () => {
     });
 
     const result = await validator.validate({
-      blueprintSlug: "nonexistent",
-      ownerUserId: "user-1",
+      ...validProvisionInput({ blueprintSlug: "nonexistent" }),
     });
 
     expect(result.valid).toBe(false);
@@ -597,8 +611,7 @@ describe("ProvisionValidator", () => {
     });
 
     const result = await validator.validate({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(result.valid).toBe(false);
@@ -645,8 +658,7 @@ describe("ProvisionValidator", () => {
     });
 
     const result = await validator.validate({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(result.valid).toBe(false);
@@ -662,7 +674,7 @@ describe("ProvisionValidator", () => {
       workspaceRepository: {} as any,
     });
 
-    expect(validator.validateRequest({ blueprintSlug: "test", ownerUserId: "user-1" }).valid).toBe(true);
+    expect(validator.validateRequest(validProvisionInput()).valid).toBe(true);
     expect(validator.validateRequest({} as any).valid).toBe(false);
   });
 
@@ -682,8 +694,7 @@ describe("ProvisionValidator", () => {
     });
 
     const result = await validator.validate({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(result.valid).toBe(true);
@@ -1448,8 +1459,7 @@ describe("ProvisionEngine", () => {
     const engine = new ProvisionEngine(deps as any);
 
     await engine.provision({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(deps.validator.validate).toHaveBeenCalled();
@@ -1468,8 +1478,9 @@ describe("ProvisionEngine", () => {
     });
     const engine = new ProvisionEngine(deps as any);
 
-    await expect(engine.provision({ blueprintSlug: "nonexistent", ownerUserId: "user-1" }))
-      .rejects.toThrow("Provision validation failed");
+    await expect(
+      engine.provision(validProvisionInput({ blueprintSlug: "nonexistent" })),
+    ).rejects.toThrow("Provision validation failed");
 
     expect(deps.transactionManager.begin).not.toHaveBeenCalled();
   });
@@ -1486,8 +1497,7 @@ describe("ProvisionEngine", () => {
     const engine = new ProvisionEngine(deps as any);
 
     await engine.provision({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     // Check that updateStatus was called with "failed" — confirming rollback path was taken
@@ -1502,8 +1512,7 @@ describe("ProvisionEngine", () => {
     const engine = new ProvisionEngine(deps as any);
 
     await engine.provision({
-      blueprintSlug: "test",
-      ownerUserId: "user-1",
+      ...validProvisionInput(),
     });
 
     expect(deps.transactionManager.recordStep).toHaveBeenCalled();
