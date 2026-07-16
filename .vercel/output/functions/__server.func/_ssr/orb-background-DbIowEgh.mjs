@@ -1,5 +1,5 @@
 import { o as __toESM, r as __exportAll } from "../_runtime.mjs";
-import { r as __exportAll$1 } from "./supabase-B2jjn2gh.mjs";
+import { r as __exportAll$1 } from "./client.server-V7xMqmPH.mjs";
 import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
 import { n as require_jsx_runtime } from "../_libs/radix-ui__react-context+react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/orb-background-DbIowEgh.js
