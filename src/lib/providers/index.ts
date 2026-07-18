@@ -11,6 +11,7 @@
 import { getSupabaseProviders } from "./supabase";
 import { initRepositories, getRepositories } from "@/lib/repositories";
 import type { Repositories } from "@/lib/repositories";
+import { useOptionalWorkspace } from "@/lib/core/workspace";
 
 let _initialized = false;
 
@@ -57,6 +58,5 @@ export {
   DEFAULT_WORKSPACE,
   CurrentWorkspaceProvider,
   useCurrentWorkspace,
-  useOptionalWorkspace,
 } from "@/lib/core/workspace";
 export type { WorkspaceContext, WorkspaceContextValue } from "@/lib/core/workspace";

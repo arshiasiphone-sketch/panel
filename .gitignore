@@ -9,3 +9,6 @@ dist/
 .DS_Store
 coverage/
 tsc-errors.txt
+
+# Vercel build output (generated)
+.vercel/
