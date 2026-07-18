@@ -272,7 +272,10 @@ export const useUpsertGalleryImage = makeUpsertHook<Partial<GalleryImage>>("gall
 export const useDeleteGalleryImage = makeDeleteHook("gallery", QK.gallery);
 export const useUpsertEvent = makeUpsertHook<Partial<EventItem>>("events", QK.events);
 export const useDeleteEvent = makeDeleteHook("events", QK.events);
-export const useUpsertTestimonial = makeUpsertHook<Partial<Testimonial>>("testimonials", QK.testimonials);
+export const useUpsertTestimonial = makeUpsertHook<Partial<Testimonial>>(
+  "testimonials",
+  QK.testimonials,
+);
 export const useDeleteTestimonial = makeDeleteHook("testimonials", QK.testimonials);
 
 /* Blocks: special handling — insert, update, delete, reorder */
@@ -286,7 +289,10 @@ export function useCreateBlock() {
       data: Record<string, unknown>;
       sort_order: number;
     }) => {
-      return repos.pages.create({ ...input, workspace_id: ws?.workspace?.workspaceId ?? undefined } as never);
+      return repos.pages.create({
+        ...input,
+        workspace_id: ws?.workspace?.workspaceId ?? undefined,
+      } as never);
     },
     onMutate: async (input) => {
       const optimistic = {
