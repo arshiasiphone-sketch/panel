@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, lazy, Suspense } from "react";
+import { fetchThemeSettings, QK } from "@/lib/cms";
 import {
-  fetchThemeSettings,
-  QK,
-} from "@/lib/cms";
-import { getPublicWorkspaceContent, type PublicWorkspaceContent } from "@/lib/public-content.functions";
+  getPublicWorkspaceContent,
+  type PublicWorkspaceContent,
+} from "@/lib/public-content.functions";
+import { PLATFORM_DOMAIN } from "@/lib/constants";
 import type { LandingCtx as LandingCtxType } from "@/components/landing/landing-sections";
 import { LandingThemeProvider } from "@/lib/theme-provider";
 
@@ -18,6 +19,29 @@ const OrbFallback = () => (
 );
 
 const BlockFallback = () => <div className="w-full h-48 animate-pulse rounded-lg bg-muted/20" />;
+
+/**
+ * Build the admin entry URL that is scoped to the *current* tenant/preview
+ * rather than always pointing at the root platform admin.
+ *
+ * - `?preview_domain=<domain>` → carry it so /admin opens that workspace.
+ * - Tenant subdomain (e.g. khane.nama.app) → relative `/admin` is already
+ *   scoped to this host.
+ * - Root platform domain with a resolved tenant domain → pass it as
+ *   `preview_domain` so the right workspace loads.
+ */
+function buildAdminHref(resolvedDomain?: string | null): string {
+  if (typeof window === "undefined") return "/admin";
+  const preview = new URLSearchParams(window.location.search).get("preview_domain");
+  if (preview) return `/admin?preview_domain=${encodeURIComponent(preview)}`;
+
+  const host = window.location.hostname;
+  const isTenantSubdomain = host.endsWith(PLATFORM_DOMAIN) && host.split(".").length >= 3;
+  if (isTenantSubdomain) return "/admin";
+
+  if (resolvedDomain) return `/admin?preview_domain=${encodeURIComponent(resolvedDomain)}`;
+  return "/admin";
+}
 
 export const Route = createFileRoute("/")({
   loader: async ({ context: { queryClient } }) => {
@@ -71,7 +95,7 @@ function LandingPage() {
         </Suspense>
 
         <footer className="relative px-5 py-10 text-center text-muted-foreground">
-          <a href="/admin" className="text-xs hover:underline">
+          <a href={buildAdminHref(content.domain)} className="text-xs hover:underline">
             ورود به پنل مدیریت
           </a>
         </footer>
@@ -94,7 +118,15 @@ function LazyPageSections({ content }: { content: PublicWorkspaceContent }) {
 
   const ordered = useMemo(
     () =>
-      (content.blocks as Array<{ id: string; type: string; data: Record<string, unknown>; visible: boolean; sort_order: number }>)
+      (
+        content.blocks as Array<{
+          id: string;
+          type: string;
+          data: Record<string, unknown>;
+          visible: boolean;
+          sort_order: number;
+        }>
+      )
         .filter((b) => b.visible)
         .sort((a, b) => a.sort_order - b.sort_order),
     [content.blocks],
