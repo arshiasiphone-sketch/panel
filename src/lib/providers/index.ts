@@ -32,7 +32,12 @@ export function initializeRepositories(): Repositories {
  * Throws if not yet initialized.
  */
 export function useRepositories(): Repositories {
-  return initializeRepositories();
+  const repos = initializeRepositories();
+  const ws = useOptionalWorkspace();
+  if (ws?.workspace?.workspaceId) {
+    setWorkspaceOnRepositories(repos, { workspaceId: ws.workspace.workspaceId });
+  }
+  return repos;
 }
 
 // Repositories are exported directly for convenience

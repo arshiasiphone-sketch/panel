@@ -18,6 +18,7 @@ import {
   upsertById,
   removeById,
 } from "@/lib/cms-sync";
+import { useOptionalWorkspace } from "@/lib/core/workspace";
 import { useRepositories, getRepositories } from "@/lib/providers";
 import type { Repositories } from "@/lib/providers";
 
@@ -278,13 +279,14 @@ export const useDeleteTestimonial = makeDeleteHook("testimonials", QK.testimonia
 export function useCreateBlock() {
   const qc = useQueryClient();
   const repos = useRepositories();
+  const ws = useOptionalWorkspace();
   return useMutation({
     mutationFn: async (input: {
       type: string;
       data: Record<string, unknown>;
       sort_order: number;
     }) => {
-      return repos.pages.create(input as never);
+      return repos.pages.create({ ...input, workspace_id: ws?.workspace?.workspaceId ?? undefined } as never);
     },
     onMutate: async (input) => {
       const optimistic = {

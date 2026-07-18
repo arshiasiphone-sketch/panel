@@ -90,10 +90,15 @@ export class PagesRepository extends BaseRepository {
     return { blockIds };
   }
 
-  async create(input: { type: string; data: Record<string, unknown>; sort_order: number }): Promise<PageBlockRow> {
+  async create(input: { type: string; data: Record<string, unknown>; sort_order: number; workspace_id?: string }): Promise<PageBlockRow> {
     try {
       const validated = this.validateOrThrow(blockSchema, { ...input, visible: true }, "page_blocks.create");
-      const insertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
+      // Prefer the explicitly-passed workspace_id (from the page builder), then
+      // fall back to the repository's scoped workspaceId. Without a workspace_id
+      // the row lands in DEFAULT_WORKSPACE (or is blocked by RLS for non-admins),
+      // so we must always stamp it.
+      const workspaceId = input.workspace_id ?? this.workspaceId ?? undefined;
+      const insertData = workspaceId ? { ...validated, workspace_id: workspaceId } : validated;
       const { data, error } = await this.db
         .from<PageBlockRow>("page_blocks")
         .insert(insertData as PageBlockInsert)
