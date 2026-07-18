@@ -311,9 +311,12 @@ export function useCreateBlock() {
       qc.setQueryData<PageBlock[]>(QK.blocks, (list) => upsertById(list, data));
     },
     onSettled: () => {
-      // Re-sync from the source of truth so the block list reflects the DB
-      // (and the temp row is dropped if the insert failed server-side).
-      void qc.invalidateQueries({ queryKey: QK.blocks });
+      // Don't force a refetch here: a strict (workspace-scoped) SELECT RLS can
+      // temporarily exclude the just-inserted row from getAll(), which would
+      // silently drop the block we just added. The realtime cms-sync channel
+      // already re-fetches when another session changes page_blocks, and
+      // touchLocalCmsEdit() above pauses that refresh briefly so our optimistic
+      // insert isn't clobbered.
     },
   });
 }
