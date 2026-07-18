@@ -62,7 +62,7 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "کافه خانه — شخصیت کافه‌ای‌ات رو کشف کن" },
+      { title: "کافه خانه — شخصیت کافه‌ای‌ات رو کشف کن [deploy:a5c8d24]" },
       {
         name: "description",
         content: "تجربه‌ای فراتر از قهوه. ۱۱ سوال کوتاه و یک نتیجه‌ی منحصربه‌فرد.",
