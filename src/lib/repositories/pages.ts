@@ -21,10 +21,7 @@ export class PagesRepository extends BaseRepository {
   async getAll(opts?: PaginatedOptions): Promise<PageBlockRow[]> {
     try {
       let query = this.withWorkspace(
-        this.db
-          .from<PageBlockRow>("page_blocks")
-          .select(SELECT_COLUMNS)
-          .order("sort_order"),
+        this.db.from<PageBlockRow>("page_blocks").select(SELECT_COLUMNS).order("sort_order"),
       );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
@@ -62,7 +59,8 @@ export class PagesRepository extends BaseRepository {
         const exists = await this._blockExistsByKeyHash(blockKeyHash);
         if (exists) continue;
 
-        const id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        const id =
+          crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         const insert = {
           id,
           type: blockDef.type,
@@ -76,7 +74,8 @@ export class PagesRepository extends BaseRepository {
           visible: true,
         };
 
-        if (this.workspaceId) (insert as PageBlockInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
+        if (this.workspaceId)
+          (insert as PageBlockInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
         const { error } = await this.db.from("page_blocks").insert(insert as PageBlockInsert);
         if (error) throw this.normalizeError("page_blocks", "installBlueprintPages", error);
         blockIds.push(id);
@@ -90,10 +89,20 @@ export class PagesRepository extends BaseRepository {
     return { blockIds };
   }
 
-  async create(input: { type: string; data: Record<string, unknown>; sort_order: number }): Promise<PageBlockRow> {
+  async create(input: {
+    type: string;
+    data: Record<string, unknown>;
+    sort_order: number;
+  }): Promise<PageBlockRow> {
     try {
-      const validated = this.validateOrThrow(blockSchema, { ...input, visible: true }, "page_blocks.create");
-      const insertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
+      const validated = this.validateOrThrow(
+        blockSchema,
+        { ...input, visible: true },
+        "page_blocks.create",
+      );
+      const insertData = this.workspaceId
+        ? { ...validated, workspace_id: this.workspaceId }
+        : validated;
       const { data, error } = await this.db
         .from<PageBlockRow>("page_blocks")
         .insert(insertData as PageBlockInsert)
@@ -145,9 +154,7 @@ export class PagesRepository extends BaseRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await this.withWorkspace(
-        this.db.from("page_blocks").delete().eq("id", id),
-      );
+      const { error } = await this.withWorkspace(this.db.from("page_blocks").delete().eq("id", id));
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("page_blocks", "delete", err, { id });
@@ -158,7 +165,10 @@ export class PagesRepository extends BaseRepository {
     try {
       const results = await Promise.all(
         orderedIds.map((id, idx) =>
-          this.db.from("page_blocks").update({ sort_order: idx } as PageBlockUpdate).eq("id", id),
+          this.db
+            .from("page_blocks")
+            .update({ sort_order: idx } as PageBlockUpdate)
+            .eq("id", id),
         ),
       );
       const failed = results.find((r) => r.error);
@@ -179,10 +189,7 @@ export class PagesRepository extends BaseRepository {
    */
   private async _blockExistsByKeyHash(blockKeyHash: string): Promise<boolean> {
     const { data } = await this.withWorkspace(
-      this.db
-        .from("page_blocks")
-        .select("id")
-        .eq("data->>block_key_hash", blockKeyHash),
+      this.db.from("page_blocks").select("id").eq("data->>block_key_hash", blockKeyHash),
     ).maybeSingle();
     return !!data;
   }

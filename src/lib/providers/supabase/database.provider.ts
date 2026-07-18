@@ -15,9 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Creates a database provider backed by Supabase.
  * This is the ONLY file that should import/create Supabase clients for DB operations.
  */
-export function createSupabaseDatabaseProvider(
-  supabase: SupabaseClient,
-): IDatabaseProvider {
+export function createSupabaseDatabaseProvider(supabase: SupabaseClient): IDatabaseProvider {
   return {
     from<T>(table: string): ITableQuery<T> {
       const sbQuery = supabase.from(table);
@@ -86,6 +84,14 @@ class SupabaseTableQuery<T> {
   select(columns?: string): this;
   select(columns: string, opts?: Record<string, unknown>): this;
   select(columns?: string | Record<string, unknown>, opts?: Record<string, unknown>): this {
+    // When .select() follows a write operation (insert/update/upsert/delete),
+    // it is a RETURNING clause — NOT a standalone SELECT. Do NOT mutate _mode,
+    // otherwise the write silently becomes a plain SELECT and nothing is
+    // persisted (bug: blocks saved with optimistic success but never inserted).
+    if (this._mode !== "select") {
+      this._modifiers.push({ method: "select", args: [columns || "*"] });
+      return this;
+    }
     this._mode = "select";
     if (opts) {
       // { count: 'exact', head: true } overload
@@ -180,14 +186,22 @@ class SupabaseTableQuery<T> {
   // --- Terminal operations ---
 
   async maybeSingle(): Promise<{ data: T | null; error: unknown }> {
+    // .maybeSingle() is pushed as a modifier and applied by _applyModifiers
+    // during _execute — delegate to the chain.
+    this._modifiers.push({ method: "maybeSingle", args: [] });
     const result = await this._execute();
     if (result.error) return { data: null, error: result.error };
-    const arr = result.data as T[] | null;
-    return { data: arr?.[0] ?? null, error: null };
+    // PostgREST returns a single object for .maybeSingle()/.single() (with the
+    // `vnd.pgrst.object` header), NOT an array. It only returns an array when
+    // .maybeSingle() is NOT in the chain. Normalize both shapes so the caller
+    // always gets the row (or null), never an accidental `undefined → null`.
+    const raw = result.data as T | T[] | null;
+    if (raw == null) return { data: null, error: null };
+    const single = Array.isArray(raw) ? (raw[0] ?? null) : raw;
+    return { data: single, error: null };
   }
 
   async single(): Promise<{ data: T; error: unknown }> {
-    // Defer .single() as a modifier so it's applied after select/insert/upsert
     this._modifiers.push({ method: "single", args: [] });
     const result = await this._execute();
     return result as unknown as { data: T; error: unknown };
@@ -197,7 +211,11 @@ class SupabaseTableQuery<T> {
 
   then<TResult1 = { data: T[] | null; error: unknown; count?: number }, TResult2 = never>(
     onfulfilled?:
-      | ((value: { data: T[] | null; error: unknown; count?: number }) => TResult1 | PromiseLike<TResult1>)
+      | ((value: {
+          data: T[] | null;
+          error: unknown;
+          count?: number;
+        }) => TResult1 | PromiseLike<TResult1>)
       | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
@@ -216,10 +234,6 @@ class SupabaseTableQuery<T> {
   private _applyModifiers(builder: unknown): unknown {
     let current = builder as Record<string, (...args: unknown[]) => unknown>;
     for (const op of this._modifiers) {
-      if (op.method === "single") {
-        // .single() is handled in _execute — skip it here
-        continue;
-      }
       const fn = current[op.method];
       if (typeof fn !== "function") {
         // Unknown method — skip (caller will handle)
