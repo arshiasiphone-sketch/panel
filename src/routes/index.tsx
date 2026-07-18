@@ -145,3 +145,5 @@ function LazyPageSections({ content }: { content: PublicWorkspaceContent }) {
     </>
   );
 }
+
+// deploy marker: force Vercel rebuild after 500 fix (9e58b38)
