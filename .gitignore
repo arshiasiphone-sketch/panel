@@ -12,3 +12,6 @@ tsc-errors.txt
 
 # Vercel build output (generated)
 .vercel/
+
+# TanStack Start generated
+.tanstack/
