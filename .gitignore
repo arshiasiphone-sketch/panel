@@ -15,3 +15,6 @@ tsc-errors.txt
 
 # TanStack Start generated
 .tanstack/
+
+# Let Vercel run 'npm install' from package.json (lock caused missing deps)
+package-lock.json
