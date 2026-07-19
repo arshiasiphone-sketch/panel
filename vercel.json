@@ -1,8 +1,8 @@
 {
+  "installCommand": "npm ci",
   "build": {
     "env": {
       "NODE_ENV": "production"
-    },
-    "installCommand": "npm ci"
+    }
   }
 }
