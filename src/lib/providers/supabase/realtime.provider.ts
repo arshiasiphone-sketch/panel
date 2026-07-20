@@ -19,7 +19,13 @@ export function createSupabaseRealtimeProvider(
     },
 
     async removeChannel(channel: unknown): Promise<void> {
-      await supabase.removeChannel(channel as never);
+      // The passed object may be our adapter wrapper OR a raw Supabase channel.
+      // If it's our adapter, unwrap to the underlying Supabase channel.
+      const raw =
+        channel instanceof SupabaseChannelAdapter
+          ? channel.rawChannel
+          : channel;
+      await supabase.removeChannel(raw as never);
     },
 
     getChannels(): unknown[] {
@@ -37,6 +43,11 @@ class SupabaseChannelAdapter implements IChannel {
 
   constructor(channel: ReturnType<SupabaseClient["channel"]>) {
     this._channel = channel;
+  }
+
+  /** Expose the underlying Supabase channel for removeChannel unwrapping. */
+  get rawChannel(): ReturnType<SupabaseClient["channel"]> {
+    return this._channel;
   }
 
   on(
