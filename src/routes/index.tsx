@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, lazy, Suspense } from "react";
+// deploy-marker: force fresh asset hash for CDN cache flush (2026-07-20)
 import { fetchThemeSettings, QK } from "@/lib/cms";
 import {
   getPublicWorkspaceContent,
