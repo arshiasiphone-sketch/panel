@@ -91,7 +91,9 @@ export class SiteContentRepository extends BaseRepository {
 
     const upsertNav = { key: navKey, value: { items: navValue } as Record<string, unknown>, updated_at: new Date().toISOString() };
     if (this.workspaceId) (upsertNav as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("site_content").upsert(upsertNav);
+    const { error } = await this.withWorkspace(
+      this.db.from("site_content").upsert(upsertNav),
+    );
 
     if (error) throw this.normalizeError("site_content", "installBlueprintNavigation", error);
 
@@ -118,7 +120,9 @@ export class SiteContentRepository extends BaseRepository {
 
     const upsertSeo = { key: seoKey, value: { title: seo.title, description: seo.description, ogImage: seo.ogImage ?? "" } as Record<string, unknown>, updated_at: new Date().toISOString() };
     if (this.workspaceId) (upsertSeo as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("site_content").upsert(upsertSeo);
+    const { error } = await this.withWorkspace(
+      this.db.from("site_content").upsert(upsertSeo),
+    );
 
     if (error) throw this.normalizeError("site_content", "installBlueprintSEO", error);
 
@@ -145,7 +149,9 @@ export class SiteContentRepository extends BaseRepository {
 
     const upsertAnalytics = { key: analyticsKey, value: { enabled: analytics.enabled, provider: analytics.provider ?? "supabase" } as Record<string, unknown>, updated_at: new Date().toISOString() };
     if (this.workspaceId) (upsertAnalytics as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("site_content").upsert(upsertAnalytics);
+    const { error } = await this.withWorkspace(
+      this.db.from("site_content").upsert(upsertAnalytics),
+    );
 
     if (error) throw this.normalizeError("site_content", "installBlueprintAnalytics", error);
 
@@ -174,7 +180,9 @@ export class SiteContentRepository extends BaseRepository {
 
     const upsertBusiness = { key: businessKey, value: settings, updated_at: new Date().toISOString() };
     if (this.workspaceId) (upsertBusiness as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("site_content").upsert(upsertBusiness);
+    const { error } = await this.withWorkspace(
+      this.db.from("site_content").upsert(upsertBusiness),
+    );
 
     if (error) throw this.normalizeError("site_content", "installBlueprintBusinessSettings", error);
 
@@ -226,7 +234,9 @@ export class SiteContentRepository extends BaseRepository {
       updated_at: new Date().toISOString(),
     };
     if (this.workspaceId) (upsertLog as Record<string, unknown>).workspace_id = this.workspaceId;
-    const { error } = await this.db.from("site_content").upsert(upsertLog);
+    const { error } = await this.withWorkspace(
+      this.db.from("site_content").upsert(upsertLog),
+    );
     if (error) throw this.normalizeError("site_content", "saveProvisionLog", error);
   }
 
@@ -249,7 +259,9 @@ export class SiteContentRepository extends BaseRepository {
       this.validateOrThrow(siteContentValueSchema, value, "site_content");
       const upsertItem = { key, value };
       if (this.workspaceId) (upsertItem as Record<string, unknown>).workspace_id = this.workspaceId;
-      const { error } = await this.db.from("site_content").upsert(upsertItem as Record<string, unknown>);
+      const { error } = await this.withWorkspace(
+        this.db.from("site_content").upsert(upsertItem as Record<string, unknown>),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("site_content", "upsert", err, { key });

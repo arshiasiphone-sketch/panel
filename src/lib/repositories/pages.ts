@@ -131,10 +131,12 @@ export class PagesRepository extends BaseRepository {
 
   async update(id: string, patch: Partial<PageBlockUpdate>): Promise<void> {
     try {
-      const { error } = await this.db
-        .from("page_blocks")
-        .update(patch as PageBlockUpdate)
-        .eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db
+          .from("page_blocks")
+          .update(patch as PageBlockUpdate)
+          .eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("page_blocks", "update", err, { id });
@@ -169,10 +171,12 @@ export class PagesRepository extends BaseRepository {
     try {
       const results = await Promise.all(
         orderedIds.map((id, idx) =>
-          this.db
-            .from("page_blocks")
-            .update({ sort_order: idx } as PageBlockUpdate)
-            .eq("id", id),
+          this.withWorkspace(
+            this.db
+              .from("page_blocks")
+              .update({ sort_order: idx } as PageBlockUpdate)
+              .eq("id", id),
+          ),
         ),
       );
       const failed = results.find((r) => r.error);

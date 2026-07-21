@@ -77,7 +77,9 @@ export class MenuRepository extends BaseRepository {
         visible: true,
       };
       if (this.workspaceId) (upsertItem as MenuItemInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
-      const { error } = await this.db.from("menu_items").upsert(upsertItem);
+      const { error } = await this.withWorkspace(
+        this.db.from("menu_items").upsert(upsertItem),
+      );
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue; // Already exists

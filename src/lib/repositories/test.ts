@@ -34,10 +34,12 @@ export class TestRepository extends BaseRepository {
 
   async getResponses(opts?: PaginatedOptions): Promise<StoredTestResponse[]> {
     try {
-      let query = this.db
-        .from<TestResponseRow>("test_responses")
-        .select(TEST_RESPONSE_COLUMNS)
-        .order("completed_at", { ascending: false });
+      let query = this.withWorkspace(
+        this.db
+          .from<TestResponseRow>("test_responses")
+          .select(TEST_RESPONSE_COLUMNS)
+          .order("completed_at", { ascending: false }),
+      );
       query = this.applyPagination(query, opts);
       const { data, error } = await query;
       if (error) throw error;
@@ -77,11 +79,13 @@ export class TestRepository extends BaseRepository {
         user_age: validated.user_age ?? null,
         user_gender: validated.user_gender,
       };
-      const { data, error } = await this.db
-        .from<TestResponseRow>("test_responses")
-        .insert(row)
-        .select()
-        .single();
+      // Add workspace_id if available
+      if (this.workspaceId) {
+        (row as TestResponseInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
+      }
+      const { data, error } = await this.withWorkspace(
+        this.db.from<TestResponseRow>("test_responses").insert(row).select(),
+      ).single();
       if (error) throw error;
       return this._rowToResponse(data);
     } catch (err) {
@@ -91,7 +95,9 @@ export class TestRepository extends BaseRepository {
 
   async deleteResponse(id: string): Promise<void> {
     try {
-      const { error } = await this.db.from("test_responses").delete().eq("id", id);
+      const { error } = await this.withWorkspace(
+        this.db.from("test_responses").delete().eq("id", id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("test_responses", "deleteResponse", err, { id });
@@ -100,23 +106,35 @@ export class TestRepository extends BaseRepository {
 
   async clearResponses(): Promise<void> {
     try {
-      const { error } = await this.db
-        .from("test_responses")
-        .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000");
+      const { error } = await this.withWorkspace(
+        this.db
+          .from("test_responses")
+          .delete()
+          .neq("id", "00000000-0000-0000-0000-000000000000"),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("test_responses", "clearResponses", err);
     }
   }
 
+  /**
+   * Get workspace-scoped test questions configuration.
+   * Each workspace can have its own questions configuration.
+   */
   async getQuestionsConfig(): Promise<{ overrides: Record<number, unknown>; orderedIds: number[] | null }> {
     try {
-      const { data, error } = await this.db
-        .from("site_content")
-        .select("value")
-        .eq("key", "test_questions")
-        .maybeSingle();
+      // Use workspace-scoped key for questions config
+      const configKey = this.workspaceId 
+        ? `test_questions:workspace-${this.workspaceId}`
+        : `test_questions`;
+      
+      const { data, error } = await this.withWorkspace(
+        this.db
+          .from("site_content")
+          .select("value")
+          .eq("key", configKey),
+      ).maybeSingle();
       if (error) throw error;
       const EMPTY = { overrides: {}, orderedIds: null };
       if (!data?.value) return EMPTY;
@@ -130,13 +148,26 @@ export class TestRepository extends BaseRepository {
     }
   }
 
+  /**
+   * Update workspace-scoped test questions configuration.
+   */
   async updateQuestionsConfig(config: TestQuestionsConfig): Promise<void> {
     try {
       this.validateOrThrow(testConfigSchema, config, "test_questions");
-      const { error } = await this.db.from("site_content").upsert({
-        key: "test_questions",
+      // Use workspace-scoped key for questions config
+      const configKey = this.workspaceId 
+        ? `test_questions:workspace-${this.workspaceId}`
+        : `test_questions`;
+      
+      const upsertData = {
+        key: configKey,
         value: config as unknown as Record<string, unknown>,
-      });
+      };
+      if (this.workspaceId) (upsertData as Record<string, unknown>).workspace_id = this.workspaceId;
+      
+      const { error } = await this.withWorkspace(
+        this.db.from("site_content").upsert(upsertData),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("site_content", "updateQuestionsConfig", err);

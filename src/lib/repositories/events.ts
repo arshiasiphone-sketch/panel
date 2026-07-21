@@ -56,11 +56,12 @@ export class EventsRepository extends BaseRepository {
     try {
       const validated = this.validateOrThrow(eventSchema, row, "events");
       const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
-      const { data, error } = await this.db
-        .from<EventRow>("events")
-        .upsert(upsertData as EventInsert)
-        .select()
-        .maybeSingle();
+      const { data, error } = await this.withWorkspace(
+        this.db
+          .from<EventRow>("events")
+          .upsert(upsertData as EventInsert)
+          .select(),
+      ).maybeSingle();
       if (error) throw error;
       return data;
     } catch (err) {

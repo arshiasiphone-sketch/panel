@@ -56,11 +56,12 @@ export class TestimonialsRepository extends BaseRepository {
     try {
       const validated = this.validateOrThrow(testimonialSchema, row, "testimonials");
       const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
-      const { data, error } = await this.db
-        .from<TestimonialRow>("testimonials")
-        .upsert(upsertData as TestimonialInsert)
-        .select()
-        .maybeSingle();
+      const { data, error } = await this.withWorkspace(
+        this.db
+          .from<TestimonialRow>("testimonials")
+          .upsert(upsertData as TestimonialInsert)
+          .select(),
+      ).maybeSingle();
       if (error) throw error;
       return data;
     } catch (err) {

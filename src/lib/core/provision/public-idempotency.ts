@@ -26,7 +26,7 @@ export interface ProvisionTransactionRow {
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
+  return supabaseAdmin as any;
 }
 
 /** Find a provision transaction by its external order id (NULL if none). */

@@ -63,7 +63,9 @@ export class PersonalityRepository extends BaseRepository {
         sort_order: keys.length,
       };
       if (this.workspaceId) (upsertProfile as PersonalityInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
-      const { error } = await this.db.from("personality_profiles").upsert(upsertProfile);
+      const { error } = await this.withWorkspace(
+        this.db.from("personality_profiles").upsert(upsertProfile),
+      );
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue;
@@ -83,9 +85,9 @@ export class PersonalityRepository extends BaseRepository {
     try {
       this.validateOrThrow(personalityProfileUpdateSchema, { ...row }, "personality_profiles");
       const insertRow = this.workspaceId ? { ...row, workspace_id: this.workspaceId } : row;
-      const { error } = await this.db
-        .from("personality_profiles")
-        .upsert(insertRow as PersonalityInsert);
+      const { error } = await this.withWorkspace(
+        this.db.from("personality_profiles").upsert(insertRow as PersonalityInsert),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("personality_profiles", "upsert", err);
@@ -110,6 +112,7 @@ export class PersonalityRepository extends BaseRepository {
   async update(key: string, patch: Partial<PersonalityUpdate>): Promise<void> {
     try {
       this.validateOrThrow(personalityProfileUpdateSchema, patch, "personality_profiles.update");
+      // Need to also filter by key and workspace_id for proper isolation
       const { error } = await this.withWorkspace(
         this.db.from("personality_profiles").update(patch as PersonalityUpdate).eq("key", key),
       );

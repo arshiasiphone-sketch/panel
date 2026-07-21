@@ -13,7 +13,8 @@ export const Route = createFileRoute("/api/public/provision-status")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data, error } = await supabaseAdmin
+        const db = supabaseAdmin as any;
+        const { data, error } = await db
           .from("provision_transactions")
           .select("*")
           .eq("external_order_id", externalOrderId)
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/api/public/provision-status")({
         // domain is only meaningful once provisioning succeeded; join via workspace_id.
         let domain: string | null = null;
         if (data.workspace_id && data.status === "completed") {
-          const { data: ws } = await supabaseAdmin
+          const { data: ws } = await db
             .from("workspaces")
             .select("domain")
             .eq("id", data.workspace_id)

@@ -134,13 +134,19 @@ function extractDomainInfo(): {
  * typo / copy-paste from a URL bar) still matches the stored "khane.nama.app"
  * domain exactly in findByDomain.
  */
-function parsePreviewDomain(search: string): string | undefined {
+function parsePreviewDomain(search: string | { preview_domain?: string }): string | undefined {
   if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") return undefined;
-  const value = new URLSearchParams(search)
+
+  const raw = typeof search === "string"
+    ? search
+    : search.preview_domain ?? "";
+
+  const value = new URLSearchParams(raw)
     .get("preview_domain")
     ?.trim()
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
+
   return value ? value : undefined;
 }
 

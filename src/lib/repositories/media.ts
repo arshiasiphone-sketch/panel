@@ -85,11 +85,12 @@ export class MediaRepository extends BaseRepository {
       );
 
       const insertData = this.workspaceId ? { ...metadata, workspace_id: this.workspaceId } : metadata;
-      const { data, error } = await this.db
-        .from<MediaFileRow>("media_files")
-        .insert(insertData as MediaFileInsert)
-        .select()
-        .single();
+      const { data, error } = await this.withWorkspace(
+        this.db
+          .from<MediaFileRow>("media_files")
+          .insert(insertData as MediaFileInsert)
+          .select(),
+      ).single();
 
       if (error) {
         // Clean up storage on DB failure
@@ -113,7 +114,9 @@ export class MediaRepository extends BaseRepository {
           context: { storagePath: file.storage_path },
         });
       }
-      const { error } = await this.db.from("media_files").delete().eq("id", file.id);
+      const { error } = await this.withWorkspace(
+        this.db.from("media_files").delete().eq("id", file.id),
+      );
       if (error) throw error;
     } catch (err) {
       throw this.normalizeError("media_files", "delete", err, { fileId: file.id });

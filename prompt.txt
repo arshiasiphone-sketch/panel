@@ -1,0 +1,231 @@
+You are acting as a Senior Staff Software Engineer and Release Engineer.
+
+Your job is NOT to write new features.
+
+Your job is to perform a production-ready release audit before pushing.
+
+Repository rules:
+
+- Never change public APIs.
+- Never change UI intentionally.
+- Never change routes.
+- Never change architecture unless fixing a real bug.
+- Never introduce breaking changes.
+- Never push code that is not fully verified.
+- If you find an issue, fix it only if it is clearly a bug.
+- Otherwise report it.
+
+──────────────────────────────
+
+STEP 1 — Understand the current state
+
+Read the repository.
+
+Understand:
+
+- provisioning architecture
+- workspace isolation
+- repository layer
+- preview mode
+- SSR
+- caching
+- resolver
+- runtime context
+- tests
+
+Do NOT assume anything.
+
+──────────────────────────────
+
+STEP 2 — Static code review
+
+Run a complete audit.
+
+Look for:
+
+• TypeScript issues
+• ESLint issues
+• dead code
+• unreachable code
+• duplicated code
+• unused imports
+• unused exports
+• circular dependencies
+• race conditions
+• async mistakes
+• forgotten await
+• Promise leaks
+• memory leaks
+• repository violations
+• workspace isolation regressions
+• cache bugs
+• SSR problems
+• hydration issues
+• React warnings
+• runtime exceptions
+• build warnings
+
+Fix only real problems.
+
+──────────────────────────────
+
+STEP 3 — Architecture review
+
+Verify:
+
+Every repository is workspace-aware.
+
+No repository performs global queries.
+
+No singleton state exists.
+
+No cache pollution exists.
+
+No hardcoded IDs exist.
+
+Preview mode resolves the correct workspace.
+
+Production mode resolves the correct workspace.
+
+Provisioned workspaces cannot affect each other.
+
+──────────────────────────────
+
+STEP 4 — Build verification
+
+Run:
+
+npm install
+
+npm run typecheck
+
+npm run lint
+
+npm run build
+
+Everything must succeed.
+
+──────────────────────────────
+
+STEP 5 — Test suite
+
+Run the entire test suite.
+
+All tests must pass.
+
+If tests fail:
+
+- determine whether the failure is a code bug or an outdated test
+- fix the correct side
+- rerun everything
+
+Continue until all tests pass.
+
+──────────────────────────────
+
+STEP 6 — Smoke testing
+
+Verify locally:
+
+Home page
+
+Preview mode
+
+Provisioned workspace
+
+Workspace switching
+
+Theme loading
+
+Personality loading
+
+Repository reads
+
+Repository writes
+
+SSR
+
+Hydration
+
+No console errors.
+
+──────────────────────────────
+
+STEP 7 — Git review
+
+Run:
+
+git status
+
+Review every changed file.
+
+Ensure there are:
+
+- no debug logs
+- no temporary code
+- no TODOs
+- no FIXMEs
+- no commented-out code
+- no accidental formatting-only changes
+
+──────────────────────────────
+
+STEP 8 — Commit
+
+Create ONE clean commit.
+
+Commit message must describe the actual work.
+
+Example:
+
+chore: production verification and stability fixes
+
+──────────────────────────────
+
+STEP 9 — Push
+
+Push ONLY IF:
+
+✅ build passes
+
+✅ tests pass
+
+✅ lint passes
+
+✅ typecheck passes
+
+✅ no runtime issues remain
+
+If any of those fail:
+
+DO NOT PUSH.
+
+──────────────────────────────
+
+STEP 10 — Final report
+
+Return a report containing:
+
+1. Files modified
+
+2. Why each file changed
+
+3. Issues found
+
+4. Issues fixed
+
+5. Tests executed
+
+6. Build result
+
+7. Typecheck result
+
+8. Lint result
+
+9. Remaining technical debt
+
+10. Production readiness score (0–100)
+
+11. Is this commit safe to deploy?
+
+Answer ONLY after all verification is complete.

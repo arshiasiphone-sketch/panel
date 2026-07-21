@@ -74,7 +74,9 @@ export class GalleryRepository extends BaseRepository {
         visible: true,
       };
       if (this.workspaceId) (upsertItem as GalleryInsert & { workspace_id?: string }).workspace_id = this.workspaceId;
-      const { error } = await this.db.from("gallery_images").upsert(upsertItem);
+      const { error } = await this.withWorkspace(
+        this.db.from("gallery_images").upsert(upsertItem),
+      );
 
       if (error) {
         if ((error as { code?: string }).code === "23505") continue;
@@ -94,11 +96,12 @@ export class GalleryRepository extends BaseRepository {
     try {
       const validated = this.validateOrThrow(galleryImageSchema, row, "gallery_images");
       const upsertData = this.workspaceId ? { ...validated, workspace_id: this.workspaceId } : validated;
-      const { data, error } = await this.db
-        .from<GalleryRow>("gallery_images")
-        .upsert(upsertData as GalleryInsert)
-        .select()
-        .maybeSingle();
+      const { data, error } = await this.withWorkspace(
+        this.db
+          .from<GalleryRow>("gallery_images")
+          .upsert(upsertData as GalleryInsert)
+          .select(),
+      ).maybeSingle();
       if (error) throw error;
       return data;
     } catch (err) {
