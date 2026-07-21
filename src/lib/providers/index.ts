@@ -6,12 +6,15 @@
  * Architecture: User → Workspace → Repositories → Provider → Database
  * The workspace layer sits between user auth and repositories, ensuring
  * all data access is scoped to the current workspace.
+ *
+ * IMPORTANT: Repository workspace binding happens in CurrentWorkspaceProvider
+ * (context.tsx), NOT here. This keeps workspace initialization centralized and
+ * avoids redundant calls to setWorkspaceOnRepositories.
  */
 
 import { getSupabaseProviders } from "./supabase";
 import { initRepositories, getRepositories } from "@/lib/repositories";
 import type { Repositories } from "@/lib/repositories";
-import { useOptionalWorkspace } from "@/lib/core/workspace";
 
 let _initialized = false;
 
@@ -31,14 +34,12 @@ export function initializeRepositories(): Repositories {
 /**
  * Get the initialized repositories.
  * Throws if not yet initialized.
+ * 
+ * The workspace context has already been set on these repositories
+ * by CurrentWorkspaceProvider during workspace resolution.
  */
 export function useRepositories(): Repositories {
-  const repos = initializeRepositories();
-  const ws = useOptionalWorkspace();
-  if (ws?.workspace?.workspaceId) {
-    setWorkspaceOnRepositories(repos, { workspaceId: ws.workspace.workspaceId });
-  }
-  return repos;
+  return initializeRepositories();
 }
 
 // Repositories are exported directly for convenience

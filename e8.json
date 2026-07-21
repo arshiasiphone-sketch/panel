@@ -1,0 +1,27 @@
+[
+{"type":"stdout","created":1784507066510,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Running build in Washington, D.C., USA (East) – iad1","id":"1784507066510916688907500000","date":1784507066510,"serial":"1784507066510916688907500000"}}
+,
+{"type":"stdout","created":1784507066511,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Build machine configuration: 2 cores, 8 GB","id":"1784507066511916688907500000","date":1784507066511,"serial":"1784507066511916688907500000"}}
+,
+{"type":"stdout","created":1784507066607,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Cloning github.com/arshiasiphone-sketch/panel (Branch: main, Commit: 10d441e)","id":"1784507066607916688907500001","date":1784507066607,"serial":"1784507066607916688907500001"}}
+,
+{"type":"stdout","created":1784507066608,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Previous build caches not available.","id":"1784507066608916688907500001","date":1784507066608,"serial":"1784507066608916688907500001"}}
+,
+{"type":"stdout","created":1784507067178,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Cloning completed: 571.000ms","id":"1784507067178916688907500000","date":1784507067178,"serial":"1784507067178916688907500000"}}
+,
+{"type":"stdout","created":1784507067520,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Running \"vercel build\"","id":"1784507067520205638287200000","date":1784507067520,"serial":"1784507067520205638287200000"}}
+,
+{"type":"stderr","created":1784507067542,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Vercel CLI 56.2.0","id":"1784507067542205638287200000","date":1784507067542,"serial":"1784507067542205638287200000"}}
+,
+{"type":"stdout","created":1784507068181,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Running \"install\" command: `npm install`...","id":"1784507068181205638287200000","date":1784507068181,"serial":"1784507068181205638287200000"}}
+,
+{"type":"stderr","created":1784507113560,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"npm error code ETARGET","id":"1784507113560205638287200000","date":1784507113560,"serial":"1784507113560205638287200000"}}
+,
+{"type":"stderr","created":1784507113561,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"npm error notarget No matching version found for @radix-ui/react-collapsible@1.1.17.","id":"1784507113561205638287200000","date":1784507113561,"serial":"1784507113561205638287200000"}}
+,
+{"type":"stderr","created":1784507113562,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"npm error notarget In most cases you or one of your dependencies are requesting a package version that doesn't exist.","id":"1784507113562205638287200000","date":1784507113562,"serial":"1784507113562205638287200000"}}
+,
+{"type":"stderr","created":1784507113563,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"npm error A complete log of this run can be found in: /vercel/.npm/_logs/2026-07-20T00_24_28_318Z-debug-0.log","id":"1784507113563205638287200000","date":1784507113563,"serial":"1784507113563205638287200000"}}
+,
+{"type":"stderr","created":1784507113620,"payload":{"deploymentId":"dpl_32cNg8ZRwuqinN5WuuGwWXkrkyRC","info":{"type":"build","name":"bld_djq6wq00a","entrypoint":"."},"text":"Error: Command \"npm install\" exited with 1","id":"1784507113620205638287200000","date":1784507113620,"serial":"1784507113620205638287200000"}}
+]

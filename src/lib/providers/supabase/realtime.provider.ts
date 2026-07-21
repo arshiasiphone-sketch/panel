@@ -9,9 +9,7 @@ import type { SupabaseClient, RealtimePostgresChangesPayload } from "@supabase/s
 /**
  * Creates a realtime provider backed by Supabase Realtime.
  */
-export function createSupabaseRealtimeProvider(
-  supabase: SupabaseClient,
-): IRealtimeProvider {
+export function createSupabaseRealtimeProvider(supabase: SupabaseClient): IRealtimeProvider {
   return {
     channel(name: string): IChannel {
       const sbChannel = supabase.channel(name);
@@ -21,10 +19,7 @@ export function createSupabaseRealtimeProvider(
     async removeChannel(channel: unknown): Promise<void> {
       // The passed object may be our adapter wrapper OR a raw Supabase channel.
       // If it's our adapter, unwrap to the underlying Supabase channel.
-      const raw =
-        channel instanceof SupabaseChannelAdapter
-          ? channel.rawChannel
-          : channel;
+      const raw = channel instanceof SupabaseChannelAdapter ? channel.rawChannel : channel;
       await supabase.removeChannel(raw as never);
     },
 

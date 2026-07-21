@@ -1,0 +1,107 @@
+[
+{"type":"stdout","created":1784448030975,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Running build in Washington, D.C., USA (East) – iad1","id":"1784448030975153554154000000","date":1784448030975,"serial":"1784448030975153554154000000"}}
+,
+{"type":"stdout","created":1784448030976,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Build machine configuration: 2 cores, 8 GB","id":"1784448030976153554154000000","date":1784448030976,"serial":"1784448030976153554154000000"}}
+,
+{"type":"stdout","created":1784448031081,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Cloning github.com/arshiasiphone-sketch/panel (Branch: main, Commit: 71e01d4)","id":"1784448031081153554154000000","date":1784448031081,"serial":"1784448031081153554154000000"}}
+,
+{"type":"stdout","created":1784448031081,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Previous build caches not available.","id":"1784448031081153554154000002","date":1784448031081,"serial":"1784448031081153554154000002"}}
+,
+{"type":"stdout","created":1784448031553,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Cloning completed: 472.000ms","id":"1784448031553153554154000000","date":1784448031553,"serial":"1784448031553153554154000000"}}
+,
+{"type":"stdout","created":1784448031853,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Running \"vercel build\"","id":"1784448031853433816902800000","date":1784448031853,"serial":"1784448031853433816902800000"}}
+,
+{"type":"stderr","created":1784448031871,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Vercel CLI 56.2.0","id":"1784448031871433816902800000","date":1784448031871,"serial":"1784448031871433816902800000"}}
+,
+{"type":"stdout","created":1784448032509,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Running \"install\" command: `npm ci`...","id":"1784448032509433816902800000","date":1784448032509,"serial":"1784448032509433816902800000"}}
+,
+{"type":"stderr","created":1784448035460,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"npm warn deprecated tsconfck@3.1.6: unmaintained","id":"1784448035460433816902800000","date":1784448035460,"serial":"1784448035460433816902800000"}}
+,
+{"type":"stderr","created":1784448038446,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"npm warn deprecated recharts@2.15.4: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide","id":"1784448038446433816902800000","date":1784448038446,"serial":"1784448038446433816902800000"}}
+,
+{"type":"stdout","created":1784448040962,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448040962433816902800000","date":1784448040962,"serial":"1784448040962433816902800000"}}
+,
+{"type":"stdout","created":1784448040963,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"added 292 packages, and audited 293 packages in 8s","id":"1784448040963433816902800000","date":1784448040963,"serial":"1784448040963433816902800000"}}
+,
+{"type":"stdout","created":1784448040963,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448040963433816902800001","date":1784448040963,"serial":"1784448040963433816902800001"}}
+,
+{"type":"stdout","created":1784448040963,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"47 packages are looking for funding","id":"1784448040963433816902800002","date":1784448040963,"serial":"1784448040963433816902800002"}}
+,
+{"type":"stdout","created":1784448040963,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"  run `npm fund` for details","id":"1784448040963433816902800003","date":1784448040963,"serial":"1784448040963433816902800003"}}
+,
+{"type":"stdout","created":1784448040964,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448040964433816902800000","date":1784448040964,"serial":"1784448040964433816902800000"}}
+,
+{"type":"stdout","created":1784448040964,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"found 0 vulnerabilities","id":"1784448040964433816902800001","date":1784448040964,"serial":"1784448040964433816902800001"}}
+,
+{"type":"stdout","created":1784448041241,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448041241433816902800000","date":1784448041241,"serial":"1784448041241433816902800000"}}
+,
+{"type":"stdout","created":1784448041242,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"> build","id":"1784448041242433816902800000","date":1784448041242,"serial":"1784448041242433816902800000"}}
+,
+{"type":"stdout","created":1784448041242,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"> node scripts/build.mjs","id":"1784448041242433816902800001","date":1784448041242,"serial":"1784448041242433816902800001"}}
+,
+{"type":"stdout","created":1784448041242,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448041242433816902800002","date":1784448041242,"serial":"1784448041242433816902800002"}}
+,
+{"type":"stderr","created":1784448041556,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"vite.config.ts (14:22) \u001b[33m[UNRESOLVED_IMPORT] \u001b[0mCould not resolve 'nitro/vite' in vite.config.ts","id":"1784448041556433816902800000","date":1784448041556,"serial":"1784448041556433816902800000"}}
+,
+{"type":"stderr","created":1784448041556,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m vite.config.ts:14:23 \u001b[38;5;246m]\u001b[0m","id":"1784448041556433816902800001","date":1784448041556,"serial":"1784448041556433816902800001"}}
+,
+{"type":"stderr","created":1784448041556,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    \u001b[38;5;246m│\u001b[0m","id":"1784448041556433816902800002","date":1784448041556,"serial":"1784448041556433816902800002"}}
+,
+{"type":"stderr","created":1784448041556,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;246m14 │\u001b[0m \u001b[38;5;249mi\u001b[0m\u001b[38;5;249mm\u001b[0m\u001b[38;5;249mp\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m{\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249mi\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m}\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mm\u001b[0m\u001b[38;5;249m \u001b[0m\"nitro/vite\"\u001b[38;5;249m;\u001b[0m","id":"1784448041556433816902800003","date":1784448041556,"serial":"1784448041556433816902800003"}}
+,
+{"type":"stderr","created":1784448041557,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;240m   │\u001b[0m                       ──────┬─────  ","id":"1784448041557433816902800000","date":1784448041557,"serial":"1784448041557433816902800000"}}
+,
+{"type":"stderr","created":1784448041557,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;240m   │\u001b[0m                             ╰─────── Module not found, treating it as an external dependency","id":"1784448041557433816902800001","date":1784448041557,"serial":"1784448041557433816902800001"}}
+,
+{"type":"stderr","created":1784448041557,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"\u001b[38;5;246m────╯\u001b[0m","id":"1784448041557433816902800002","date":1784448041557,"serial":"1784448041557433816902800002"}}
+,
+{"type":"stderr","created":1784448041557,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448041557433816902800003","date":1784448041557,"serial":"1784448041557433816902800003"}}
+,
+{"type":"stderr","created":1784448041557,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"vite.config.ts (15:18) \u001b[33m[UNRESOLVED_IMPORT] \u001b[0mCould not resolve '@vitejs/plugin-react' in vite.config.ts","id":"1784448041557433816902800004","date":1784448041557,"serial":"1784448041557433816902800004"}}
+,
+{"type":"stderr","created":1784448041558,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m vite.config.ts:15:19 \u001b[38;5;246m]\u001b[0m","id":"1784448041558433816902800000","date":1784448041558,"serial":"1784448041558433816902800000"}}
+,
+{"type":"stderr","created":1784448041558,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    \u001b[38;5;246m│\u001b[0m","id":"1784448041558433816902800001","date":1784448041558,"serial":"1784448041558433816902800001"}}
+,
+{"type":"stderr","created":1784448041559,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;246m15 │\u001b[0m \u001b[38;5;249mi\u001b[0m\u001b[38;5;249mm\u001b[0m\u001b[38;5;249mp\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249ma\u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mm\u001b[0m\u001b[38;5;249m \u001b[0m\"@vitejs/plugin-react\"\u001b[38;5;249m;\u001b[0m","id":"1784448041559433816902800000","date":1784448041559,"serial":"1784448041559433816902800000"}}
+,
+{"type":"stderr","created":1784448041559,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;240m   │\u001b[0m                   ───────────┬──────────  ","id":"1784448041559433816902800001","date":1784448041559,"serial":"1784448041559433816902800001"}}
+,
+{"type":"stderr","created":1784448041559,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":" \u001b[38;5;240m   │\u001b[0m                              ╰──────────── Module not found, treating it as an external dependency","id":"1784448041559433816902800002","date":1784448041559,"serial":"1784448041559433816902800002"}}
+,
+{"type":"stderr","created":1784448041559,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"\u001b[38;5;246m────╯\u001b[0m","id":"1784448041559433816902800003","date":1784448041559,"serial":"1784448041559433816902800003"}}
+,
+{"type":"stderr","created":1784448041560,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"","id":"1784448041560433816902800000","date":1784448041560,"serial":"1784448041560433816902800000"}}
+,
+{"type":"stderr","created":1784448042522,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"\u001b[31mfailed to load config from /vercel/path0/vite.config.ts\u001b[39m","id":"1784448042522433816902800000","date":1784448042522,"serial":"1784448042522433816902800000"}}
+,
+{"type":"stderr","created":1784448042523,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"\u001b[31merror during build:","id":"1784448042523433816902800000","date":1784448042523,"serial":"1784448042523433816902800000"}}
+,
+{"type":"stderr","created":1784448042524,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'nitro' imported from /vercel/path0/node_modules/.vite-temp/vite.config.ts.timestamp-1784448041560-266a690b5db358.mjs","id":"1784448042524433816902800000","date":1784448042524,"serial":"1784448042524433816902800000"}}
+,
+{"type":"stderr","created":1784448042524,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)","id":"1784448042524433816902800001","date":1784448042524,"serial":"1784448042524433816902800001"}}
+,
+{"type":"stderr","created":1784448042524,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at packageResolve (node:internal/modules/esm/resolve:764:81)","id":"1784448042524433816902800002","date":1784448042524,"serial":"1784448042524433816902800002"}}
+,
+{"type":"stderr","created":1784448042525,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at moduleResolve (node:internal/modules/esm/resolve:855:18)","id":"1784448042525433816902800000","date":1784448042525,"serial":"1784448042525433816902800000"}}
+,
+{"type":"stderr","created":1784448042525,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at defaultResolve (node:internal/modules/esm/resolve:988:11)","id":"1784448042525433816902800001","date":1784448042525,"serial":"1784448042525433816902800001"}}
+,
+{"type":"stderr","created":1784448042525,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)","id":"1784448042525433816902800002","date":1784448042525,"serial":"1784448042525433816902800002"}}
+,
+{"type":"stderr","created":1784448042526,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)","id":"1784448042526433816902800000","date":1784448042526,"serial":"1784448042526433816902800000"}}
+,
+{"type":"stderr","created":1784448042526,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)","id":"1784448042526433816902800001","date":1784448042526,"serial":"1784448042526433816902800001"}}
+,
+{"type":"stderr","created":1784448042526,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at #resolve (node:internal/modules/esm/loader:679:17)","id":"1784448042526433816902800002","date":1784448042526,"serial":"1784448042526433816902800002"}}
+,
+{"type":"stderr","created":1784448042526,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)","id":"1784448042526433816902800003","date":1784448042526,"serial":"1784448042526433816902800003"}}
+,
+{"type":"stderr","created":1784448042527,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {","id":"1784448042527433816902800000","date":1784448042527,"serial":"1784448042527433816902800000"}}
+,
+{"type":"stderr","created":1784448042527,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"  code: 'ERR_MODULE_NOT_FOUND'","id":"1784448042527433816902800001","date":1784448042527,"serial":"1784448042527433816902800001"}}
+,
+{"type":"stderr","created":1784448042527,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"}\u001b[39m","id":"1784448042527433816902800002","date":1784448042527,"serial":"1784448042527433816902800002"}}
+,
+{"type":"stderr","created":1784448042570,"payload":{"deploymentId":"dpl_Dbk6htEXSSixk7KXtaUdo2UBzKJB","info":{"type":"build","name":"bld_8wv7bsla9","entrypoint":"."},"text":"Error: Command \"npm run build\" exited with 1","id":"1784448042570433816902800000","date":1784448042570,"serial":"1784448042570433816902800000"}}
+]
