@@ -102,3 +102,8 @@ export function setWorkspaceOnRepositories(
     }
   }
 }
+
+// Cache-bust marker to force Vite to generate fresh asset hash
+// (CDN stale serving index-Dqppe4YF.js from build 7c5d9b1)
+const __BUILD_TS__ = "2026-07-20T22:15:00Z";
+export { __BUILD_TS__ };
