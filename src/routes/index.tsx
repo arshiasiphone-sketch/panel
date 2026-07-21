@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, lazy, Suspense } from "react";
+import { useMemo, lazy, Suspense, useEffect, useRef } from "react";
 // deploy-marker: force fresh asset hash for CDN cache flush (2026-07-20)
 import { fetchThemeSettings, QK } from "@/lib/cms";
 import {
@@ -75,6 +75,16 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const { theme, content } = Route.useLoaderData();
+  const adminLinkRef = useRef<HTMLAnchorElement>(null);
+
+  // Update admin link href dynamically after hydration to ensure
+  // preview_domain parameter is correctly applied from URL
+  useEffect(() => {
+    if (adminLinkRef.current) {
+      const href = buildAdminHref(content.domain);
+      adminLinkRef.current.href = href;
+    }
+  }, [content.domain]);
 
   return (
     <LandingThemeProvider loaderTheme={theme}>
@@ -96,7 +106,11 @@ function LandingPage() {
         </Suspense>
 
         <footer className="relative px-5 py-10 text-center text-muted-foreground">
-          <a href={buildAdminHref(content.domain)} className="text-xs hover:underline">
+          <a
+            ref={adminLinkRef}
+            href={buildAdminHref(content.domain)}
+            className="text-xs hover:underline"
+          >
             ورود به پنل مدیریت
           </a>
         </footer>
