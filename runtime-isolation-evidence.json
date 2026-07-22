@@ -1,0 +1,70 @@
+{
+  "workspaceA": {
+    "id": "d17e0407-a528-4f78-a2fb-9409fdc373f5",
+    "domain": "runtime-test-a.example.com"
+  },
+  "workspaceB": {
+    "id": "fae3ac9f-68a6-402e-9cc5-89b1331f24a1",
+    "domain": "runtime-test-b.example.com"
+  },
+  "tables": {
+    "theme_settings": {
+      "workspaceA": 1,
+      "workspaceB": 1
+    },
+    "menu_items": {
+      "workspaceA": 1,
+      "workspaceB": 1
+    },
+    "gallery_images": {
+      "workspaceA": 1,
+      "workspaceB": 1
+    },
+    "site_content": {
+      "workspaceA": 0,
+      "workspaceB": 0
+    },
+    "events": {
+      "workspaceA": 1,
+      "workspaceB": 1
+    }
+  },
+  "results": {
+    "theme": {
+      "workspaceA": "#FF5733",
+      "workspaceB": "#8A2BE2"
+    },
+    "menu": {
+      "workspaceA": [
+        "A Special"
+      ],
+      "workspaceB": [
+        "B Special"
+      ]
+    },
+    "gallery": {
+      "workspaceA": [
+        "A Gallery"
+      ],
+      "workspaceB": [
+        "B Gallery"
+      ]
+    },
+    "siteContent": {
+      "workspaceA": {
+        "title": "A Hero"
+      },
+      "workspaceB": {
+        "title": "B Hero"
+      }
+    },
+    "events": {
+      "workspaceA": [
+        "A Event"
+      ],
+      "workspaceB": [
+        "B Event"
+      ]
+    }
+  }
+}

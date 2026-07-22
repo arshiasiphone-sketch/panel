@@ -1,231 +1,564 @@
-You are acting as a Senior Staff Software Engineer and Release Engineer.
+# EPIC FINAL — Multi-Tenant Runtime Isolation Validation
 
-Your job is NOT to write new features.
+## Objective
 
-Your job is to perform a production-ready release audit before pushing.
+Do NOT modify architecture unless a real bug is discovered.
 
-Repository rules:
+Your only goal is to PROVE that runtime isolation actually works.
 
-- Never change public APIs.
-- Never change UI intentionally.
-- Never change routes.
-- Never change architecture unless fixing a real bug.
-- Never introduce breaking changes.
-- Never push code that is not fully verified.
-- If you find an issue, fix it only if it is clearly a bug.
-- Otherwise report it.
+I do NOT want assumptions.
+I do NOT want architectural reasoning.
 
-──────────────────────────────
+I want runtime evidence.
 
-STEP 1 — Understand the current state
+This is the final validation before production.
 
-Read the repository.
+Everything must be verified with actual execution.
 
-Understand:
+======================================================
+STEP 1 — Create Two Completely Independent Workspaces
+======================================================
 
-- provisioning architecture
-- workspace isolation
-- repository layer
-- preview mode
-- SSR
-- caching
-- resolver
-- runtime context
-- tests
+Provision two completely separate workspaces.
 
-Do NOT assume anything.
+Workspace A
 
-──────────────────────────────
+name:
+Alpha
 
-STEP 2 — Static code review
+subdomain:
+alpha
 
-Run a complete audit.
+Workspace B
 
-Look for:
+name:
+Beta
 
-• TypeScript issues
-• ESLint issues
-• dead code
-• unreachable code
-• duplicated code
-• unused imports
-• unused exports
-• circular dependencies
-• race conditions
-• async mistakes
-• forgotten await
-• Promise leaks
-• memory leaks
-• repository violations
-• workspace isolation regressions
-• cache bugs
-• SSR problems
-• hydration issues
-• React warnings
-• runtime exceptions
-• build warnings
-
-Fix only real problems.
-
-──────────────────────────────
-
-STEP 3 — Architecture review
+subdomain:
+beta
 
 Verify:
 
-Every repository is workspace-aware.
+✔ different workspace_id
 
-No repository performs global queries.
+✔ different domain
 
-No singleton state exists.
+✔ different preview_domain
 
-No cache pollution exists.
+✔ different owner
 
-No hardcoded IDs exist.
+Print:
 
-Preview mode resolves the correct workspace.
+Workspace IDs
 
-Production mode resolves the correct workspace.
+Workspace Domains
 
-Provisioned workspaces cannot affect each other.
+Provision Logs
 
-──────────────────────────────
+======================================================
+STEP 2 — Theme Isolation
+======================================================
 
-STEP 4 — Build verification
+Inside Workspace A:
 
-Run:
+Change
 
-npm install
+Primary Color
 
-npm run typecheck
+Background
 
-npm run lint
+Typography
 
-npm run build
+Logo
 
-Everything must succeed.
+Button Radius
 
-──────────────────────────────
+Dark Mode
 
-STEP 5 — Test suite
+Save.
 
-Run the entire test suite.
+Now open Workspace B.
 
-All tests must pass.
+Verify:
 
-If tests fail:
+NONE of the above changes exist.
 
-- determine whether the failure is a code bug or an outdated test
-- fix the correct side
-- rerun everything
+Then:
 
-Continue until all tests pass.
+Refresh both pages.
 
-──────────────────────────────
+Verify again.
 
-STEP 6 — Smoke testing
+PASS only if:
 
-Verify locally:
+A keeps new theme
 
-Home page
+B keeps original theme
 
-Preview mode
+Provide:
 
-Provisioned workspace
+Screenshots
 
-Workspace switching
+Database rows
 
-Theme loading
+Theme repository logs
 
-Personality loading
+Queries executed
 
-Repository reads
+======================================================
+STEP 3 — Quiz Isolation
+======================================================
 
-Repository writes
+Workspace A
 
-SSR
+Create a new quiz.
 
-Hydration
+Questions:
 
-No console errors.
+Question A1
 
-──────────────────────────────
+Question A2
 
-STEP 7 — Git review
+Answers:
 
-Run:
+AAA
 
-git status
+BBB
 
-Review every changed file.
+CCC
 
-Ensure there are:
+Workspace B
 
-- no debug logs
-- no temporary code
-- no TODOs
-- no FIXMEs
-- no commented-out code
-- no accidental formatting-only changes
+Verify:
 
-──────────────────────────────
+No Question A1
 
-STEP 8 — Commit
+No Question A2
 
-Create ONE clean commit.
+Now create
 
-Commit message must describe the actual work.
+Question B1
+
+Verify
+
+Workspace A
+
+does NOT receive it.
+
+Provide:
+
+Screenshots
+
+Repository logs
+
+Database rows
+
+======================================================
+STEP 4 — Personality Isolation
+======================================================
+
+Workspace A
+
+Modify
+
+Personality Type
+
+Weights
+
+Categories
+
+Rules
+
+Workspace B
+
+Verify absolutely nothing changes.
+
+Print:
+
+Before
+
+After
+
+Repository logs
+
+Database queries
+
+======================================================
+STEP 5 — Business Settings Isolation
+======================================================
+
+Workspace A
+
+Business Name
+
+Phone
+
+Address
+
+Currency
+
+Timezone
+
+Language
+
+Workspace B
+
+Verify
+
+Everything stays original.
+
+Print database rows.
+
+======================================================
+STEP 6 — Site Content Isolation
+======================================================
+
+Workspace A
+
+Edit
+
+Homepage Hero
+
+Footer
+
+SEO Title
+
+Description
+
+Workspace B
+
+Verify:
+
+Old content still exists.
+
+No copied values.
+
+======================================================
+STEP 7 — Pages Isolation
+======================================================
+
+Workspace A
+
+Create page
+
+/about-alpha
+
+Workspace B
+
+Must NOT see
+
+/about-alpha
+
+Create
+
+/about-beta
+
+Verify
+
+Workspace A
+
+Must NOT see it.
+
+======================================================
+STEP 8 — Gallery Isolation
+======================================================
+
+Upload image into Workspace A.
+
+Verify
+
+Workspace B
+
+Gallery empty.
+
+Now upload into B.
+
+Verify
+
+A unchanged.
+
+======================================================
+STEP 9 — Events Isolation
+======================================================
+
+Create Event
+
+Workspace A
+
+Verify
+
+Workspace B
+
+No event exists.
+
+======================================================
+STEP 10 — Testimonials Isolation
+======================================================
+
+Create testimonial
+
+Workspace A
+
+Verify
+
+Workspace B
+
+No testimonial exists.
+
+======================================================
+STEP 11 — Cache Isolation
+======================================================
+
+After every modification
+
+Refresh
+
+Hard Refresh
+
+Open Incognito
+
+Verify
+
+RepositoryCache
+
+contains different keys.
+
+Print cache keys.
+
+Expected:
+
+theme:workspace-A
+
+theme:workspace-B
+
+NOT
+
+theme:get
+
+======================================================
+STEP 12 — Query Verification
+======================================================
+
+Log every SQL generated.
+
+Verify every repository query contains
+
+workspace_id
+
+or equivalent workspace scope.
+
+Search entire logs for
+
+SELECT *
+
+without workspace filter.
+
+Expected:
+
+ZERO.
+
+======================================================
+STEP 13 — Preview Mode Validation
+======================================================
+
+Open
+
+?preview_domain=alpha...
+
+and
+
+?preview_domain=beta...
+
+Verify
+
+different workspace loaded.
+
+Print
+
+Resolved Workspace ID
+
+Resolved Domain
+
+Repository Context
+
+======================================================
+STEP 14 — Cross Contamination Test
+======================================================
+
+Modify Workspace A.
+
+Immediately refresh Workspace B.
+
+Repeat
+
+50 times
+
+using different entities.
+
+Expected:
+
+Zero contamination.
+
+======================================================
+STEP 15 — Automated Runtime Test
+======================================================
+
+Create automated integration tests.
+
+Use
+
+Vitest
+
+or
+
+Playwright
+
+(preferred).
+
+The tests must automatically:
+
+Provision A
+
+Provision B
+
+Modify A
+
+Verify B
+
+Modify B
+
+Verify A
+
+Delete A
+
+Verify B survives
+
+Delete B
+
+Verify A already removed
+
+======================================================
+STEP 16 — Database Verification
+======================================================
+
+Print every affected table.
+
+For each table show:
+
+workspace_id
+
+row count
+
+entity count
 
 Example:
 
-chore: production verification and stability fixes
+theme_settings
 
-──────────────────────────────
+Workspace A
 
-STEP 9 — Push
+Workspace B
 
-Push ONLY IF:
+site_content
 
-✅ build passes
+Workspace A
 
-✅ tests pass
+Workspace B
 
-✅ lint passes
+pages
 
-✅ typecheck passes
+Workspace A
 
-✅ no runtime issues remain
+Workspace B
 
-If any of those fail:
+menus
 
-DO NOT PUSH.
+Workspace A
 
-──────────────────────────────
+Workspace B
 
-STEP 10 — Final report
+gallery
 
-Return a report containing:
+Workspace A
 
-1. Files modified
+Workspace B
 
-2. Why each file changed
+personality
 
-3. Issues found
+Workspace A
 
-4. Issues fixed
+Workspace B
 
-5. Tests executed
+quiz
 
-6. Build result
+Workspace A
 
-7. Typecheck result
+Workspace B
 
-8. Lint result
+events
 
-9. Remaining technical debt
+Workspace A
 
-10. Production readiness score (0–100)
+Workspace B
 
-11. Is this commit safe to deploy?
+testimonials
 
-Answer ONLY after all verification is complete.
+Workspace A
+
+Workspace B
+
+======================================================
+STEP 17 — Final Evidence
+======================================================
+
+I expect REAL evidence.
+
+Not assumptions.
+
+Not code review.
+
+Include:
+
+✔ Screenshots
+
+✔ Database snapshots
+
+✔ Query logs
+
+✔ Repository logs
+
+✔ Playwright output
+
+✔ Test output
+
+✔ PASS / FAIL table
+
+======================================================
+PASS Criteria
+======================================================
+
+Zero shared data.
+
+Zero cache pollution.
+
+Zero missing workspace filters.
+
+Zero cross-workspace updates.
+
+Zero runtime contamination.
+
+Only if ALL tests pass
+
+declare
+
+"Runtime Multi-Tenant Isolation Verified."
+
+Otherwise
+
+declare production NOT ready.
+
+Do NOT hide failures.
+
+Do NOT assume success.
+
+Evidence only.
