@@ -71,13 +71,20 @@ export class WorkspaceRepository extends BaseRepository {
 
     const start = Date.now();
     try {
-      // Log the lookup intent
+      // Log the lookup intent (both structured logger and console for runtime)
       this.logger.info("workspace.findByDomain: lookup start", {
         source: "workspace",
         requestedDomain,
         normalizedDomain,
         sqlFilter,
       });
+      if (typeof console !== "undefined") {
+        console.log("[NAMA][workspace.findByDomain] lookup start", {
+          requestedDomain,
+          normalizedDomain,
+          sqlFilter,
+        });
+      }
 
       // Execute the query
       const query = this.db.from("workspaces").select("*").eq("domain", normalizedDomain).maybeSingle();
@@ -85,8 +92,10 @@ export class WorkspaceRepository extends BaseRepository {
       const possibleUrl = (this.db as any)?.url || (this.db as any)?.postgrestUrl || (this.db as any)?.client?.url;
       if (possibleUrl) {
         this.logger.info("workspace.findByDomain: supabase request", { url: possibleUrl, filter: sqlFilter });
+        if (typeof console !== "undefined") console.log("[NAMA][workspace.findByDomain] supabase request url", possibleUrl);
       } else {
         this.logger.debug("workspace.findByDomain: supabase request URL unavailable on DB provider", { filter: sqlFilter });
+        if (typeof console !== "undefined") console.log("[NAMA][workspace.findByDomain] supabase request url: <unavailable>", { filter: sqlFilter });
       }
 
       const { data, error } = await query;
@@ -104,6 +113,18 @@ export class WorkspaceRepository extends BaseRepository {
         returnedRows: data ? 1 : 0,
         firstRow: data ?? undefined,
       });
+      if (typeof console !== "undefined") {
+        console.log("[NAMA][workspace.findByDomain] lookup finished", {
+          requestedDomain,
+          normalizedDomain,
+          sqlFilter,
+          tookMs: took,
+          httpStatus: error?.status ?? (data ? 200 : undefined),
+          postgrestError: error ?? undefined,
+          returnedRows: data ? 1 : 0,
+          firstRow: data ?? undefined,
+        });
+      }
 
       if (error) {
         // Surface RLS/auth/network errors explicitly
@@ -113,6 +134,9 @@ export class WorkspaceRepository extends BaseRepository {
           normalizedDomain,
           error,
         });
+        if (typeof console !== "undefined") {
+          console.error("[NAMA][workspace.findByDomain] supabase returned error", { requestedDomain, normalizedDomain, error });
+        }
         // Always throw the raw error wrapped so callers have context
         throw error;
       }
