@@ -308,25 +308,59 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
         );
       } else if (requestedDomain) {
         // Domain or subdomain-based resolution
-        ctx = await resolveWorkspaceFromRequest(
-          { workspaceRepository: workspaceRepo },
-          {
-            domain: requestedDomain,
+        // Add detailed client-side logs to trace domain->Supabase lookups
+        if (typeof window !== "undefined") {
+          console.log("[NAMA][context] Attempting domain resolution", {
+            requestedDomain,
             isSubdomain: pathResolution.isSubdomain,
-          },
-        );
-        // Remember a ?preview_domain-resolved workspace so reloads without the
-        // query param keep rendering it (preview builds only).
-        if (
-          canEnablePreviewMode() &&
-          previewDomain &&
-          ctx?.workspaceId
-        ) {
-          try {
-            sessionStorage.setItem(PREVIEW_WS_STORAGE_KEY, ctx.workspaceId);
-          } catch {
-            /* sessionStorage unavailable — ignore */
+            previewDomain,
+          });
+        }
+
+        try {
+          const t0 = Date.now();
+          ctx = await resolveWorkspaceFromRequest(
+            { workspaceRepository: workspaceRepo },
+            {
+              domain: requestedDomain,
+              isSubdomain: pathResolution.isSubdomain,
+            },
+          );
+          const took = Date.now() - t0;
+          if (typeof window !== "undefined") {
+            console.log("[NAMA][context] Domain resolution result", { ctx, took });
           }
+
+          if (!ctx?.workspaceId && typeof window !== "undefined") {
+            console.warn("[NAMA][context] Domain resolved to no workspace entity", {
+              requestedDomain,
+              isSubdomain: pathResolution.isSubdomain,
+            });
+          }
+
+          // Remember a ?preview_domain-resolved workspace so reloads without the
+          // query param keep rendering it (preview builds only).
+          if (
+            canEnablePreviewMode() &&
+            previewDomain &&
+            ctx?.workspaceId
+          ) {
+            try {
+              sessionStorage.setItem(PREVIEW_WS_STORAGE_KEY, ctx.workspaceId);
+            } catch {
+              /* sessionStorage unavailable — ignore */
+            }
+          }
+        } catch (err) {
+          if (typeof window !== "undefined") {
+            console.error("[NAMA][context] Error during domain resolution", {
+              requestedDomain,
+              isSubdomain: pathResolution.isSubdomain,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+          // Rethrow to allow outer error handler to handle UI state
+          throw err;
         }
       }
 
