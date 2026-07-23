@@ -239,22 +239,24 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
   // changes — e.g. navigating between admin sections that preserve the param.
   const locationSearch = useRouterState({ select: (s) => s.location.search });
   
-  if (typeof window !== "undefined" && typeof locationSearch !== "string") {
-    console.error("[NAMA][context] locationSearch is not a string!", {
+  if (typeof window !== "undefined") {
+    console.debug("[NAMA][context] locationSearch from router", {
       type: typeof locationSearch,
-      value: locationSearch
+      isObj: locationSearch && typeof locationSearch === 'object',
+      keys: locationSearch && typeof locationSearch === 'object' ? Object.keys(locationSearch) : "N/A",
+      raw: String(locationSearch)
     });
   }
   
   const previewDomain = useMemo(() => {
-    // Guard against locationSearch not being a string
-    if (typeof locationSearch !== "string") {
-      return undefined;
-    }
-    const result = parsePreviewDomain(locationSearch);
+    // TanStack Router returns the search string as a string, but guard against it
+    const searchStr = typeof locationSearch === "string" ? locationSearch : 
+                      (locationSearch && typeof locationSearch === 'object' && 'toString' in locationSearch) ? locationSearch.toString() : 
+                      "";
+    const result = parsePreviewDomain(searchStr);
     if (typeof window !== "undefined") {
       console.debug("[NAMA][context] parsePreviewDomain result", {
-        input: locationSearch ? locationSearch.substring(0, 100) : "(empty)",
+        input: searchStr ? searchStr.substring(0, 100) : "(empty)",
         output: result || "(undefined)"
       });
     }
