@@ -128,11 +128,23 @@ export class ThemeRepository extends BaseRepository {
   async update(patch: Partial<ThemeRow>): Promise<void> {
     try {
       this.validateOrThrow(themeSchema, patch, "theme_settings");
-      // Update with workspace filter - ensures only this workspace's theme is updated
+
+      const { data: existing } = await this.withWorkspace(
+        this.db.from<ThemeRow>("theme_settings").select("id").limit(1),
+      ).maybeSingle();
+
+      const rowPatch = {
+        ...patch,
+        updated_at: new Date().toISOString(),
+        workspace_id: this.workspaceId ?? undefined,
+      } as Partial<ThemeRow> & { workspace_id?: string | null };
+
+      const upsertData = existing?.id
+        ? { id: existing.id, ...rowPatch }
+        : rowPatch;
+
       const { error } = await this.withWorkspace(
-        this.db
-          .from("theme_settings")
-          .update(patch as ThemeUpdate),
+        this.db.from("theme_settings").upsert(upsertData as unknown as ThemeUpdate),
       );
       if (error) throw error;
 

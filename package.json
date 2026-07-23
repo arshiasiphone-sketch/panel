@@ -8,6 +8,7 @@
     "build": "node scripts/build.mjs",
     "build:dev": "node scripts/build.mjs",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest"

@@ -1,10 +1,10 @@
 {
   "workspaceA": {
-    "id": "d17e0407-a528-4f78-a2fb-9409fdc373f5",
+    "id": "a121448b-d0c4-4bf3-95f2-fa0b2dd0fac9",
     "domain": "runtime-test-a.example.com"
   },
   "workspaceB": {
-    "id": "fae3ac9f-68a6-402e-9cc5-89b1331f24a1",
+    "id": "1ddf743f-bfae-49da-a373-2bf3363e532a",
     "domain": "runtime-test-b.example.com"
   },
   "tables": {

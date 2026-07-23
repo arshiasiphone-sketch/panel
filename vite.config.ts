@@ -25,6 +25,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": `${process.cwd()}/src`,
+      // Keep the TanStack storage-context API surface available at runtime,
+      // but replace the Node AsyncLocalStorage implementation with a browser-safe
+      // fallback so `node:async_hooks` never enters the client asset graph.
+      "@tanstack/start-storage-context": `${process.cwd()}/src/lib/tanstack/start-storage-context.browser.ts`,
     },
     dedupe: [
       "react",

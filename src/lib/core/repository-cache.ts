@@ -174,10 +174,15 @@ export class RepositoryCache {
    */
   stats(): { tables: number; entries: number } {
     let entries = 0;
-    for (const table of Object.keys(this.store)) {
-      entries += this.store[table].size;
+    const tables = new Set<string>();
+
+    for (const fullCacheKey of Object.keys(this.store)) {
+      const table = fullCacheKey.split(":")[0];
+      tables.add(table);
+      entries += this.store[fullCacheKey].size;
     }
-    return { tables: Object.keys(this.store).length, entries };
+
+    return { tables: tables.size, entries };
   }
 
   // ─── Private ───────────────────────────────────────────────────────────
