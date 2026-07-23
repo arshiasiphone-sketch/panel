@@ -141,7 +141,7 @@ function extractDomainInfo(): {
  *   - Not in an admin route (/admin, /cafe)
  *   - preview_domain param is missing/empty
  */
-function parsePreviewDomain(search: string | { preview_domain?: string }): string | undefined {
+function parsePreviewDomain(search: string): string | undefined {
   return parsePreviewDomainSafely(search);
 }
 
@@ -237,31 +237,21 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
   // Read the preview override from the live router location (not a one-shot
   // window.location read) so the workspace re-resolves whenever ?preview_domain
   // changes — e.g. navigating between admin sections that preserve the param.
-  const locationSearch = useRouterState({ select: (s) => s.location.search });
-  
-  if (typeof window !== "undefined") {
-    console.debug("[NAMA][context] locationSearch from router", {
-      type: typeof locationSearch,
-      isObj: locationSearch && typeof locationSearch === 'object',
-      keys: locationSearch && typeof locationSearch === 'object' ? Object.keys(locationSearch) : "N/A",
-      raw: String(locationSearch)
-    });
-  }
-  
+  // Note: useRouterState returns the raw search param string, which we use directly
   const previewDomain = useMemo(() => {
-    // TanStack Router returns the search string as a string, but guard against it
-    const searchStr = typeof locationSearch === "string" ? locationSearch : 
-                      (locationSearch && typeof locationSearch === 'object' && 'toString' in locationSearch) ? locationSearch.toString() : 
-                      "";
-    const result = parsePreviewDomain(searchStr);
-    if (typeof window !== "undefined") {
-      console.debug("[NAMA][context] parsePreviewDomain result", {
-        input: searchStr ? searchStr.substring(0, 100) : "(empty)",
-        output: result || "(undefined)"
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    // Use window.location.search directly (simpler, more reliable)
+    const result = parsePreviewDomain(window.location.search);
+    if (result) {
+      console.debug("[NAMA][context] Preview domain extracted", {
+        domain: result,
+        search: window.location.search
       });
     }
     return result;
-  }, [locationSearch]);
+  }, []);
 
   // Once the workspace resolves, the repository singletons carry the correct
   // workspace_id, but the public read hooks (useMenuItems, useGalleryImages,

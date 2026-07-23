@@ -126,40 +126,28 @@ export function canEnablePreviewMode(): boolean {
  *   - Not in an admin route
  *   - preview_domain param is missing/empty
  */
-export function parsePreviewDomainSafely(
-  search: string | { preview_domain?: string },
-): string | undefined {
+export function parsePreviewDomainSafely(search: string): string | undefined {
   const canEnable = canEnablePreviewMode();
-  const raw = typeof search === "string" ? search : search.preview_domain ?? "";
   
-  if (typeof window !== "undefined") {
-    console.debug("[NAMA][preview-mode] parsePreviewDomainSafely called", {
-      search: raw ? raw.substring(0, 100) : "(empty)",
-      canEnable,
+  if (typeof window !== "undefined" && !canEnable) {
+    console.debug("[NAMA][preview-mode] Gates failed", {
       isSafeHost: isSafePreviewHost(),
       isAdmin: isAdminRoute(),
       hostname: window.location.hostname,
       pathname: window.location.pathname
     });
-  }
-
-  // Early exit if preview mode is not safe
-  if (!canEnable) {
-    if (typeof window !== "undefined") {
-      console.debug("[NAMA][preview-mode] → Gates failed, returning undefined");
-    }
     return undefined;
   }
 
-  const value = new URLSearchParams(raw)
+  const value = new URLSearchParams(search)
     .get("preview_domain")
     ?.trim()
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
 
-  if (typeof window !== "undefined") {
-    console.debug("[NAMA][preview-mode] → Extracted value", { 
-      extracted: value || "(undefined)"
+  if (typeof window !== "undefined" && value) {
+    console.debug("[NAMA][preview-mode] Extracted preview_domain", { 
+      value
     });
   }
 
