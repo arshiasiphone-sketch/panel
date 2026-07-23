@@ -32,7 +32,18 @@ export const SAFE_PREVIEW_HOSTS = [
 export function isSafePreviewHost(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname;
-  return SAFE_PREVIEW_HOSTS.includes(host);
+  const isSafe = SAFE_PREVIEW_HOSTS.includes(host);
+  
+  if (typeof window !== "undefined" && !isSafe) {
+    // Log non-safe hosts for debugging
+    console.debug("[NAMA][preview-mode] Host check failed", {
+      hostname: host,
+      isSafe,
+      safeHosts: SAFE_PREVIEW_HOSTS
+    });
+  }
+  
+  return isSafe;
 }
 
 /**
@@ -46,7 +57,16 @@ export function isSafePreviewHost(): boolean {
 export function isAdminRoute(): boolean {
   if (typeof window === "undefined") return false;
   const pathname = window.location.pathname;
-  return pathname.startsWith("/admin") || pathname.startsWith("/cafe");
+  const isAdmin = pathname.startsWith("/admin") || pathname.startsWith("/cafe");
+  
+  if (!isAdmin) {
+    console.debug("[NAMA][preview-mode] Route check failed", {
+      pathname,
+      isAdmin
+    });
+  }
+  
+  return isAdmin;
 }
 
 /**
