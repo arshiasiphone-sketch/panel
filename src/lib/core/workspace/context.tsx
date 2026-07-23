@@ -266,9 +266,27 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
 
       const workspaceRepo = repos.workspace;
 
+      // Debug: log preview mode state
+      if (typeof window !== "undefined") {
+        logger.debug("Preview mode check", {
+          source: "workspace",
+          previewDomain,
+          canEnable: canEnablePreviewMode(),
+          hostname: window.location.hostname,
+          pathname: window.location.pathname,
+        });
+      }
+
       // Try domain/subdomain resolution first (public provisioned sites)
       const pathResolution = extractWorkspaceFromPath(previewDomain);
       const requestedDomain = pathResolution.domain;
+
+      logger.debug("Workspace path resolution", {
+        source: "workspace",
+        requestedDomain,
+        isSubdomain: pathResolution.isSubdomain,
+        workspaceIdFromPath: pathResolution.workspaceId,
+      });
 
       let ctx: WorkspaceContext | undefined;
 

@@ -15,8 +15,9 @@
  */
 
 export const SAFE_PREVIEW_HOSTS = [
-  // Production platform host (all workspaces accessible via ?preview_domain=)
+  // Production platform aliases (multi-workspace testing)
   "panel-five-phi.vercel.app",
+  "panel-jjv13f6r5-arshiasiphone-7470s-projects.vercel.app",  // Current Vercel subdomain
   // Local development
   "localhost",
   "127.0.0.1",
