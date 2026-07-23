@@ -129,18 +129,39 @@ export function canEnablePreviewMode(): boolean {
 export function parsePreviewDomainSafely(
   search: string | { preview_domain?: string },
 ): string | undefined {
-  // Early exit if preview mode is not safe
-  if (!canEnablePreviewMode()) {
-    return undefined;
+  const canEnable = canEnablePreviewMode();
+  const raw = typeof search === "string" ? search : search.preview_domain ?? "";
+  
+  if (typeof window !== "undefined") {
+    console.debug("[NAMA][preview-mode] parsePreviewDomainSafely called", {
+      search: raw ? raw.substring(0, 100) : "(empty)",
+      canEnable,
+      isSafeHost: isSafePreviewHost(),
+      isAdmin: isAdminRoute(),
+      hostname: window.location.hostname,
+      pathname: window.location.pathname
+    });
   }
 
-  const raw = typeof search === "string" ? search : search.preview_domain ?? "";
+  // Early exit if preview mode is not safe
+  if (!canEnable) {
+    if (typeof window !== "undefined") {
+      console.debug("[NAMA][preview-mode] → Gates failed, returning undefined");
+    }
+    return undefined;
+  }
 
   const value = new URLSearchParams(raw)
     .get("preview_domain")
     ?.trim()
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
+
+  if (typeof window !== "undefined") {
+    console.debug("[NAMA][preview-mode] → Extracted value", { 
+      extracted: value || "(undefined)"
+    });
+  }
 
   return value ? value : undefined;
 }
