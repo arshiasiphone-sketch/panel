@@ -238,7 +238,16 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
   // window.location read) so the workspace re-resolves whenever ?preview_domain
   // changes — e.g. navigating between admin sections that preserve the param.
   const locationSearch = useRouterState({ select: (s) => s.location.search });
-  const previewDomain = useMemo(() => parsePreviewDomain(locationSearch), [locationSearch]);
+  const previewDomain = useMemo(() => {
+    const result = parsePreviewDomain(locationSearch);
+    if (typeof window !== "undefined") {
+      console.debug("[NAMA][context] parsePreviewDomain result", {
+        input: locationSearch ? locationSearch.substring(0, 100) : "(empty)",
+        output: result || "(undefined)"
+      });
+    }
+    return result;
+  }, [locationSearch]);
 
   // Once the workspace resolves, the repository singletons carry the correct
   // workspace_id, but the public read hooks (useMenuItems, useGalleryImages,
