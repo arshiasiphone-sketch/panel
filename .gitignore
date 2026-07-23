@@ -18,3 +18,6 @@ tsc-errors.txt
 
 # Let Vercel run 'npm install' from package.json (lock caused missing deps)
 package-lock.json
+
+.vercel
+.env*

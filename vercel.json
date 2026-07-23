@@ -3,7 +3,8 @@
   "buildCommand": "npm run build",
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "VITE_ENABLE_DOMAIN_PREVIEW": "true"
     }
   }
 }

@@ -38,6 +38,7 @@ import {
 import { runWorkspaceHealthChecks, formatHealthSummary } from "./health";
 import { checkLimit, isAdmin, isOwner, hasRole } from "./entity";
 import type { WorkspaceRole } from "./types";
+import { parsePreviewDomainSafely, canEnablePreviewMode } from "./preview-mode";
 
 // getRepositories / setWorkspaceOnRepositories are imported dynamically inside
 // the resolve callback (not at module level) to avoid a circular dependency:
@@ -129,25 +130,19 @@ function extractDomainInfo(): {
 
 /**
  * Parse the `?preview_domain=<domain>` override from a search string.
- * Local-testing-only: disabled unless VITE_ENABLE_DOMAIN_PREVIEW === "true".
- * Strips leading/trailing slashes so "?preview_domain=khane.nama.app/" (a common
- * typo / copy-paste from a URL bar) still matches the stored "khane.nama.app"
- * domain exactly in findByDomain.
+ * 
+ * IMPORTANT: This uses canEnablePreviewMode() which enforces TIER-2 runtime
+ * safety checks (host validation, route validation). The build-time gate
+ * (VITE_ENABLE_DOMAIN_PREVIEW) is checked first in parsePreviewDomainSafely.
+ * 
+ * Returns undefined if:
+ *   - Build was not set VITE_ENABLE_DOMAIN_PREVIEW=true
+ *   - Not on a SAFE host (production platform or localhost)
+ *   - Not in an admin route (/admin, /cafe)
+ *   - preview_domain param is missing/empty
  */
 function parsePreviewDomain(search: string | { preview_domain?: string }): string | undefined {
-  if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") return undefined;
-
-  const raw = typeof search === "string"
-    ? search
-    : search.preview_domain ?? "";
-
-  const value = new URLSearchParams(raw)
-    .get("preview_domain")
-    ?.trim()
-    .replace(/^\/+/, "")
-    .replace(/\/+$/, "");
-
-  return value ? value : undefined;
+  return parsePreviewDomainSafely(search);
 }
 
 /**
@@ -206,7 +201,7 @@ function extractWorkspaceFromPath(
 
   // Preview fallback (preview builds only): reuse the last ?preview_domain-resolved
   // workspace so a hard reload that loses the query param (e.g. /admin) still shows it.
-  if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW === "true") {
+  if (canEnablePreviewMode()) {
     try {
       const stored = sessionStorage.getItem(PREVIEW_WS_STORAGE_KEY);
       if (stored) {
@@ -295,7 +290,7 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
         // Remember a ?preview_domain-resolved workspace so reloads without the
         // query param keep rendering it (preview builds only).
         if (
-          import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW === "true" &&
+          canEnablePreviewMode() &&
           previewDomain &&
           ctx?.workspaceId
         ) {
