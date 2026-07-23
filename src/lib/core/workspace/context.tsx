@@ -238,7 +238,19 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
   // window.location read) so the workspace re-resolves whenever ?preview_domain
   // changes — e.g. navigating between admin sections that preserve the param.
   const locationSearch = useRouterState({ select: (s) => s.location.search });
+  
+  if (typeof window !== "undefined" && typeof locationSearch !== "string") {
+    console.error("[NAMA][context] locationSearch is not a string!", {
+      type: typeof locationSearch,
+      value: locationSearch
+    });
+  }
+  
   const previewDomain = useMemo(() => {
+    // Guard against locationSearch not being a string
+    if (typeof locationSearch !== "string") {
+      return undefined;
+    }
     const result = parsePreviewDomain(locationSearch);
     if (typeof window !== "undefined") {
       console.debug("[NAMA][context] parsePreviewDomain result", {
