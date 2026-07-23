@@ -35,12 +35,7 @@ export function isSafePreviewHost(): boolean {
   const isSafe = SAFE_PREVIEW_HOSTS.includes(host);
   
   if (typeof window !== "undefined" && !isSafe) {
-    // Log non-safe hosts for debugging
-    console.debug("[NAMA][preview-mode] Host check failed", {
-      hostname: host,
-      isSafe,
-      safeHosts: SAFE_PREVIEW_HOSTS
-    });
+    console.warn("[NAMA][preview-mode] Host check failed", host, SAFE_PREVIEW_HOSTS);
   }
   
   return isSafe;
@@ -60,10 +55,7 @@ export function isAdminRoute(): boolean {
   const isAdmin = pathname.startsWith("/admin") || pathname.startsWith("/cafe");
   
   if (!isAdmin) {
-    console.debug("[NAMA][preview-mode] Route check failed", {
-      pathname,
-      isAdmin
-    });
+    console.warn("[NAMA][preview-mode] Route check failed", pathname);
   }
   
   return isAdmin;
@@ -130,12 +122,7 @@ export function parsePreviewDomainSafely(search: string): string | undefined {
   const canEnable = canEnablePreviewMode();
   
   if (typeof window !== "undefined" && !canEnable) {
-    console.debug("[NAMA][preview-mode] Gates failed", {
-      isSafeHost: isSafePreviewHost(),
-      isAdmin: isAdminRoute(),
-      hostname: window.location.hostname,
-      pathname: window.location.pathname
-    });
+    console.warn("[NAMA][preview-mode] Gates failed - isSafeHost:", isSafePreviewHost(), "isAdmin:", isAdminRoute());
     return undefined;
   }
 
@@ -146,9 +133,7 @@ export function parsePreviewDomainSafely(search: string): string | undefined {
     .replace(/\/+$/, "");
 
   if (typeof window !== "undefined" && value) {
-    console.debug("[NAMA][preview-mode] Extracted preview_domain", { 
-      value
-    });
+    console.log("[NAMA][preview-mode] SUCCESS extracted preview_domain:", value);
   }
 
   return value ? value : undefined;

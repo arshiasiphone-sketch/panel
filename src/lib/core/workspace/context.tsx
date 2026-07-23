@@ -245,10 +245,7 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
     // Use window.location.search directly (simpler, more reliable)
     const result = parsePreviewDomain(window.location.search);
     if (result) {
-      console.debug("[NAMA][context] Preview domain extracted", {
-        domain: result,
-        search: window.location.search
-      });
+      console.log("[NAMA][context] Preview domain extracted:", result);
     }
     return result;
   }, []);
