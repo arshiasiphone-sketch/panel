@@ -40,6 +40,7 @@ import { Route as ApiPublicProvisionStatusRouteImport } from './routes/api/publi
 import { Route as ApiPublicProvisionRouteImport } from './routes/api/public/provision'
 import { Route as ApiPublicCheckSlugRouteImport } from './routes/api/public/check-slug'
 import { Route as ApiPublicBlueprintsRouteImport } from './routes/api/public/blueprints'
+import { Route as ApiDebugSupabaseDiagnoseRouteImport } from './routes/api/debug/supabase-diagnose'
 
 const ProvisionRoute = ProvisionRouteImport.update({
   id: '/provision',
@@ -197,6 +198,12 @@ const ApiPublicBlueprintsRoute = ApiPublicBlueprintsRouteImport.update({
   path: '/api/public/blueprints',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDebugSupabaseDiagnoseRoute =
+  ApiDebugSupabaseDiagnoseRouteImport.update({
+    id: '/api/debug/supabase-diagnose',
+    path: '/api/debug/supabase-diagnose',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/test/result': typeof TestResultRoute
   '/admin/': typeof AdminIndexRoute
   '/test/': typeof TestIndexRoute
+  '/api/debug/supabase-diagnose': typeof ApiDebugSupabaseDiagnoseRoute
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
@@ -258,6 +266,7 @@ export interface FileRoutesByTo {
   '/test/result': typeof TestResultRoute
   '/admin': typeof AdminIndexRoute
   '/test': typeof TestIndexRoute
+  '/api/debug/supabase-diagnose': typeof ApiDebugSupabaseDiagnoseRoute
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
@@ -292,6 +301,7 @@ export interface FileRoutesById {
   '/test/result': typeof TestResultRoute
   '/admin/': typeof AdminIndexRoute
   '/test/': typeof TestIndexRoute
+  '/api/debug/supabase-diagnose': typeof ApiDebugSupabaseDiagnoseRoute
   '/api/public/blueprints': typeof ApiPublicBlueprintsRoute
   '/api/public/check-slug': typeof ApiPublicCheckSlugRoute
   '/api/public/provision': typeof ApiPublicProvisionRoute
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/test/result'
     | '/admin/'
     | '/test/'
+    | '/api/debug/supabase-diagnose'
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/test/result'
     | '/admin'
     | '/test'
+    | '/api/debug/supabase-diagnose'
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
@@ -392,6 +404,7 @@ export interface FileRouteTypes {
     | '/test/result'
     | '/admin/'
     | '/test/'
+    | '/api/debug/supabase-diagnose'
     | '/api/public/blueprints'
     | '/api/public/check-slug'
     | '/api/public/provision'
@@ -408,6 +421,7 @@ export interface RootRouteChildren {
   TestInfoRoute: typeof TestInfoRoute
   TestResultRoute: typeof TestResultRoute
   TestIndexRoute: typeof TestIndexRoute
+  ApiDebugSupabaseDiagnoseRoute: typeof ApiDebugSupabaseDiagnoseRoute
   ApiPublicBlueprintsRoute: typeof ApiPublicBlueprintsRoute
   ApiPublicCheckSlugRoute: typeof ApiPublicCheckSlugRoute
   ApiPublicProvisionRoute: typeof ApiPublicProvisionRoute
@@ -633,6 +647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBlueprintsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/debug/supabase-diagnose': {
+      id: '/api/debug/supabase-diagnose'
+      path: '/api/debug/supabase-diagnose'
+      fullPath: '/api/debug/supabase-diagnose'
+      preLoaderRoute: typeof ApiDebugSupabaseDiagnoseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -690,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestInfoRoute: TestInfoRoute,
   TestResultRoute: TestResultRoute,
   TestIndexRoute: TestIndexRoute,
+  ApiDebugSupabaseDiagnoseRoute: ApiDebugSupabaseDiagnoseRoute,
   ApiPublicBlueprintsRoute: ApiPublicBlueprintsRoute,
   ApiPublicCheckSlugRoute: ApiPublicCheckSlugRoute,
   ApiPublicProvisionRoute: ApiPublicProvisionRoute,

@@ -25,6 +25,23 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set("apikey", supabaseKey);
+    // Diagnostic: log outgoing browser Supabase requests (masked keys)
+    try {
+      const maskedKey = typeof supabaseKey === 'string' ? `${supabaseKey.slice(0,6)}…${supabaseKey.slice(-4)}` : String(supabaseKey);
+      const out = {
+        url: typeof input === 'string' ? input : input.url,
+        method: init?.method ?? (typeof input === 'string' ? 'GET' : input.method),
+        headers: Object.fromEntries(headers.entries()),
+        maskedKey,
+        origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+      };
+      // Use console.log so it appears in browser console during diagnostics
+      // Avoid logging full sensitive values.
+      console.log('[NAMA][supabase-fetch][browser] outgoing', out);
+    } catch (e) {
+      /* ignore logging errors */
+    }
+
     return fetch(input, { ...init, headers });
   };
 }
