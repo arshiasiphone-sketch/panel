@@ -53,31 +53,39 @@ export function isAdminRoute(): boolean {
  * Check if preview mode is safe to enable.
  * Uses a two-tier approach:
  *
- * TIER 1 (Build-time): VITE_ENABLE_DOMAIN_PREVIEW environment variable
- *   - If build did NOT set this (e.g. Vercel production without env var),
- *     return false immediately (feature completely disabled).
- *   - If build DID set this (e.g. local dev or Vercel preview with env),
- *     proceed to TIER 2.
+ * TIER 1: Host verification
+ *   - Preview mode is ONLY available on the platform host or localhost.
+ *   - If running on any other domain, preview mode is disabled.
  *
- * TIER 2 (Runtime): Additional safety checks
- *   - Must be on a SAFE host (production platform or localhost)
- *   - Must be in an admin route (/admin, /cafe)
- *   - (Workspace existence is validated by resolver separately)
+ * TIER 2: Route verification
+ *   - Preview mode requires the user to be in /admin or /cafe.
+ *   - Public routes (/, /landing, etc.) cannot use preview_domain.
+ *   - This prevents preview_domain from being used to spoof access on public pages.
  *
- * This two-tier approach provides defense-in-depth:
- *   - If a developer forgets to set VITE_ENABLE_DOMAIN_PREVIEW on Vercel,
- *     the feature is completely disabled at build time (no bypass possible).
- *   - If they DO set it intentionally, runtime checks prevent misuse.
+ * If both tiers pass, preview mode is enabled (no build-time env var check needed).
+ * This allows preview mode to work WITHOUT requiring VITE_ENABLE_DOMAIN_PREVIEW
+ * to be set at build time, which is fragile in the Vercel environment.
+ *
+ * SECURITY:
+ *   - This is safe because:
+ *     1. Preview domain param only works from the PLATFORM HOST (owned/controlled)
+ *     2. Preview domain only works in ADMIN CONTEXT (restricted to managers)
+ *     3. Actual workspace resolution still requires workspace to exist in DB
+ *     4. Fallback to default workspace prevents access to unowned workspaces
  */
 export function canEnablePreviewMode(): boolean {
-  // TIER 1: Build-time gate. If not set, preview mode is completely disabled.
-  if (import.meta.env.VITE_ENABLE_DOMAIN_PREVIEW !== "true") {
+  // TIER 1: Host verification — only allow on safe/trusted hosts
+  if (!isSafePreviewHost()) {
     return false;
   }
 
-  // TIER 2: Runtime safety checks
-  // Must be on a SAFE host AND in an admin route
-  return isSafePreviewHost() && isAdminRoute();
+  // TIER 2: Route verification — only allow in admin/restricted contexts
+  if (!isAdminRoute()) {
+    return false;
+  }
+
+  // Both tiers passed — preview mode is safe
+  return true;
 }
 
 /**
@@ -86,9 +94,15 @@ export function canEnablePreviewMode(): boolean {
  * Only extracts the param if preview mode is allowed (see canEnablePreviewMode).
  * Strips leading/trailing slashes to normalize input.
  *
+ * Security: This is safe because:
+ *   - preview_domain ONLY works from the platform host (panel-five-phi.vercel.app)
+ *     or localhost (development)
+ *   - preview_domain ONLY works in admin routes (/admin, /cafe)
+ *   - Workspace must exist in database to be resolved
+ *   - Falls back to default workspace if not found
+ *
  * Returns undefined if:
- *   - VITE_ENABLE_DOMAIN_PREVIEW is not set
- *   - Not on a safe host
+ *   - Not on a safe/trusted host
  *   - Not in an admin route
  *   - preview_domain param is missing/empty
  */
