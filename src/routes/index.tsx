@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, lazy, Suspense, useEffect, useRef } from "react";
 // deploy-marker: force fresh asset hash for CDN cache flush (2026-07-20)
-import { fetchThemeSettings, QK } from "@/lib/cms";
+import type { ThemeSettings } from "@/lib/cms";
 import {
   getPublicWorkspaceContent,
   type PublicWorkspaceContent,
@@ -45,19 +45,15 @@ function buildAdminHref(resolvedDomain?: string | null): string {
 }
 
 export const Route = createFileRoute("/")({
-  loader: async ({ context: { queryClient } }) => {
-    // Theme is a global singleton — keep its existing loader (anon-readable).
-    const theme = await queryClient.ensureQueryData({
-      queryKey: QK.theme,
-      queryFn: fetchThemeSettings,
-    });
-
+  loader: async () => {
     // Tenant content is resolved + read on the server (service_role) so we can
     // later revoke anon SELECT. The bundle is dehydrated into the route and
     // rehydrated on the client — no anon client reads on the landing page.
     const content = (await getPublicWorkspaceContent({
       data: { workspaceId: undefined, domain: undefined },
     })) as PublicWorkspaceContent;
+
+    const theme = content.theme as ThemeSettings | null;
 
     return { theme, content };
   },

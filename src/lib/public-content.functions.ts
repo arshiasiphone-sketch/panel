@@ -21,6 +21,7 @@ import { getLogger } from "@/lib/logger";
 export interface PublicWorkspaceContent {
   workspaceId: string | null;
   domain: string | null;
+  theme: Record<string, unknown> | null;
   menu: any[];
   gallery: any[];
   events: any[];
@@ -33,6 +34,7 @@ export interface PublicWorkspaceContent {
 const EMPTY: PublicWorkspaceContent = {
   workspaceId: null,
   domain: null,
+  theme: null,
   menu: [],
   gallery: [],
   events: [],
@@ -83,7 +85,7 @@ async function resolveWorkspaceId(request: Request): Promise<{
 }
 
 async function readScoped(workspaceId: string): Promise<PublicWorkspaceContent> {
-  const [menu, gallery, events, testimonials, siteRows, blocks, personalities] = await Promise.all([
+  const [menu, gallery, events, testimonials, siteRows, blocks, personalities, themes] = await Promise.all([
     scoped("menu_items", workspaceId),
     scoped("gallery_images", workspaceId),
     scoped("events", workspaceId),
@@ -91,6 +93,7 @@ async function readScoped(workspaceId: string): Promise<PublicWorkspaceContent> 
     scoped("site_content", workspaceId),
     scoped("page_blocks", workspaceId),
     scoped("personality_profiles", workspaceId),
+    scoped("theme_settings", workspaceId),
   ]);
 
   const site: Record<string, Record<string, unknown>> = {};
@@ -101,6 +104,7 @@ async function readScoped(workspaceId: string): Promise<PublicWorkspaceContent> 
   return {
     workspaceId,
     domain: null,
+    theme: (themes[0] as Record<string, unknown> | undefined) ?? null,
     menu,
     gallery,
     events,
