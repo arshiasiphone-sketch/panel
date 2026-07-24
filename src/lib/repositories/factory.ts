@@ -5,6 +5,7 @@
 
 import type { IRealtimeProvider } from "@/lib/interfaces/realtime";
 import type { RepositoryDependencies, WorkspaceContext } from "./base";
+import { traceWorkspaceLifecycle } from "@/lib/workspace-lifecycle-trace";
 import { MenuRepository } from "./menu";
 import { GalleryRepository } from "./gallery";
 import { EventsRepository } from "./events";
@@ -44,7 +45,7 @@ export interface Repositories {
 export function createRepositories(
   deps: RepositoryDependencies,
 ): Repositories {
-  return {
+  const repos = {
     menu: new MenuRepository(deps),
     gallery: new GalleryRepository(deps),
     events: new EventsRepository(deps),
@@ -60,6 +61,14 @@ export function createRepositories(
     workspace: new WorkspaceRepository(deps),
     realtime: deps.realtime,
   };
+  traceWorkspaceLifecycle({
+    label: "repositories-created",
+    location: "repositories/factory",
+    stage: "created",
+    workspace: undefined,
+    details: { repoCount: Object.keys(repos).length },
+  });
+  return repos;
 }
 
 // Singleton repositories for client-side use
@@ -96,6 +105,18 @@ export function setWorkspaceOnRepositories(
   repos: Repositories,
   workspace: WorkspaceContext,
 ): void {
+  traceWorkspaceLifecycle({
+    label: "workspace-set-on-repositories",
+    location: "repositories/factory",
+    stage: "bind",
+    workspace,
+    details: {
+      repoCount: Object.keys(repos).length,
+      workspaceId: workspace.workspaceId,
+      entityPresent: Boolean(workspace.entity),
+    },
+  });
+
   for (const repo of Object.values(repos)) {
     if (typeof (repo as Record<string, unknown>).setWorkspace === "function") {
       (repo as { setWorkspace: (ws: WorkspaceContext) => void }).setWorkspace(workspace);

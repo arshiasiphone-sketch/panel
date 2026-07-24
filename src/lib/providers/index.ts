@@ -14,6 +14,7 @@
 
 import { getSupabaseProviders } from "./supabase";
 import { initRepositories, getRepositories } from "@/lib/repositories";
+import { traceWorkspaceLifecycle } from "@/lib/workspace-lifecycle-trace";
 import type { Repositories } from "@/lib/repositories";
 
 let _initialized = false;
@@ -27,6 +28,13 @@ export function initializeRepositories(): Repositories {
 
   const providers = getSupabaseProviders();
   const repos = initRepositories(providers);
+  traceWorkspaceLifecycle({
+    label: "repositories-initialized",
+    location: "lib/providers/index",
+    stage: "init",
+    workspace: undefined,
+    details: { repoCount: Object.keys(repos).length },
+  });
   _initialized = true;
   return repos;
 }

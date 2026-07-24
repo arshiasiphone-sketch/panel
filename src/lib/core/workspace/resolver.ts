@@ -21,6 +21,7 @@ import type { WorkspaceRepository } from "./repository";
 import { getDefaultLimits } from "./factory";
 import { getCache } from "@/lib/core/repository-cache";
 import { getLogger } from "@/lib/logger";
+import { traceWorkspaceLifecycle } from "@/lib/workspace-lifecycle-trace";
 
 export interface ResolverDependencies {
   workspaceRepository: WorkspaceRepository;
@@ -46,11 +47,27 @@ export async function resolveWorkspaceByDomain(
 ): Promise<{ workspaceId?: string; entity?: WorkspaceEntity }> {
   const cache = getCache();
   const logger = getLogger();
+  traceWorkspaceLifecycle({
+    label: "workspace-resolver-by-domain-start",
+    location: "core/workspace/resolver",
+    stage: "start",
+    workspace: undefined,
+    details: { domainOrSubdomain, isSubdomain },
+  });
   return cache.getOrFetch(
     "workspace_resolver",
     `domain:${domainOrSubdomain}:${isSubdomain}`,
     async () => {
-      if (!domainOrSubdomain) return {};
+      if (!domainOrSubdomain) {
+        traceWorkspaceLifecycle({
+          label: "workspace-resolver-by-domain-empty",
+          location: "core/workspace/resolver",
+          stage: "noop",
+          workspace: undefined,
+          details: { domainOrSubdomain, isSubdomain },
+        });
+        return {};
+      }
 
       let exactWorkspace: WorkspaceEntity | null | undefined;
 
@@ -72,7 +89,16 @@ export async function resolveWorkspaceByDomain(
         throw err instanceof Error ? err : new Error(String(err));
       }
 
-      if (exactWorkspace) return { workspaceId: exactWorkspace.id, entity: exactWorkspace };
+      if (exactWorkspace) {
+        traceWorkspaceLifecycle({
+          label: "workspace-resolver-by-domain-found-exact",
+          location: "core/workspace/resolver",
+          stage: "found",
+          workspace: { workspaceId: exactWorkspace.id, domain: exactWorkspace.metadata?.domain as string | undefined },
+          details: { domainOrSubdomain, isSubdomain, method: "exact" },
+        });
+        return { workspaceId: exactWorkspace.id, entity: exactWorkspace };
+      }
 
       if (isSubdomain) {
         try {
@@ -122,6 +148,13 @@ export async function resolveWorkspaceByDomain(
         domain: domainOrSubdomain,
         isSubdomain,
       });
+      traceWorkspaceLifecycle({
+        label: "workspace-resolver-by-domain-not-found",
+        location: "core/workspace/resolver",
+        stage: "not-found",
+        workspace: undefined,
+        details: { domainOrSubdomain, isSubdomain },
+      });
       return { };
     },
     30_000, // 30 second TTL for domain resolution (domains change less frequently)
@@ -137,6 +170,14 @@ export async function resolveWorkspace(
   userId: string,
   options?: ResolveOptions,
 ): Promise<WorkspaceContext> {
+  traceWorkspaceLifecycle({
+    label: "workspace-resolver-user-start",
+    location: "core/workspace/resolver",
+    stage: "start",
+    workspace: undefined,
+    details: { userId, options },
+  });
+
   if (options?.workspaceId) {
     const cache = getCache();
     return cache.getOrFetch(
@@ -145,8 +186,22 @@ export async function resolveWorkspace(
       async () => {
         const entity = await deps.workspaceRepository.findById(options.workspaceId!);
         if (!entity) {
+          traceWorkspaceLifecycle({
+            label: "workspace-resolver-by-id-not-found",
+            location: "core/workspace/resolver",
+            stage: "not-found",
+            workspace: undefined,
+            details: { workspaceId: options.workspaceId, userId },
+          });
           return { workspaceId: undefined, entity: undefined };
         }
+        traceWorkspaceLifecycle({
+          label: "workspace-resolver-by-id-found",
+          location: "core/workspace/resolver",
+          stage: "found",
+          workspace: { workspaceId: entity.id, domain: entity.metadata?.domain as string | undefined },
+          details: { workspaceId: options.workspaceId, userId },
+        });
         return { workspaceId: entity.id, entity };
       },
       10_000, // 10 second TTL for workspace resolution
@@ -231,12 +286,26 @@ export async function resolveWorkspaceFromRequest(
 
   // 2. Domain-based resolution
   if (opts.domain) {
+    traceWorkspaceLifecycle({
+      label: "workspace-resolver-domain-entry",
+      location: "core/workspace/resolver",
+      stage: "start",
+      workspace: undefined,
+      details: { domain: opts.domain, isSubdomain: opts.isSubdomain ?? false },
+    });
     const result = await resolveWorkspaceByDomain(
       deps,
       opts.domain,
       opts.isSubdomain ?? false,
     );
     if (result.entity) {
+      traceWorkspaceLifecycle({
+        label: "workspace-resolver-domain-found",
+        location: "core/workspace/resolver",
+        stage: "found",
+        workspace: { workspaceId: result.entity.id, domain: result.entity.metadata?.domain as string | undefined },
+        details: { domain: opts.domain, isSubdomain: opts.isSubdomain ?? false },
+      });
       return { workspaceId: result.entity.id, entity: result.entity };
     }
   }
@@ -247,5 +316,12 @@ export async function resolveWorkspaceFromRequest(
   }
 
   // 4. No resolution possible — return default/unknown context
+  traceWorkspaceLifecycle({
+    label: "workspace-resolver-fallback-default",
+    location: "core/workspace/resolver",
+    stage: "fallback",
+    workspace: undefined,
+    details: { opts },
+  });
   return { workspaceId: undefined, entity: undefined };
 }

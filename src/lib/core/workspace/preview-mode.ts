@@ -6,8 +6,7 @@
  * Safety rules (ALL must be true):
  * 1. preview_domain param exists in URL
  * 2. Current host matches a SAFE host (platform host or localhost)
- * 3. Request is inside /admin OR user is authenticated
- * 4. Workspace exists in database (verified by resolver)
+ * 3. Workspace exists in database (verified by resolver)
  *
  * If any check fails, preview mode is silently disabled.
  * No security regression — normal users see normal domains.
@@ -45,9 +44,8 @@ export function isSafePreviewHost(): boolean {
  * Check if the current route is an ADMIN context.
  * Returns true if pathname starts with /admin or /cafe.
  *
- * Preview mode is restricted to admin/testing routes, not public pages.
- * This prevents preview_domain from being used to access other users' workspaces
- * via /landing or /contact etc.
+ * Kept for callers that need to distinguish admin routes. It is not a preview
+ * mode gate because public preview routes are valid on the trusted host.
  */
 export function isAdminRoute(): boolean {
   if (typeof window === "undefined") return false;
@@ -69,19 +67,20 @@ export function isAdminRoute(): boolean {
  *   - Preview mode is ONLY available on the platform host or localhost.
  *   - If running on any other domain, preview mode is disabled.
  *
- * TIER 2: Route verification
- *   - Preview mode requires the user to be in /admin or /cafe.
- *   - Public routes (/, /landing, etc.) cannot use preview_domain.
- *   - This prevents preview_domain from being used to spoof access on public pages.
+ * TIER 2: Workspace verification
+ *   - The requested workspace must exist in the database.
+ *   - Unknown domains fall back to the default context and never create a
+ *     workspace or grant access to one.
  *
- * If both tiers pass, preview mode is enabled (no build-time env var check needed).
+ * If the trusted-host check passes, preview mode is enabled (no build-time env
+ * var check needed).
  * This allows preview mode to work WITHOUT requiring VITE_ENABLE_DOMAIN_PREVIEW
  * to be set at build time, which is fragile in the Vercel environment.
  *
  * SECURITY:
  *   - This is safe because:
  *     1. Preview domain param only works from the PLATFORM HOST (owned/controlled)
- *     2. Preview domain only works in ADMIN CONTEXT (restricted to managers)
+ *     2. The requested workspace must exist in the database
  *     3. Actual workspace resolution still requires workspace to exist in DB
  *     4. Fallback to default workspace prevents access to unowned workspaces
  */
@@ -91,12 +90,8 @@ export function canEnablePreviewMode(): boolean {
     return false;
   }
 
-  // TIER 2: Route verification — only allow in admin/restricted contexts
-  if (!isAdminRoute()) {
-    return false;
-  }
-
-  // Both tiers passed — preview mode is safe
+  // Public routes must also be able to use preview_domain: this is how a
+  // provisioned website is viewed before its custom domain is connected.
   return true;
 }
 
@@ -109,20 +104,19 @@ export function canEnablePreviewMode(): boolean {
  * Security: This is safe because:
  *   - preview_domain ONLY works from the platform host (panel-five-phi.vercel.app)
  *     or localhost (development)
- *   - preview_domain ONLY works in admin routes (/admin, /cafe)
+ *   - preview_domain works on the platform host's public and admin routes
  *   - Workspace must exist in database to be resolved
  *   - Falls back to default workspace if not found
  *
  * Returns undefined if:
  *   - Not on a safe/trusted host
- *   - Not in an admin route
  *   - preview_domain param is missing/empty
  */
 export function parsePreviewDomainSafely(search: string): string | undefined {
   const canEnable = canEnablePreviewMode();
   
   if (typeof window !== "undefined" && !canEnable) {
-    console.warn("[NAMA][preview-mode] Gates failed - isSafeHost:", isSafePreviewHost(), "isAdmin:", isAdminRoute());
+    console.warn("[NAMA][preview-mode] Gate failed - isSafeHost:", isSafePreviewHost());
     return undefined;
   }
 

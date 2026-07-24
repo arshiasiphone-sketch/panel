@@ -30,6 +30,7 @@ import type { WorkspaceContext, WorkspaceEntity, WorkspaceLimits } from "./types
 import { DEFAULT_WORKSPACE, ACTIVE_WORKSPACE_STATUSES } from "./types";
 import { getLogger } from "@/lib/logger";
 import { PLATFORM_DOMAIN } from "@/lib/constants";
+import { traceWorkspaceLifecycle } from "@/lib/workspace-lifecycle-trace";
 import {
   resolveWorkspace,
   resolveWorkspaceByDomain,
@@ -238,17 +239,19 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
   // window.location read) so the workspace re-resolves whenever ?preview_domain
   // changes — e.g. navigating between admin sections that preserve the param.
   // Note: useRouterState returns the raw search param string, which we use directly
+  const routerState = useRouterState();
   const previewDomain = useMemo(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-    // Use window.location.search directly (simpler, more reliable)
+    if (typeof window === "undefined") return undefined;
+
+    // Use the browser URL as the source of truth. TanStack Router's
+    // `location.search` is parsed differently across router versions, while
+    // window.location.search is always the raw query string.
     const result = parsePreviewDomain(window.location.search);
     if (result) {
       console.log("[NAMA][context] Preview domain extracted:", result);
     }
     return result;
-  }, []);
+  }, [routerState.location.search]);
 
   // Once the workspace resolves, the repository singletons carry the correct
   // workspace_id, but the public read hooks (useMenuItems, useGalleryImages,
@@ -276,6 +279,14 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
 
       const workspaceRepo = repos.workspace;
 
+      traceWorkspaceLifecycle({
+        label: "workspace-provider-resolve-start",
+        location: "CurrentWorkspaceProvider.resolve",
+        stage: "start",
+        workspace,
+        details: { previewDomain },
+      });
+
       // Debug: log preview mode state
       if (typeof window !== "undefined") {
         logger.debug("Preview mode check", {
@@ -299,6 +310,19 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
       });
 
       let ctx: WorkspaceContext | undefined;
+
+      traceWorkspaceLifecycle({
+        label: "workspace-provider-path-resolution",
+        location: "CurrentWorkspaceProvider.resolve",
+        stage: "path-resolution",
+        workspace: DEFAULT_WORKSPACE,
+        details: {
+          requestedDomain,
+          isSubdomain: pathResolution.isSubdomain,
+          previewDomain,
+          workspaceIdFromPath: pathResolution.workspaceId,
+        },
+      });
 
       if (pathResolution.workspaceId) {
         // Path-based workspace ID from URL (e.g., /cafe/<slug>)
@@ -337,6 +361,19 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
               isSubdomain: pathResolution.isSubdomain,
             });
           }
+
+          traceWorkspaceLifecycle({
+            label: "workspace-provider-domain-resolution",
+            location: "CurrentWorkspaceProvider.resolve",
+            stage: "domain-resolution",
+            workspace: ctx ?? DEFAULT_WORKSPACE,
+            details: {
+              requestedDomain,
+              isSubdomain: pathResolution.isSubdomain,
+              previewDomain,
+              resolvedWorkspaceId: ctx?.workspaceId,
+            },
+          });
 
           // Remember a ?preview_domain-resolved workspace so reloads without the
           // query param keep rendering it (preview builds only).
@@ -404,12 +441,39 @@ export function CurrentWorkspaceProvider({ children }: CurrentWorkspaceProviderP
             { source: "workspace" },
           );
         }
+        traceWorkspaceLifecycle({
+          label: "workspace-provider-default-fallback",
+          location: "CurrentWorkspaceProvider.resolve",
+          stage: "fallback",
+          workspace: ctx ?? DEFAULT_WORKSPACE,
+          details: { requestedDomain, previewDomain },
+        });
         ctx = DEFAULT_WORKSPACE;
       }
+
+      traceWorkspaceLifecycle({
+        label: "workspace-provider-final-context",
+        location: "CurrentWorkspaceProvider.resolve",
+        stage: "resolved",
+        workspace: ctx,
+        details: {
+          requestedDomain,
+          previewDomain,
+          workspaceId: ctx.workspaceId,
+          entityPresent: Boolean(ctx.entity),
+        },
+      });
 
       // Set workspace on all repositories
       setWorkspaceOnRepositories(repos, ctx);
       setWorkspace(ctx);
+      traceWorkspaceLifecycle({
+        label: "workspace-provider-post-bind",
+        location: "CurrentWorkspaceProvider.resolve",
+        stage: "bound",
+        workspace: ctx,
+        details: { requestedDomain, previewDomain },
+      });
       // Re-run public CMS read queries against the now-resolved workspace so
       // the site shows only this workspace's isolated content (not the
       // mount-time unfiltered union of every workspace).

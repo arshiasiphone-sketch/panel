@@ -9,6 +9,7 @@ import type { IDatabaseProvider, IStorageProvider, IAuthProvider, IRealtimeProvi
 // Import from the types file directly (not the barrel) to avoid circular
 // dependency: core/workspace → repository → base → core/workspace (barrel)
 import { DEFAULT_WORKSPACE, type WorkspaceContext } from "@/lib/core/workspace/types";
+import { traceWorkspaceLifecycle } from "@/lib/workspace-lifecycle-trace";
 import type { ILogger } from "@/lib/logger";
 import { getLogger } from "@/lib/logger";
 import { BaseAppError, RepositoryError, ValidationError } from "@/lib/errors";
@@ -76,6 +77,28 @@ export abstract class BaseRepository {
    */
   setWorkspace(workspace: WorkspaceContext): void {
     this.workspace = workspace;
+    traceWorkspaceLifecycle({
+      label: "repo.setWorkspace",
+      location: "repositories/base",
+      stage: "bind",
+      workspace,
+      details: {
+        repo: this.constructor.name,
+        workspaceId: workspace.workspaceId,
+      },
+    });
+    this.logger.debug("BaseRepository.setWorkspace", {
+      workspaceId: workspace.workspaceId,
+      entityPresent: Boolean(workspace.entity),
+      repo: this.constructor.name,
+    });
+    if (typeof console !== "undefined") {
+      console.debug("[NAMA][base-repository] setWorkspace", {
+        repo: this.constructor.name,
+        workspaceId: workspace.workspaceId,
+        entityPresent: Boolean(workspace.entity),
+      });
+    }
   }
 
   /**
@@ -90,10 +113,33 @@ export abstract class BaseRepository {
    * No-op if workspaceId is undefined (e.g. system-level queries).
    */
   protected withWorkspace<T>(query: ITableQuery<T>, column = "workspace_id"): ITableQuery<T> {
-    if (this.workspaceId) {
-      return query.eq(column, this.workspaceId);
+    if (!this.workspaceId) {
+      traceWorkspaceLifecycle({
+        label: "repo.withWorkspace",
+        location: "repositories/base",
+        stage: "noop",
+        workspace: this.workspace,
+        details: {
+          repo: this.constructor.name,
+          column,
+          workspaceId: this.workspaceId,
+        },
+      });
+      return query;
     }
-    return query;
+
+    traceWorkspaceLifecycle({
+      label: "repo.withWorkspace",
+      location: "repositories/base",
+      stage: "apply",
+      workspace: this.workspace,
+      details: {
+        repo: this.constructor.name,
+        column,
+        workspaceId: this.workspaceId,
+      },
+    });
+    return query.eq(column, this.workspaceId);
   }
 
   // ─── Validation helpers ───────────────────────────────────────────────────
